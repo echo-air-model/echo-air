@@ -34,6 +34,7 @@
 ║  These should be set to Y or N  ║
 ╙─────────────────────────────────╜
 - RUN_HEALTH: #Y (*)
+- RACE_STRATIFIED_INCIDENCE: #N
 
 ╓────────────────────────────────╖
 ║ RUN CONTROLS                   ║
