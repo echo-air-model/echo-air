@@ -4,7 +4,7 @@
 Main Run File
 
 @author: libbykoolik
-Last updated: 2023-06-13
+Last updated: 2023-07-11
 """
 #%% Import useful libraries, supporting objects, and scripts
 # Useful libraries for main script
@@ -38,7 +38,7 @@ from tool_utils import *
 #%% A few things need to go outside the __main__
 #% Use argparse to parse command line arguments
 # Initialize the parser object
-parser = argparse.ArgumentParser(description="Runs the ISRM-based tool for estimating PM2.5 concentrations and associated health impacts.")
+parser = argparse.ArgumentParser(description="Runs ECHO-AIR: an ISRM-based model for estimating PM2.5 concentrations and associated health impacts.")
 
 # Add necessary arguments
 parser.add_argument("-i", "--inputs", help="control file path", type=str)
@@ -350,7 +350,7 @@ if __name__ == "__main__":
         logging.info('╓────────────────────────────────╖')
         logging.info('║ Success! Run complete.         ║')
         logging.info('╙────────────────────────────────╜\n')
-        logging.info('<< ISRM calculations tool has completed all calculations and exports. >>')
+        logging.info('<< ECHO-AIR has completed all calculations and exports. >>')
         run_time = round((time.time() - start_time)/60.0,1)
         logging.info('- Total run time: {} minutes'.format(run_time))
         logging.info('- All log statements have been saved into a text file: {}'.format(new_logger))
