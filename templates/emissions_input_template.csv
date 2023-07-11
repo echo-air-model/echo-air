@@ -1,0 +1,10 @@
+ECHO-AIR CSV Emissions Input Template,,,,,,,
+Instructions:,,,,,,,
+Add your emissions starting on line 11. Do not delete these header rows.,,,,,,,
+LAT_WGS84 and LON_WGS84 are latitude and longitude coordinates,,,,,,,
+Emissions of each pollutant shuld be in the same units. These units are reported in the control file.,,,,,,,
+The release height of the source should be included in meters as HEIGHT_M,,,,,,,
+This file should only be used with point-type emissions sources.,,,,,,,
+Save This file as a comma separated values file in order to use as an input.,,,,,,,
+,,,,,,,
+LAT_WGS84,LON_WGS84,PM2.5,NOX,SOX,VOC,NH3,HEIGHT_M

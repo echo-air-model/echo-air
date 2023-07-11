@@ -1,0 +1,52 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ECHO-AIR MODEL CONTROL FILE  		                               ║
+║  last modified: 2023-07-11                                                   ║
+║                                                                              ║
+║  Instructions: Replace the commented out sample inputs with your own inputs. ║
+║  		 Do not change the keywords or anything inside the boxes.      ║
+║  		 Certain fields (noted with *) can be left blank if needed.    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+╓─────────────╖
+║  META DATA  ║
+╙─────────────╜
+- BATCH_NAME: #example (*)
+- RUN_NAME: #example (*)
+
+╓──────────────────╖
+║  EMISSIONS DATA  ║
+╙──────────────────╜
+- EMISSIONS_FILENAME: #example.shp
+- EMISSIONS_UNITS: #ton/yr
+
+╓──────────────────╖
+║     ISRM DATA    ║
+╙──────────────────╜
+- ISRM_FOLDER: #/example/path
+
+╓───────────────────╖
+║  POPULATION DATA  ║
+╙───────────────────╜
+- POPULATION_FILENAME: #example.shp
+
+╓─────────────────────────────────╖
+║  HEALTH RUN CONTROLS            ║
+║  These should be set to Y or N  ║
+╙─────────────────────────────────╜
+- RUN_HEALTH: #Y (*)
+
+╓────────────────────────────────╖
+║ RUN CONTROLS                   ║
+║ These should be set to Y or N  ║
+╙────────────────────────────────╜
+- CHECK_INPUTS: #Y (*)
+- VERBOSE: #Y (*)
+
+╓──────────────────╖
+║  OUTPUT OPTIONS  ║
+╙──────────────────╜
+- REGION_OF_INTEREST: #San Francisco Bay Area (*)
+- REGION_CATEGORY: #AD (*)
+- OUTPUT_RESOLUTION: #ISRM, C, AB, AD, or DACS (*)
+- OUTPUT_EXPOSURE: #Y (*)
+- DETAILED_CONC: #Y (*)
