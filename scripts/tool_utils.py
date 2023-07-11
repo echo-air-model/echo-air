@@ -4,7 +4,7 @@
 Tool Utils
 
 @author: libbykoolik
-last modified: 2023-06-07
+last modified: 2023-07-11
 """
 
 #%% Import useful libraries
@@ -179,7 +179,7 @@ def verboseprint(verbose, text):
     
 def report_version():      
     '''
-    Reports the current working version of the tool.
+    Reports the current working version of the model.
     
     INPUTS: None
         
@@ -188,8 +188,8 @@ def report_version():
     '''
 
     logging.info('╔════════════════════════════════╗')
-    logging.info('║ ISRM Health Calculations Tool  ║')
-    logging.info('║ Version 0.8.3                  ║')
+    logging.info('║ ECHO-AIR Model                 ║')
+    logging.info('║ Version 0.9.0                  ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return
