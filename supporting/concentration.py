@@ -150,7 +150,7 @@ class concentration:
             pol = 'Emissions of '+var.split('_')[-1]
         else:
             pol = 'All Emissions'
-        t_str = 'PM2.5 Concentrations from {}'.format(pol)
+        t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(pol)
         fname = f_out + '_' + pol + '_concentrations.png'
         fname = str.lower(fname)
         fpath = os.path.join(output_dir, fname)
@@ -168,7 +168,7 @@ class concentration:
                               figsize=(20,10),
                               legend=True,
                               legend_kwds={'label':r'Concentration of PM$_{2.5}$ ($\mu$g/m$^3$)'},
-                              cmap='viridis',
+                              cmap='mako_r',
                               edgecolor='none',
                               antialiased=False,
                               ax = ax)
