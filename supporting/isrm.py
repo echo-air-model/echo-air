@@ -4,7 +4,7 @@
 ISRM Data Object
 
 @author: libbykoolik
-last modified: 2023-01-20
+last modified: 2023-08-16
 """
 
 # Import Libraries
@@ -82,24 +82,14 @@ class isrm:
         if self.valid_file == True and self.load_file == True and self.valid_geo_file == True:
             verboseprint(self.verbose, '- [ISRM] Beginning to import ISRM geographic data. This step may take some time.')            
             
-            # If parallel, start getting the geodata in the executor
-            if run_parallel:
-                # Import the geographic data for the ISRM
-                executor = concurrent.futures.ThreadPoolExecutor()
-                geodata_future = executor.submit(self.load_geodata)
+            # Import the geographic data for the ISRM
+            self.geodata = self.load_geodata()
+            verboseprint(self.verbose, '- [ISRM] ISRM geographic data imported.')
 
             # Import numeric ISRM layers - if running in parallel, this will occur 
             # while the geodata file is also loading. 
             self.PM25, self.NH3, self.NOX, self.SOX, self.VOC = self.load_isrm()
             verboseprint(self.verbose, '- [ISRM] ISRM data imported. Five pollutant variables created')
-
-            # Finalize the geodata
-            if run_parallel:
-                self.geodata = geodata_future.result()
-                
-            else:
-                self.geodata = self.load_geodata()
-            verboseprint(self.verbose, '- [ISRM] ISRM geographic data imported.')
             
             # Pull a few relevant layers
             self.crs = self.geodata.crs
@@ -168,6 +158,9 @@ class isrm:
         # Create a storage list
         pollutants = []
         
+        # Run clip_isrm to get the appendices
+        self.receptor_IDs, self.receptor_geometry = self.clip_isrm()
+        
         # Iterate through each path
         for path in pollutant_paths:
             pollutants.append(self.load_and_cut(path))
@@ -186,7 +179,7 @@ class isrm:
         if self.region_of_interest != 'CA':
             # Make a copy of the output_region geodataframe
             output_region = self.output_region.copy()
-            output_region_prj = output_region.to_crs(self.crs)
+            output_region_prj = output_region.to_crs(self.geodata.crs)
             
             # Select rows of isrm_geodata that are within the output_region
             isrm_geodata = self.geodata.copy()
@@ -197,6 +190,8 @@ class isrm:
         else: # Return all indices
             receptor_IDs = self.geodata['ISRM_ID']
             receptor_geometry = self.geodata['geometry']
+            
+        self.receptor_geometry = receptor_geometry.copy()
         
         return receptor_IDs, receptor_geometry
     
