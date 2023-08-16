@@ -248,17 +248,15 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, 
                                                 vmax=hia_df['POP_AREA_NORM'].max()),
                 antialiased=False,
                 ax=ax0)
-    ca_shp.dissolve().plot(edgecolor='black',facecolor='none', linewidth=1,ax=ax0)
     
     ## Pane 1: PM2.5 Exposure Concentration
     hia_df.plot(column='TOTAL_CONC_UG/M3', legend=True,
-                legend_kwds={'label':r'PM2.5 Concentration ($\mu$g/m$^3$)'},
+                legend_kwds={'label':r'PM$_{2.5}$ Concentration ($\mu$g/m$^3$)'},
                 edgecolor='none', cmap='mako_r',
                 norm=matplotlib.colors.LogNorm(vmin=hia_df['TOTAL_CONC_UG/M3'].min(),
                                                 vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
                 antialiased=False,
                 ax=ax1)
-    ca_shp.dissolve().plot(edgecolor='black',facecolor='none', linewidth=1,ax=ax1)
     
     ## Pane 2: Excess Mortality per Area
     hia_df.plot(column='MORT_AREA_NORM', legend=True,
@@ -268,7 +266,6 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, 
                                                 vmax=hia_df['MORT_AREA_NORM'].max()),
                 antialiased=False,
                 ax=ax2)
-    ca_shp.dissolve().plot(edgecolor='black',facecolor='none', linewidth=1,ax=ax2)
     
     ## Pane 3: Excess Mortality per Population
     hia_df.plot(column='MORT_OVER_POP',legend=True,
@@ -278,24 +275,28 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, 
                                                 vmax=hia_df['MORT_OVER_POP'].max()),
                 antialiased=False,
                 ax=ax3)
-    ca_shp.dissolve().plot(edgecolor='black',facecolor='none', linewidth=1,ax=ax3)
 
     # Figure Formatting
+    minx, miny, maxx, maxy = hia_df.geometry.total_bounds
+    minx = minx - (maxx-minx)*0.025
+    miny = miny - (maxy-miny)*0.025
+    maxx = maxx + (maxx-minx)*0.025
+    maxy = maxy + (maxy-miny)*0.025
+    
+    for ax in [ax0, ax1, ax2, ax3]:
+        ca_shp.dissolve().plot(edgecolor='black',facecolor='none', linewidth=1,ax=ax)
+        ax.xaxis.set_visible(False)
+        ax.yaxis.set_visible(False)
+        ax.set_xlim([minx, maxx])
+        ax.set_ylim([miny, maxy])
+
+    # Set titles
     ax0.set_title((group_label + ' Population Density').title())
-    ax0.xaxis.set_visible(False)
-    ax0.yaxis.set_visible(False)
-
     ax1.set_title((group_label + ' Exposure').title())
-    ax1.xaxis.set_visible(False)
-    ax1.yaxis.set_visible(False)
-
     ax2.set_title((group_label + ' ' + endpoint + ' Excess Mortality').title())
-    ax2.xaxis.set_visible(False)
-    ax2.yaxis.set_visible(False)
-
     ax3.set_title((group_label + ' ' + endpoint + ' Mortality per 100K').title())
-    ax3.xaxis.set_visible(False)
-    ax3.yaxis.set_visible(False)
+
+    # Final cleanup
     fig.tight_layout()
     
     # Export!
