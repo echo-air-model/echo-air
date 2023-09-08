@@ -11,6 +11,7 @@ import pandas as pd
 from os import path
 import os
 import argparse
+import sys
 
 #% Use argparse to parse command line arguments
 # Initialize the parser object
@@ -27,9 +28,22 @@ output_dir = args.output
 
 #%% Run Program
 if __name__ == "__main__":        
+    
+    # Return a print statement to show it is working
+    ## Logging statements aren't necessary for this module
+    print('\n')
+    print('╓────────────────────────────────╖')
+    print('║ Creating Batch Control Files   ║')
+    print('╙────────────────────────────────╜')
+    print('\n')
 
     #%% First, get the template control file
     template_fp = path.join(os.getcwd(),'templates', 'control_file_template.txt')
+    
+    #%% Check that the file exists
+    if not path.exists(fp):
+        print('\n<< ERROR: The path to the control file input csv does not exist. Please correct and try again. >>')
+        sys.exit()
     
     #%% Read and re-format the CSV file
     # Read in the data
@@ -44,13 +58,20 @@ if __name__ == "__main__":
     # Store all the names
     new_file_paths = []
     
+    # Get the number of control files to create
+    n = len(df.columns)
+    print('<< Generating {} control files. >>'.format(n))
+    
     #%% Iterate through columns to create control files
-    for i in range(len(df.columns)):
+    for i in range(n):
         # Grab one column
         tmp = df.iloc[:,i]
         
         # Get the run name, batch name
         name = tmp['BATCH_NAME'] + '_' + tmp['RUN_NAME']
+        
+        # Make a print statement
+        print('{}. {}...'.format(i+1, name), end='')
         
         # Create the destination file
         new_file_path = path.join(output_dir, name+'.txt')
@@ -78,12 +99,24 @@ if __name__ == "__main__":
                         
                     else:
                         new_file.write(line)
+                        
+        # Return a message indicating this one is done
+        print('done!', end='\n')
 
     #%% Finally, spit out a new text file with all of the ECHO-AIR calls
+    print('\n<< Writing a batch file for running all >>')
+    
     # Create and open a new text file
     with open(path.join(output_dir, 'ECHO_AIR_BATCH_TEXT.txt'),'w') as batch_file:
         
         # Iterate through names
         for nfp in new_file_paths:
             batch_file.write("python3 run_echo_air.py -i '{}'\n".format(nfp))
-            
+    print('- Stored at: {}'.format(nfp))
+    
+    #%% One final print message
+    print('\n')
+    print('╓────────────────────────────────╖')
+    print('║ Success! Script complete.      ║')
+    print('╙────────────────────────────────╜\n')
+    print('<< ECHO-AIR has created and exported all control files indicated. >>')
