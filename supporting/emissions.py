@@ -4,7 +4,7 @@
 Emissions Data Object
 
 @author: libbykoolik
-last modified: 2023-06-13
+last modified: 2023-09-11
 """
 
 # Import Libraries
@@ -188,6 +188,30 @@ class emissions:
             raise ValueError('Emissions file is of an unknown type. Cannot proceed')
         
         return geometry, emissions_data, crs
+    
+    def check_id(self, emissions_gdf):
+        ''' Checks to see if I_CELL and J_CELL are included in emissions file. If missing, adds them. '''
+        
+        # Look for I_CELL
+        has_i_cell = 'I_CELL' in emissions_gdf.columns
+        
+        # Look for J_CELL
+        has_j_cell = 'J_CELL' in emissions_gdf.columns
+        
+        # If either is missing, return an error and quit
+        if not (has_i_cell and has_j_cell):
+            
+            # Return an error
+            logging.info('\n<< [EMISSIONS] WARNING: The emissions input is missing the I_CELL and/or J_CELL column. The tool will add these. Please include identifiers in the future.')
+            
+            # Add unique identifiers for I_CELL and J_CELL
+            if not has_i_cell:
+                emissions_gdf['I_CELL'] = np.arange(emissions_gdf.shape[0])
+
+            if not has_j_cell:
+                emissions_gdf['J_CELL'] = np.arange(emissions_gdf.shape[0])
+        
+        return emissions_gdf
                 
     def load_shp(self):
         ''' 
@@ -203,6 +227,9 @@ class emissions:
         
         # Shapefiles are read using geopandas
         emissions_gdf = gpd.read_file(self.file_path)
+        
+        # Check for I_CELL/J_CELL
+        emissions_gdf = self.check_id(emissions_gdf)
         
         # Split off geometry from emissions data
         geometry = emissions_gdf[['I_CELL','J_CELL','geometry']]\
@@ -228,6 +255,9 @@ class emissions:
         
         # Feathers are read using geopandas
         emissions_gdf = gpd.read_feather(self.file_path)
+        
+        # Check for I_CELL/J_CELL
+        emissions_gdf = self.check_id(emissions_gdf)
         
         # Split off geometry from emissions data
         geometry = emissions_gdf[['I_CELL','J_CELL','geometry']]\
