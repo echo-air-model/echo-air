@@ -4,7 +4,7 @@
 Batch Control File Generator
 
 @author: libbykoolik
-Last updated: 2023-09-08
+Last updated: 2023-09-11
 """
 
 import pandas as pd
@@ -20,11 +20,13 @@ parser = argparse.ArgumentParser(description="Creates control files for ECHO-AIR
 # Add necessary arguments
 parser.add_argument("-i", "--input", help="path to the control file creator CSV", type=str)
 parser.add_argument("-o", "--output", help="filepath for saving outputs", type=str)
+parser.add_argument("-p", "--parallel", help="adds the parallel tag to the batch file", action="store_true")
 
 # Parse all arguments
 args = parser.parse_args()
 fp = args.input
 output_dir = args.output
+parallel = args.parallel
 
 #%% Run Program
 if __name__ == "__main__":        
@@ -106,12 +108,18 @@ if __name__ == "__main__":
     #%% Finally, spit out a new text file with all of the ECHO-AIR calls
     print('\n<< Writing a batch file for running all >>')
     
+    # Add the parallel tag, if appropriate
+    if parallel:
+        parallel_tag = '--parallel'
+    else:
+        parallel_tag = ''
+    
     # Create and open a new text file
     with open(path.join(output_dir, 'ECHO_AIR_BATCH_TEXT.txt'),'w') as batch_file:
         
         # Iterate through names
         for nfp in new_file_paths:
-            batch_file.write("python3 run_echo_air.py -i '{}'\n".format(nfp))
+            batch_file.write("python3 run_echo_air.py -i '{}' {}\n".format(nfp, parallel_tag))
     print('- Stored at: {}'.format(nfp))
     
     #%% One final print message
