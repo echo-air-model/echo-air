@@ -4,7 +4,7 @@
 Main Run File
 
 @author: libbykoolik
-Last updated: 2023-07-11
+Last updated: 2023-09-12
 """
 #%% Import useful libraries, supporting objects, and scripts
 # Useful libraries for main script
@@ -18,6 +18,7 @@ import datetime
 import shutil
 import concurrent.futures
 import platform
+from inspect import currentframe, getframeinfo
 
 # Import supporting objects
 sys.path.insert(0,'./supporting')
@@ -115,9 +116,9 @@ if __name__ == "__main__":
     if check:
         try:
             # Default to verbose since this mode is just for checking files
-            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, load_file=False, verbose=True)
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, load_file=False, verbose=True)
-            pop = population(population_path, load_file=False, verbose=True)
+            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=False, verbose=True)
+            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
+            pop = population(population_path, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
             
         except:
@@ -140,19 +141,19 @@ if __name__ == "__main__":
         if run_parallel:
             # First start with some logging statements
             logging.info('<< Loading emissions, ISRM, and population files in parallel. Log messages may appear out of order. >>')        
-            verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].')
-            verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].')
-            verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].')
+            verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
+            verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
+            verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
             logging.info('\n')
-            verboseprint(verbose, '<< Details about file import >>')
+            verboseprint(verbose, '<< Details about file import >>', debug_mode, frameinfo=getframeinfo(currentframe()))
             
             # Open the ThreadPoolExecutor
             file_reader_pool = concurrent.futures.ThreadPoolExecutor()
             
             # Start reading in files in parallel
-            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, units=units, name=name, load_file=True, verbose=verbose)
-            isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, load_file=True, verbose=verbose)
-            pop_future = file_reader_pool.submit(population, population_path, load_file=True, verbose=verbose)
+            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, units=units, name=name, load_file=True, verbose=verbose)
+            isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
       
             # To run multiple computations at once, we need to create multiple
             # processes instead of threads. Processes take longer to create, but
@@ -168,8 +169,8 @@ if __name__ == "__main__":
             
             # Start estimating the concentrations by creating the exp_pop_alloc object.
             logging.info('\n<< Re-allocating population data to the ISRM grid >>')        
-            verboseprint(verbose, '- This step will take some time, so the details about it may pop up in other sections.')
-            verboseprint(verbose, '- Notes about this step will be preceded by the tag [POPULATION].')
+            verboseprint(verbose, '- This step will take some time, so the details about it may pop up in other sections.', debug_mode, frameinfo=getframeinfo(currentframe()))
+            verboseprint(verbose, '- Notes about this step will be preceded by the tag [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
             logging.info('\n')
             exp_pop_alloc_future = executor.submit(
                 pop.allocate_population, pop.pop_exp, isrmgrid.geodata, 'ISRM_ID', False)
@@ -180,9 +181,9 @@ if __name__ == "__main__":
             if run_health:
                 # Starts computing the HIA inputs now, in a parallel process.
                 logging.info('\n<< Beginning to import health calculation inputs in parallel. Log messages may appear out of order. >>')
-                verboseprint(verbose, '- Health calculation input details in verbose mode will be preceded by the tag [HEALTH].')
+                verboseprint(verbose, '- Health calculation input details in verbose mode will be preceded by the tag [HEALTH].', debug_mode, frameinfo=getframeinfo(currentframe()))
                 hia_inputs_future = executor.submit(
-                    create_hia_inputs, pop, load_file=True, verbose=verbose, geodata=isrmgrid.geodata, incidence_fp=incidence_fp)
+                    create_hia_inputs, pop, load_file=True, verbose=verbose, geodata=isrmgrid.geodata, incidence_fp=incidence_fp, debug_mode=debug_mode, )
                 executor_jobs.append(hia_inputs_future)
             
             ## Prepare to concentrations
@@ -193,32 +194,32 @@ if __name__ == "__main__":
             logging.info('<< Loading emissions, ISRM, and population files. >>')        
             
             # Create emissions object
-            verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].')
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, load_file=True, verbose=verbose)
+            verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
+            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
         
             # Create ISRM object
-            verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].')
-            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, load_file=True, verbose=verbose)
+            verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
+            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
             
             # Create population object
-            verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].')
-            pop = population(population_path, load_file=True, verbose=verbose)
+            verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
+            pop = population(population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
             logging.info('- [POPULATION] Re-allocating population data to the ISRM grid.')
             exp_pop_alloc = pop.allocate_population(pop.pop_exp, isrmgrid.geodata, 'ISRM_ID', False)
             
             
         # Close the linear/parallel split to estimate concentrations
         logging.info('\n<< Estimating concentrations. >>')        
-        verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].')
+        verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
-        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, run_calcs=True, verbose=verbose)
+        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, debug_mode=debug_mode, run_calcs=True, verbose=verbose)
 
 
         ## Create plots and export results
         # Parallelizing this process resulted in errors. This is an area for improvement in
         # future versions
         logging.info("\n<< Generating Concentration Outputs >>")
-        verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].')
+        verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
         
         # Create the map of concentrations
@@ -230,21 +231,21 @@ if __name__ == "__main__":
 
         ## Perform concentration-related EJ analyses
         exp_pop_alloc = pop.allocate_population(pop.pop_exp, isrmgrid.geodata, 'ISRM_ID', False)
-        verboseprint(verbose, '- [POPULATION] Population data is properly allocated to the ISRM grid and ready for EJ calculations.')
+        verboseprint(verbose, '- [POPULATION] Population data is properly allocated to the ISRM grid and ready for EJ calculations.', debug_mode, frameinfo=getframeinfo(currentframe()))
         
         ## Create the exposure dataframe and run EJ functions
         logging.info('\n<< Beginning Exposure EJ Calculations >>')
-        verboseprint(verbose, '- Notes about this step will be preceded by the tag [EJ].')
+        verboseprint(verbose, '- Notes about this step will be preceded by the tag [EJ].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
         
         # Estimate exposures and output them
-        exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, verbose)    
+        exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, verbose, debug_mode=debug_mode)    
         
         if output_exposure: # Perform all exports in parallel
-            export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel)
+            export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode=debug_mode)
             
         else: # Just export the EJ figure
-            plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose)
+            plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode=debug_mode)
             
         ### HEALTH MODULE
         if run_health:
@@ -258,17 +259,17 @@ if __name__ == "__main__":
             ## Split linear/parallel again for HIA inputs
             if run_parallel:
                 ## Wait for process creating health input object to finish
-                verboseprint(verbose, '- [HEALTH] Waiting for health calculation inputs to finish')
+                verboseprint(verbose, '- [HEALTH] Waiting for health calculation inputs to finish', debug_mode, frameinfo=getframeinfo(currentframe()))
                 hia_inputs = hia_inputs_future.result() # Needs result to proceed
                 
             else:
                 logging.info('\n<< Beginning to import health calculation inputs.')
-                verboseprint(verbose, '- Health calculation input details in verbose mode will be preceded by the tag [HEALTH].')
+                verboseprint(verbose, '- Health calculation input details in verbose mode will be preceded by the tag [HEALTH].', debug_mode, frameinfo=getframeinfo(currentframe()))
                 hia_pop_alloc = pop.allocate_population(pop.pop_all, isrmgrid.geodata, 'ISRM_ID', True)
-                hia_inputs = health_data(hia_pop_alloc, incidence_fp, verbose=verbose, race_stratified=False)
+                hia_inputs = health_data(hia_pop_alloc, incidence_fp, debug_mode=debug_mode, verbose=verbose, race_stratified=False)
             
             #% Close the split with a print statement
-            verboseprint(verbose, '- [HEALTH] Health calculation inputs ready to proceed.')
+            verboseprint(verbose, '- [HEALTH] Health calculation inputs ready to proceed.', debug_mode, frameinfo=getframeinfo(currentframe()))
             
             # Two inputs are required to estimate excess mortality - get these up front
             trimmed_conc = conc.detailed_conc_clean[['ISRM_ID','TOTAL_CONC_UG/M3','geometry']]
@@ -283,20 +284,20 @@ if __name__ == "__main__":
                     # Return a few log statements
                     logging.info('\n')
                     logging.info('<< Beginning Health Calculations >>')
-                    verboseprint(verbose, '- The tool will estimate excess mortality from three endpoints in parallel. This results in a known bug that may suppresses update statements and will be fixed in a future update. Note that this step may take a few minutes.')
-                    verboseprint(verbose, '- Notes about All-Cause Mortality will be preceded by the tag [ACM].')
-                    verboseprint(verbose, '- Notes about Ischemic Heart Disease Mortality will be preceded by the tag [IHD].')
-                    verboseprint(verbose, '- Notes about Lung Cancer Mortality will be preceded by the tag [LCM].')
+                    verboseprint(verbose, '- The tool will estimate excess mortality from three endpoints in parallel. This results in a known bug that may suppresses update statements and will be fixed in a future update. Note that this step may take a few minutes.', debug_mode, frameinfo=getframeinfo(currentframe()))
+                    verboseprint(verbose, '- Notes about All-Cause Mortality will be preceded by the tag [ACM].', debug_mode, frameinfo=getframeinfo(currentframe()))
+                    verboseprint(verbose, '- Notes about Ischemic Heart Disease Mortality will be preceded by the tag [IHD].', debug_mode, frameinfo=getframeinfo(currentframe()))
+                    verboseprint(verbose, '- Notes about Lung Cancer Mortality will be preceded by the tag [LCM].', debug_mode, frameinfo=getframeinfo(currentframe()))
                     logging.info('\n')
                     logging.info('<< Estimating Excess Mortality for Three Endpoints >>')
 
                     # Submit each endpoint as its own process to the health_executor
                     allcause_future = health_executor.submit(calculate_excess_mortality, trimmed_conc,
-                                                             hia_inputs.pop_inc, pop, 'ALL CAUSE', krewski, verbose)
+                                                             hia_inputs.pop_inc, pop, 'ALL CAUSE', krewski, verbose, debug_mode)
                     ihd_future = health_executor.submit(calculate_excess_mortality, trimmed_conc,
-                                                             hia_inputs.pop_inc, pop, 'ISCHEMIC HEART DISEASE', krewski, verbose)
+                                                             hia_inputs.pop_inc, pop, 'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                     lungcancer_future = health_executor.submit(calculate_excess_mortality, trimmed_conc,
-                                                             hia_inputs.pop_inc, pop, 'LUNG CANCER', krewski, verbose)
+                                                             hia_inputs.pop_inc, pop, 'LUNG CANCER', krewski, verbose, debug_mode)
                                     
                     # Collect all three results
                     allcause = allcause_future.result()
@@ -307,9 +308,9 @@ if __name__ == "__main__":
                     logging.info('<< Exporting Health Impact Outputs >>')
                     
                     # Start exporting files as futures
-                    allcause_ve_future = health_executor.submit(visualize_and_export_hia, allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose)
-                    ihd_ve_future = health_executor.submit(visualize_and_export_hia, ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose)
-                    lungcancer_ve_future = health_executor.submit(visualize_and_export_hia, lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose)
+                    allcause_ve_future = health_executor.submit(visualize_and_export_hia, allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                    ihd_ve_future = health_executor.submit(visualize_and_export_hia, ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                    lungcancer_ve_future = health_executor.submit(visualize_and_export_hia, lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
                     logging.info('- [HEALTH] Waiting for visualizations and exports to complete...')
                     
                     # We don't actually need anything stored, we just need the program to wait until
@@ -324,23 +325,23 @@ if __name__ == "__main__":
             else:
                 # Start with a few print statements to kick things off
                 logging.info('\n << Estimating Excess Mortality for Three Endpoints >>')
-                verboseprint(verbose, '- Notes about All-Cause Mortality will be preceded by the tag [ACM].')
-                verboseprint(verbose, '- Notes about Ischemic Heart Disease Mortality will be preceded by the tag [IHD].')
-                verboseprint(verbose, '- Notes about Lung Cancer Mortality will be preceded by the tag [LCM].')
+                verboseprint(verbose, '- Notes about All-Cause Mortality will be preceded by the tag [ACM].', debug_mode, frameinfo=getframeinfo(currentframe()))
+                verboseprint(verbose, '- Notes about Ischemic Heart Disease Mortality will be preceded by the tag [IHD].', debug_mode, frameinfo=getframeinfo(currentframe()))
+                verboseprint(verbose, '- Notes about Lung Cancer Mortality will be preceded by the tag [LCM].', debug_mode, frameinfo=getframeinfo(currentframe()))
                 
                 # Estimate excess mortality for each endpoint
                 allcause = calculate_excess_mortality(trimmed_conc, hia_inputs.pop_inc, pop, 
-                                                      'ALL CAUSE', krewski, verbose)
+                                                      'ALL CAUSE', krewski, verbose, debug_mode)
                 ihd = calculate_excess_mortality(trimmed_conc, hia_inputs.pop_inc, pop, 
-                                                 'ISCHEMIC HEART DISEASE', krewski, verbose)
+                                                 'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                 lungcancer = calculate_excess_mortality(trimmed_conc, hia_inputs.pop_inc, 
-                                                        pop, 'LUNG CANCER', krewski, verbose)            
+                                                        pop, 'LUNG CANCER', krewski, verbose, debug_mode)            
                 
                 # Plot and export
                 logging.info('<< Exporting Health Impact Outputs >>')
-                visualize_and_export_hia(allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose)
-                visualize_and_export_hia(ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose)
-                visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose)
+                visualize_and_export_hia(allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                visualize_and_export_hia(ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
             
             # Return that everything is done
             logging.info('- [HEALTH] All outputs have been exported!')
