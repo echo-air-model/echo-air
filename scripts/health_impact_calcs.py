@@ -166,7 +166,7 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     verboseprint(verbose, '- {} Performing final clean up.'.format(logging_code), debug_mode, frameinfo=getframeinfo(currentframe()))
         
     pop_inc_conc = pop_inc_conc[['ISRM_ID', 'TOTAL_CONC_UG/M3', 'ASIAN', 'BLACK', 'HISLA',
-                                 'INDIG', 'WHITE', 'TOTAL', endpoint+'_ASIAN', endpoint+'_BLACK', 
+                                 'INDIG', 'WHITE', 'TOTAL', 'OTHER', endpoint+'_ASIAN', endpoint+'_BLACK', 
                                  endpoint+'_HISLA', endpoint+'_INDIG',endpoint+'_TOTAL', 
                                  endpoint+'_WHITE', endpoint+'_OTHER', 'geometry']]
     
@@ -359,7 +359,6 @@ def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, d
                      endpoint+'_TOTAL':l+'TOTAL',
                      endpoint+'_WHITE':l+'WHITE',
                      endpoint+'_OTHER':l+'OTHER'}
-    
     hia_df.rename(columns=col_name_dict, inplace=True)
     
     # Export
@@ -452,7 +451,7 @@ def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
     verboseprint(verbose, '- {} Creating a summary table of {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
 
     # Set up a few useful variables
-    groups = ['ASIAN', 'BLACK', 'HISLA', 'INDIG', 'WHITE', 'TOTAL']
+    groups = ['ASIAN', 'BLACK', 'HISLA', 'INDIG', 'WHITE', 'TOTAL', 'OTHER']
     pop_cols = ['POP_'+grp for grp in groups]
     hia_cols = [l+grp for grp in groups]
         
