@@ -4,7 +4,7 @@
 Health Impact Function Meta Data Object
 
 @author: libbykoolik
-last modified: 2023-06-09
+last modified: 2023-09-12
 """
 
 # Import Libraries
@@ -19,6 +19,7 @@ import os
 from os import path
 import sys
 import concurrent.futures
+from inspect import currentframe, getframeinfo
 sys.path.append('./scripts')
 from tool_utils import *
 
@@ -34,6 +35,7 @@ class health_data:
         - verbose: a Boolean enabling more detailed output statements
         - race_stratified: Boolean indicating whether race-stratified incidence
           rates should be used
+        - debug_mode: a Boolean indicating whether or not to output debug statements
           
     CALCULATES:
         - population: a geodataframe containing the raw population data from BenMAP
@@ -42,13 +44,15 @@ class health_data:
           data based on the requested geographies
         
     '''
-    def __init__(self, pop_alloc, incidence_fp, verbose, race_stratified):
+    def __init__(self, pop_alloc, incidence_fp, verbose, race_stratified, debug_mode):
         ''' Initializes the Health Input object'''   
         logging.info('- [HEALTH] Loading BenMAP health inputs.')
         
         # Get object metadata
         self.verbose = verbose
-        verboseprint(self.verbose, '- [HEALTH] Downloading the input data for calculating excess mortality.')
+        self.debug_mode = debug_mode
+        verboseprint(self.verbose, '- [HEALTH] Downloading the input data for calculating excess mortality.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         self.race_stratified = race_stratified
 
         # Add input data
@@ -57,13 +61,17 @@ class health_data:
         
         # Initialize object by loading the health data
         self.incidence = self.load_data()
-        verboseprint(self.verbose, '- [HEALTH] Population data successfully imported.')
-        verboseprint(self.verbose, '- [HEALTH] Incidence data successfully imported.')
+        verboseprint(self.verbose, '- [HEALTH] Population data successfully imported.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
+        verboseprint(self.verbose, '- [HEALTH] Incidence data successfully imported.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Combine the population and incidence data into one dataframe
-        verboseprint(self.verbose, '- [HEALTH] Combining population and incidence data for health calculations. This step may take some time.')
+        verboseprint(self.verbose, '- [HEALTH] Combining population and incidence data for health calculations. This step may take some time.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         self.pop_inc = self.combine_pop_inc()
-        verboseprint(self.verbose, '- [HEALTH] Population and incidence data succesfully combined and ready for health calculations.')
+        verboseprint(self.verbose, '- [HEALTH] Population and incidence data succesfully combined and ready for health calculations.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
             
     def __str__(self):
         return 'Health impact function input population from '+self.population_source+' and incidence from '+self.incidence_source

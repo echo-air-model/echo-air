@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2023-03-15
+last modified: 2023-09-12
 """
 
 # Import Libraries
@@ -19,6 +19,7 @@ import os
 from os import path
 import logging
 import sys
+from inspect import currentframe, getframeinfo
 sys.path.append('./supporting')
 from isrm import isrm
 from emissions import emissions
@@ -37,6 +38,7 @@ class concentration_layer:
         - layer: the vertical layer of the ISRM grid to use
         - run_parallel: a Boolean indicating whether or not to run in parallel
         - run_calcs: whether calculations should be run or just checked
+        - debug_mode: a Boolean indicating whether or not to output debug statements
         - verbose: whether the tool should return more logging statements
         
     CALCULATES:
@@ -48,7 +50,7 @@ class concentration_layer:
           contribution to the total ground-level PM2.5 concentrations
         
     '''
-    def __init__(self, emis_obj, isrm_obj, layer, run_parallel, run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, layer, run_parallel, debug_mode, run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         # Initialize concentration object by reading in the emissions and isrm 
         self.emissions = emis_obj
@@ -62,31 +64,40 @@ class concentration_layer:
         self.isrm_geom = self.isrm.geometry
         self.crs = self.isrm.crs
         self.name = self.emissions.emissions_name
+        self.debug_mode = debug_mode
         self.verbose = verbose
         
         # Print a few things for logging purposes
         logging.info('- [CONCENTRATION] Estimating concentrations from layer {} of the ISRM.'.format(self.layer))
         #verboseprint = logging.info if self.verbose else lambda *a, **k:None # for logging
-        verboseprint(self.verbose, '   - [CONCENTRATION] Creating a new concentration object for layer {}'.format(self.layer))
+        verboseprint(self.verbose, '   - [CONCENTRATION] Creating a new concentration object for layer {}'.format(self.layer),
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Run concentration calculations
         if run_calcs:
             # Allocate emissions to the ISRM grid
-            verboseprint(self.verbose, '   - [CONCENTRATION] Reallocating emissions to the ISRM grid.')
+            verboseprint(self.verbose, '   - [CONCENTRATION] Reallocating emissions to the ISRM grid.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.PM25e, self.NH3e, self.VOCe, self.NOXe, self.SOXe = self.process_emissions(self.emissions, self.isrm, self.verbose)
         
             # Estimate concentrations
-            verboseprint(self.verbose, '   - [CONCENTRATION] Calculating concentrations of PM25 from each pollutant.')
+            verboseprint(self.verbose, '   - [CONCENTRATION] Calculating concentrations of PM25 from each pollutant.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.pPM25 = self.get_concentration(self.PM25e, self.isrm.get_pollutant_layer('PM25'), self.layer)
-            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from primary PM2.5.')
+            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from primary PM2.5.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.pNH4 = self.get_concentration(self.NH3e, self.isrm.get_pollutant_layer('NH3'), self.layer)
-            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from NH3.')
+            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from NH3.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.pVOC = self.get_concentration(self.VOCe, self.isrm.get_pollutant_layer('VOC'), self.layer)
-            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from VOCs.')
+            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from VOCs.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.pNO3 = self.get_concentration(self.NOXe, self.isrm.get_pollutant_layer('NOX'), self.layer)
-            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from NOx.')
+            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from NOx.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.pSO4 = self.get_concentration(self.SOXe, self.isrm.get_pollutant_layer('SOX'), self.layer)
-            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from SOx.')
+            verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from SOx.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
     
             # Add these together at each ISRM grid cell
             self.detailed_conc = self.combine_concentrations(self.pPM25,
@@ -94,7 +105,8 @@ class concentration_layer:
                                                               self.pVOC,
                                                               self.pNO3,
                                                               self.pSO4)
-            verboseprint(self.verbose, '   - [CONCENTRATION] Detailed concentrations are estimated from layer {}.'.format(self.layer))
+            verboseprint(self.verbose, '   - [CONCENTRATION] Detailed concentrations are estimated from layer {}.'.format(self.layer),
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             
     def __str__(self):
         return 'Concentration layer object created from the emissions from '+self.name + ' and the ISRM grid.'
@@ -103,12 +115,13 @@ class concentration_layer:
         return '< Concentration layer object created from '+self.name + ' and the ISRM grid.>'
 
     @staticmethod
-    def allocate_emissions(emis_layer, isrm_geography, pollutant, verbose):    
+    def allocate_emissions(emis_layer, isrm_geography, pollutant, verbose, debug_mode):    
         ''' Reallocates the emissions into the ISRM geography using a spatial intersect '''
         
         ## Pre-Process Slightly for Easier Functioning Downstream
         # Deep copy the emissions layer and add an ID field
-        verboseprint(verbose, '- [CONCENTRATION] Allocating {} emissions to grid for ISRM layer.'.format(pollutant))
+        verboseprint(verbose, '- [CONCENTRATION] Allocating {} emissions to grid for ISRM layer.'.format(pollutant),
+                     debug_mode, frameinfo=getframeinfo(currentframe()))
         emis = emis_layer.copy(deep=True)
         emis['EMIS_ID'] = 'EMIS_'+emis.index.astype(str)
         
@@ -183,11 +196,13 @@ class concentration_layer:
                     emis_slice = emis_slice[(emis_slice['HEIGHT_M']>=height_min) & (emis_slice['HEIGHT_M']<height_max)]
     
                     # verboseprint(self.verbose, f'- Estimating concentrations of PM2.5 from {pollutant}')
-                    futures[pollutant] = cl_executor.submit(self.allocate_emissions, emis_slice, isrm_obj.geodata, pollutant, verbose)
+                    futures[pollutant] = cl_executor.submit(self.allocate_emissions, emis_slice, isrm_obj.geodata, pollutant, verbose, self.debug_mode)
                     
-                verboseprint(verbose, '- [CONCENTRATION] Waiting for all allocations to complete')
+                verboseprint(verbose, '- [CONCENTRATION] Waiting for all allocations to complete',
+                             self.debug_mode, frameinfo=getframeinfo(currentframe()))
                 concurrent.futures.wait(futures.values()) # Waits for all calculations to finish
-                verboseprint(verbose, '- [CONCENTRATION] All allocations complete.')
+                verboseprint(verbose, '- [CONCENTRATION] All allocations complete.',
+                             self.debug_mode, frameinfo=getframeinfo(currentframe()))
                 
                 # Creates a dict of the values
                 tmp_dct = {x: futures[x].result() for x in pollutants}
@@ -202,7 +217,7 @@ class concentration_layer:
                 emis_slice = emis_slice[(emis_slice['HEIGHT_M']>=height_min) & (emis_slice['HEIGHT_M']<height_max)]
                 
                 tmp_dct[pollutant] = self.allocate_emissions(emis_slice, isrm_obj.geodata, 
-                                                             pollutant, verbose)
+                                                             pollutant, verbose, self.debug_mode)
             
         return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
     
