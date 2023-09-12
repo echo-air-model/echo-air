@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2023-06-09
+last modified: 2023-09-12
 """
 
 # Import Libraries
@@ -19,12 +19,13 @@ from scipy.io import netcdf_file as nf
 import os
 from os import path
 import sys
+from inspect import currentframe, getframeinfo
 sys.path.append('./scripts')
 from tool_utils import *
 import concurrent.futures
 
 #%%
-def create_exposure_df(conc, isrm_pop_alloc, verbose):
+def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
     ''' 
     Create an exposure geodataframe from concentration and population.
     
@@ -34,6 +35,7 @@ def create_exposure_df(conc, isrm_pop_alloc, verbose):
           geometry
         - verbose: a Boolean indicating whether or not detailed logging statements 
           should be printed
+        - debug_mode: a Boolean indicating whether or not to output debug statements
           
     OUTPUTS:
         - exposure_gdf: a geodataframe with the exposure concentrations and allocated 
@@ -52,7 +54,8 @@ def create_exposure_df(conc, isrm_pop_alloc, verbose):
     exposure_gdf = pd.merge(conc_gdf, isrm_pop_alloc, left_on='ISRM_ID', right_on='ISRM_ID')
     
     # Get PWM columns per group
-    verboseprint(verbose, '- [EJ] Estimating population weighted mean exposure for each demographic group.')
+    verboseprint(verbose, '- [EJ] Estimating population weighted mean exposure for each demographic group.', 
+                 debug_mode, frameinfo=getframeinfo(currentframe()))
     for group in groups:
         exposure_gdf = add_pwm_col(exposure_gdf, group)
         
@@ -173,7 +176,7 @@ def estimate_exposure_percentile(exposure_gdf, verbose):
     
     return df_pctl
 
-def run_exposure_calcs(conc, pop_alloc, verbose):
+def run_exposure_calcs(conc, pop_alloc, verbose, debug_mode):
     ''' 
     Run the exposure EJ calculations from one script 
     
@@ -183,6 +186,7 @@ def run_exposure_calcs(conc, pop_alloc, verbose):
           ISRM grid cell geometry
         - verbose: a Boolean indicating whether or not detailed logging statements should
           be printed
+        - ebug_mode: a Boolean indicating whether or not to output debug statements
         
     OUTPUTS: 
         - exposure_gdf: a dataframe containing the exposure concentrations and population
@@ -194,7 +198,7 @@ def run_exposure_calcs(conc, pop_alloc, verbose):
     
     '''
     # Call each of the functions in series
-    exposure_gdf = create_exposure_df(conc, pop_alloc, verbose)
+    exposure_gdf = create_exposure_df(conc, pop_alloc, verbose, debug_mode)
     exposure_disparity = get_overall_disparity(exposure_gdf)
     exposure_pctl = estimate_exposure_percentile(exposure_gdf, verbose)
     
@@ -311,7 +315,7 @@ def export_exposure_disparity(exposure_disparity, output_dir, f_out):
 
     return fname
 
-def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose):
+def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode):
     ''' 
     Creates a percentile plot by group 
     
@@ -322,12 +326,14 @@ def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose):
           exposed by group
         - verbose: a Boolean indicating whether or not detailed logging statements should
           be printed
+        - debug_mode: a Boolean indicating whether or not to output debug statements
         
     OUTPUTS:
         - None (fname is surrogate for completion)
     
     '''
-    verboseprint(verbose, '- [EJ] Drawing plot of exposure by percentile of each racial/ethnic group.')
+    verboseprint(verbose, '- [EJ] Drawing plot of exposure by percentile of each racial/ethnic group.', 
+                 debug_mode, frameinfo=getframeinfo(currentframe()))
     # Define racial/ethnic groups of interest
     groups = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
     
@@ -358,7 +364,7 @@ def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose):
     
     return fname
 
-def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel):
+def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode):
     ''' 
     Calls each of the exposure output functions in parallel
     
@@ -375,6 +381,7 @@ def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, 
         - verbose: a Boolean indicating whether or not detailed logging statements should be 
           printed 
         - run_parallel: a Boolean indicating whether or not to run in parallel
+        - debug_mode: a Boolean indicating whether or not to output debug statements
         
     OUTPUTS:
         - None
@@ -392,7 +399,8 @@ def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, 
             gdf_export_future = ej_executor.submit(export_exposure_gdf, exposure_gdf, shape_out, f_out)
             csv_export_future = ej_executor.submit(export_exposure_csv, exposure_gdf, output_dir, f_out)
             disp_export_future = ej_executor.submit(export_exposure_disparity, exposure_disparity, output_dir, f_out)
-            plot_export_future = ej_executor.submit(plot_percentile_exposure, output_dir, f_out, exposure_pctl, verbose)
+            plot_export_future = ej_executor.submit(plot_percentile_exposure, output_dir, f_out, exposure_pctl, verbose, 
+                                                    debug_mode)
             
             # Wait for all to finish
             (tmp, tmp, tmp, tmp) = (gdf_export_future.result(), csv_export_future.result(),
@@ -402,7 +410,8 @@ def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, 
         export_exposure_gdf(exposure_gdf, shape_out, f_out)
         export_exposure_csv(exposure_gdf, output_dir, f_out)
         export_exposure_disparity(exposure_disparity, output_dir, f_out)
-        plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose)
+        plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose,
+                                 debug_mode)
     
     logging.info('- [EJ] All exposure outputs have been saved.')
 

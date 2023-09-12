@@ -4,7 +4,7 @@
 Emissions Data Object
 
 @author: libbykoolik
-last modified: 2023-09-11
+last modified: 2023-09-12
 """
 
 # Import Libraries
@@ -16,6 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from os import path
+from inspect import currentframe, getframeinfo
 sys.path.append('./scripts')
 from tool_utils import *
 
@@ -34,6 +35,7 @@ class emissions:
         - details_to_keep: any additional aggregation field (e.g., FUEL_TYPE)
         - load_file: set to True to import emissions, otherwise will just run checks
         - verbose: enable for more detailed outputs
+        - debug_mode: a Boolean indicating whether or not to output debug statements
         
     CALCULATES:
         - PM25: primary PM2.5 emissions in each grid cell
@@ -50,7 +52,7 @@ class emissions:
           pollutant
 
     '''
-    def __init__(self, file_path, output_dir, f_out, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
+    def __init__(self, file_path, output_dir, f_out, debug_mode, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
         ''' Initializes the emissions object'''     
         
         # Initialize path and check that it is valid
@@ -63,19 +65,22 @@ class emissions:
         self.details_to_keep = details_to_keep
         self.filter_dict = filter_dict
         self.filter = bool(self.filter_dict) # returns False if empty, True if not empty
+        self.debug_mode = debug_mode
         self.verbose = verbose
         self.output_dir = output_dir
         self.f_out = f_out
 
         # Return a starting statement
-        verboseprint(self.verbose, '- [EMISSIONS] Creating a new emissions object from {}'.format(self.file_path))
+        verboseprint(self.verbose, '- [EMISSIONS] Creating a new emissions object from {}'.format(self.file_path),
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # If the file does not exist, quit before opening
         if not self.valid_file:
             logging.info('\n<< [EMISSIONS] ERROR: The emissions filepath provided is not correct. Please correct and retry. >>')
             sys.exit()
         else:
-            verboseprint(self.verbose, '- [EMISSIONS] Filepath and file found. Proceeding to import emissions data.')
+            verboseprint(self.verbose, '- [EMISSIONS] Filepath and file found. Proceeding to import emissions data.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Confirm Units are Valid
         self.units = units 
@@ -84,13 +89,16 @@ class emissions:
             logging.info('\n<< [EMISSIONS] ERROR: The units provided ({}) are not valid. Please convert emissions to ug/s (micrograms per second) and try again. >>'.format(self.units))
             sys.exit()
         else:
-            verboseprint(self.verbose, '- [EMISSIONS] Units of provided emissions ({}) are valid.'.format(self.units))
+            verboseprint(self.verbose, '- [EMISSIONS] Units of provided emissions ({}) are valid.'.format(self.units),
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             
         # If load_file is True, import the emissions data
         if load_file == True and self.valid_file:
-            verboseprint(self.verbose, '- [EMISSIONS] Attempting to load the emissions data. This step may take some time.')
+            verboseprint(self.verbose, '- [EMISSIONS] Attempting to load the emissions data. This step may take some time.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.geometry, self.emissions_data, self.crs = self.load_emissions()            
-            verboseprint(self.verbose, '- [EMISSIONS] Emissions successfully loaded.')
+            verboseprint(self.verbose, '- [EMISSIONS] Emissions successfully loaded.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.emissions_data.columns = map(str.upper, self.emissions_data.columns)
                         
             # Check the emissions data
@@ -105,8 +113,10 @@ class emissions:
                 self.check_geo_types()
             
                 # Print statements
-                verboseprint(self.verbose, '- [EMISSIONS] Emissions formatting has been checked and confirmed to be valid.')
-                verboseprint(self.verbose, '- [EMISSIONS] Beginning data cleaning and processing.')
+                verboseprint(self.verbose, '- [EMISSIONS] Emissions formatting has been checked and confirmed to be valid.',
+                             self.debug_mode, frameinfo=getframeinfo(currentframe()))
+                verboseprint(self.verbose, '- [EMISSIONS] Beginning data cleaning and processing.',
+                             self.debug_mode, frameinfo=getframeinfo(currentframe()))
                 
                 # Should add a statement about details_to_keep and the aggfunc
                 self.emissions_data_clean = self.clean_up(self.details_to_keep)
@@ -223,7 +233,8 @@ class emissions:
         
         '''
         # Add log statements
-        verboseprint(self.verbose, '- [EMISSIONS] Reading emissions from a shapefile.')
+        verboseprint(self.verbose, '- [EMISSIONS] Reading emissions from a shapefile.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Shapefiles are read using geopandas
         emissions_gdf = gpd.read_file(self.file_path)
@@ -251,7 +262,8 @@ class emissions:
         
         '''
         # Add log statements
-        verboseprint(self.verbose, '- [EMISSIONS] Reading emissions from a feather file.')
+        verboseprint(self.verbose, '- [EMISSIONS] Reading emissions from a feather file.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Feathers are read using geopandas
         emissions_gdf = gpd.read_feather(self.file_path)
@@ -279,7 +291,8 @@ class emissions:
         
         '''
         # Add log statements
-        verboseprint(self.verbose, '- [EMISSIONS] Reading emissions from a CSV file.')
+        verboseprint(self.verbose, '- [EMISSIONS] Reading emissions from a CSV file.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # CSVs are read using pandas
         emissions_df = pd.read_csv(self.file_path, header=9)
@@ -308,7 +321,8 @@ class emissions:
         # Save a copy of the emissions shapefile 
         emissions_gdf_out_path = path.join(self.output_dir, 'shapes', self.f_out+'_emissions_input.shp')
         emissions_gdf.to_file(emissions_gdf_out_path)
-        verboseprint(self.verbose, '- [EMISSIONS] Saved a copy of the emissions input as a shapefile: {}'.format(emissions_gdf_out_path))
+        verboseprint(self.verbose, '- [EMISSIONS] Saved a copy of the emissions input as a shapefile: {}'.format(emissions_gdf_out_path),
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         return geometry, emissions_data, crs
     
@@ -320,7 +334,8 @@ class emissions:
         
         else:
             self.emissions_data['HEIGHT_M'] = 0.0
-            verboseprint(self.verbose, '* [EMISSIONS] No height column was detected in the emissions data, so one was manually added.')
+            verboseprint(self.verbose, '* [EMISSIONS] No height column was detected in the emissions data, so one was manually added.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
 
         return
 
@@ -445,7 +460,8 @@ class emissions:
         # Use pandas processing to perform a groupby
         groupby_features = ['I_CELL', 'J_CELL', 'HEIGHT_M']+details_to_keep
         emissions_data_clean = emissions_data_tmp.groupby(groupby_features).agg(func)
-        verboseprint(self.verbose, '- [EMISSIONS] Emissions have been reduced to contain the {} of emissions for each {}'.format(func.__name__, ', '.join(groupby_features)))
+        verboseprint(self.verbose, '- [EMISSIONS] Emissions have been reduced to contain the {} of emissions for each {}'.format(func.__name__, ', '.join(groupby_features)),
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Clean up indices
         emissions_data_clean = emissions_data_clean.reset_index()
@@ -454,7 +470,8 @@ class emissions:
         scaling_factor = self.convert_units()
         emissions_data_clean[['PM25', 'NH3', 'VOC', 'NOX', 'SOX']] *= scaling_factor
         if scaling_factor != 1.0 and self.verbose:
-            verboseprint(self.verbose, '- [EMISSIONS] Scaled emissions data by a factor of {:e} to convert from {} to ug/s.'.format(scaling_factor, self.units))
+            verboseprint(self.verbose, '- [EMISSIONS] Scaled emissions data by a factor of {:e} to convert from {} to ug/s.'.format(scaling_factor, self.units),
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Limit columns
         emissions_data_clean = emissions_data_clean[groupby_features+['PM25', 'NH3', 'VOC', 'NOX', 'SOX']]
@@ -497,7 +514,8 @@ class emissions:
                            'VOC':'VOCs',
                            'SOX':'SOx'}
         
-        verboseprint(self.verbose, '- [EMISSIONS] Successfully created emissions object for {} for {}.'.format(self.emissions_name, pollutant_names[pollutant]))
+        verboseprint(self.verbose, '- [EMISSIONS] Successfully created emissions object for {} for {}.'.format(self.emissions_name, pollutant_names[pollutant]),
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         return pollutant_emissions
     

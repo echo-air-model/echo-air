@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2023-06-09
+last modified: 2023-09-12
 """
 
 # Import Libraries
@@ -20,6 +20,7 @@ import logging
 import os
 from os import path
 import sys
+from inspect import currentframe, getframeinfo
 sys.path.append('./supporting')
 from isrm import isrm
 from emissions import emissions
@@ -39,6 +40,7 @@ class concentration:
         - detailed_conc_flag: a Boolean indicating whether concentrations should be output
           at a detailed level or not
         - run_parallel: a Boolean indicating whether or not to run in parallel
+        - debug_mode: a Boolean indicating whether or not to output debug statements
         
     CALCULATES:
         - detailed_conc: geodataframe of the detailed concentrations at ground-level 
@@ -55,7 +57,7 @@ class concentration:
           directory of choice
 
     '''
-    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, debug_mode, run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         
         # Initialize concentration object by reading in the emissions and isrm 
@@ -69,15 +71,18 @@ class concentration:
         self.isrm_geom = self.isrm.geometry
         self.crs = self.isrm.crs
         self.name = self.emissions.emissions_name
+        self.debug_mode = debug_mode
         self.verbose = verbose
         self.run_calcs = run_calcs
         #verboseprint = logging.info if self.verbose else lambda *a, **k:None # for logging
-        verboseprint(self.verbose, '- [CONCENTRATION] Creating a new concentration object')
+        verboseprint(self.verbose, '- [CONCENTRATION] Creating a new concentration object',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
                 
         # Run concentration calculations
         if self.run_calcs:
             self.detailed_conc, self.detailed_conc_clean, self.total_conc = self.combine_concentrations()
-            verboseprint(self.verbose, '- [CONCENTRATION] Total concentrations are now ready.')
+            verboseprint(self.verbose, '- [CONCENTRATION] Total concentrations are now ready.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             logging.info('\n')
             
     def __str__(self):
@@ -89,7 +94,7 @@ class concentration:
     def run_layer(self, layer):
         ''' Estimates concentratiton for a single layer '''
         # Creates a concentration_layer object for the given layer
-        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.run_parallel, run_calcs=True, verbose=self.verbose)
+        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.run_parallel, run_calcs=True, debug_mode = self.debug_mode, verbose=self.verbose)
         
         # Copies out just the detailed_conc object and adds the LAYER column
         detailed_conc_layer = conc_layer.detailed_conc.copy()
@@ -186,14 +191,16 @@ class concentration:
         fig.tight_layout()
         
         if export:
-            verboseprint(self.verbose, '   - [CONCENTRATION] Exporting a map of total PM2.5 concentrations as a png.')
+            verboseprint(self.verbose, '   - [CONCENTRATION] Exporting a map of total PM2.5 concentrations as a png.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             fig.savefig(fpath, dpi=200)
             logging.info('- [CONCENTRATION] Map of concentrations output as {}'.format(fname))
         return 
 
     def export_concentrations(self, output_dir, f_out):
         ''' Exports concentration as a shapefile (detailed or total) '''
-        verboseprint(self.verbose, '- [CONCENTRATION] Exporting concentrations as a shapefile.')
+        verboseprint(self.verbose, '- [CONCENTRATION] Exporting concentrations as a shapefile.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         # If detailed flag is True, export detailed shapefile
         if self.detailed_conc_flag:
             fname = f_out + '_detailed_concentration.shp' # File Name

@@ -4,7 +4,7 @@
 Tool Utils
 
 @author: libbykoolik
-last modified: 2023-07-11
+last modified: 2023-09-12
 """
 
 #%% Import useful libraries
@@ -18,7 +18,7 @@ from os import path
 import datetime
 import geopandas as gpd
 import logging
-
+from inspect import currentframe, getframeinfo
 
 #%% ISRM Tool Utils
 def check_setup():
@@ -161,7 +161,7 @@ def setup_logging(debug_mode):
 
     return tmp_logger
 
-def verboseprint(verbose, text):
+def verboseprint(verbose, text, debug_mode, frameinfo):
     '''
     Sets up the verbose printing mechanism. Adding here makes it global.
     
@@ -173,6 +173,9 @@ def verboseprint(verbose, text):
     
     '''
     if verbose:
+        if debug_mode:
+            add_to_text = frameinfo.filename.split('/')[-1] + ':' + str(frameinfo.lineno)
+            text = '(' + add_to_text + ') ' + text
         logging.info(text)
     else: lambda *a, **k:None
     return
@@ -189,7 +192,7 @@ def report_version():
 
     logging.info('╔════════════════════════════════╗')
     logging.info('║ ECHO-AIR Model                 ║')
-    logging.info('║ Version 0.9.3                  ║')
+    logging.info('║ Version 0.9.4                  ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return
