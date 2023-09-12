@@ -4,7 +4,7 @@
 Population Data Object
 
 @author: libbykoolik
-last modified: 2023-06-07
+last modified: 2023-09-12
 """
 
 # Import Libraries
@@ -18,6 +18,7 @@ from scipy.io import netcdf_file as nf
 import os
 from os import path
 import sys
+from inspect import currentframe, getframeinfo
 sys.path.append('./scripts')
 from tool_utils import *
 
@@ -31,6 +32,7 @@ class population:
         - load_file: a Boolean indicating whether or not the file should be loaded 
         - verbose: a Boolean indicating whether or not detailed logging statements 
           should be printed
+        - debug_mode: a Boolean indicating whether or not to output debug statements
           
     CALCULATES:
         - valid_file: a Boolean indicating whether or not the file provided is valid
@@ -48,7 +50,7 @@ class population:
           spatial intersect
         
     '''
-    def __init__(self, file_path, load_file=True, verbose=False):
+    def __init__(self, file_path, debug_mode, load_file=True, verbose=False):
         ''' Initializes the Population object'''        
         
         # Gather meta data
@@ -56,9 +58,11 @@ class population:
         self.file_type = file_path.split('.')[-1].lower()
         self.load_file = load_file
         self.verbose = verbose
+        self.debug_mode = debug_mode
         
         # Return a starting statement
-        verboseprint(self.verbose, '- [POPULATION] Creating a new population object from {}'.format(self.file_path))
+        verboseprint(self.verbose, '- [POPULATION] Creating a new population object from {}'.format(self.file_path),
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Initialize population object by reading in the feather file
         self.valid_file = self.check_path()
@@ -69,11 +73,13 @@ class population:
         
         # Read in the data
         if self.load_file == True and self.valid_file:
-            verboseprint(self.verbose, '- [POPULATION] Attempting to load the population data. This step may take some time.')
+            verboseprint(self.verbose, '- [POPULATION] Attempting to load the population data. This step may take some time.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.pop_all, self.pop_geo, self.crs = self.load_population()
             self.pop_exp = self.make_pop_exp()
             self.pop_hia = self.make_pop_hia()
-            verboseprint(self.verbose, '- [POPULATION] Population data successfully loaded.')        
+            verboseprint(self.verbose, '- [POPULATION] Population data successfully loaded.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))        
             
     def __str__(self):
         return '< Population object for year '+str(self.year)+ '>'
@@ -157,9 +163,11 @@ class population:
     def allocate_population(self, pop_obj, new_geometry, new_geometry_ID, hia_flag):
         ''' Reallocates the population into the new geometry using a spatial intersect '''
         if hia_flag:
-            verboseprint(self.verbose, '- [HEALTH] Allocating age-stratified population from population input file to ISRM grid cells.')
+            verboseprint(self.verbose, '- [HEALTH] Allocating age-stratified population from population input file to ISRM grid cells.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
         else:
-            verboseprint(self.verbose, '- [POPULATION] Allocating total population from population input file to ISRM grid cells.')
+            verboseprint(self.verbose, '- [POPULATION] Allocating total population from population input file to ISRM grid cells.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Confirm that the coordinate reference systems match
         #assert pop_tmp.crs == new_geometry.crs, 'Coordinate reference system does not match. Population cannot be reallocated'
@@ -219,8 +227,10 @@ class population:
         
         # Print statement
         if hia_flag:
-            verboseprint(self.verbose, '- [HEALTH] Census tract population data successfully re-allocated to the ISRM grid with age stratification.')
+            verboseprint(self.verbose, '- [HEALTH] Census tract population data successfully re-allocated to the ISRM grid with age stratification.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
         else:
-            verboseprint(self.verbose, '- [POPULATION] Census tract population data successfully re-allocated to the ISRM grid.')
+            verboseprint(self.verbose, '- [POPULATION] Census tract population data successfully re-allocated to the ISRM grid.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         return new_alloc_pop

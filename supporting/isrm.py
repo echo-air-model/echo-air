@@ -4,7 +4,7 @@
 ISRM Data Object
 
 @author: libbykoolik
-last modified: 2023-08-16
+last modified: 2023-09-12
 """
 
 # Import Libraries
@@ -18,6 +18,7 @@ import os
 from os import path
 import sys
 import concurrent.futures
+from inspect import currentframe, getframeinfo
 sys.path.append('./scripts')
 from tool_utils import *
 
@@ -36,6 +37,7 @@ class isrm:
           loaded (for debugging)
         - verbose: a Boolean indicating whether or not detailed logging statements 
           should be printed
+        - debug_mode: a Boolean indicating whether or not to output debug statements
           
     CALCULATES:
         - receptor_IDs: the IDs associated with ISRM receptors within the output_region
@@ -49,7 +51,7 @@ class isrm:
         - map_isrm: simple function for mapping the ISRM grid cells
     
     '''
-    def __init__(self, isrm_path, output_region, region_of_interest, run_parallel, load_file=True, verbose=False):
+    def __init__(self, isrm_path, output_region, region_of_interest, run_parallel, debug_mode, load_file=True, verbose=False):
         ''' Initializes the ISRM object'''        
         
         # Initialize paths and check that they are valid
@@ -62,11 +64,13 @@ class isrm:
         self.valid_file, self.valid_geo_file = self.check_path()
         
         # Grab other meta-parameters
+        self.debug_mode = debug_mode
         self.load_file = load_file
         self.verbose = verbose
         
         # Return a starting statement
-        verboseprint(self.verbose, '- [ISRM] Loading a new ISRM object.')
+        verboseprint(self.verbose, '- [ISRM] Loading a new ISRM object.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # If the files do not exist, quit before opening
         if not self.valid_file:
@@ -76,20 +80,24 @@ class isrm:
             logging.info('\n<< [ISRM] ERROR: The folder provided for the ISRM files is not correct or the correct boundary file is not present. Please correct and retry. >>')
             sys.exit()
         else:
-            verboseprint(self.verbose, '- [ISRM] Filepaths and files found. Proceeding to import ISRM data.')
+            verboseprint(self.verbose, '- [ISRM] Filepaths and files found. Proceeding to import ISRM data.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Read ISRM data and geographic information
         if self.valid_file == True and self.load_file == True and self.valid_geo_file == True:
-            verboseprint(self.verbose, '- [ISRM] Beginning to import ISRM geographic data. This step may take some time.')            
+            verboseprint(self.verbose, '- [ISRM] Beginning to import ISRM geographic data. This step may take some time.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))            
             
             # Import the geographic data for the ISRM
             self.geodata = self.load_geodata()
-            verboseprint(self.verbose, '- [ISRM] ISRM geographic data imported.')
+            verboseprint(self.verbose, '- [ISRM] ISRM geographic data imported.',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
 
             # Import numeric ISRM layers - if running in parallel, this will occur 
             # while the geodata file is also loading. 
             self.PM25, self.NH3, self.NOX, self.SOX, self.VOC = self.load_isrm()
-            verboseprint(self.verbose, '- [ISRM] ISRM data imported. Five pollutant variables created')
+            verboseprint(self.verbose, '- [ISRM] ISRM data imported. Five pollutant variables created',
+                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
             
             # Pull a few relevant layers
             self.crs = self.geodata.crs
