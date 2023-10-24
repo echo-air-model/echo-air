@@ -4,7 +4,7 @@
 Control File Reading Object
 
 @author: libbykoolik
-last modified: 2023-03-14
+last modified: 2023-10-24
 """
 
 # Import Libraries
@@ -368,6 +368,32 @@ class control_file:
         
         return region_category_flag, region_of_interest_flag
     
+    def out_res_check_helper(self):
+        ''' Simple helper function for checking the output resolution input '''
+        # Define the output resolutions
+        valid_output_resolutions = ['ISRM', 'C', 'AB', 'AD']# to add DACs in future update, 'DACS']
+        
+        # Check if the input is in the list of valid inputs
+        valid_input = self.output_resolution in valid_output_resolutions
+        
+        # Need to compare against region of interest, define these
+        region_category = self.region_category
+        permissable_combos = {'AB': ['AD','C','ISRM'],
+                              'AD': ['ISRM'],
+                              'C': ['ISRM'],
+                              'STATE': ['AD','AB','C','ISRM']}        
+        
+        # Compare the output resolution and region category
+        try:
+            valid_resolution = self.output_resolution in permissable_combos[self.region_category]
+        except:
+            valid_resolution = False
+        
+        # Define valid_output_resolution
+        valid_output_resolution = valid_input and valid_resolution
+        
+        return valid_output_resolution, valid_output_resolutions
+    
     def check_inputs(self):
         ''' Once the inputs are imported, check them '''
         ## (1) Check the batch name and run name are strings
@@ -423,8 +449,7 @@ class control_file:
         logging.info('* The region of interest provided is not valid or cannot be validated. Consult user manual for correct options.') if not valid_region_of_interest else ''
         
         ## Check the output_resolution variable
-        valid_output_resolutions = ['ISRM', 'C', 'AB', 'AD']# to add DACs in future update, 'DACS']
-        valid_output_resolution = self.output_resolution in valid_output_resolutions
+        valid_output_resolution, valid_output_resolutions = self.out_res_check_helper()
         logging.info('* The output resolution provided is not valid. Valid options include: '+', '.join(valid_output_resolutions)) if not valid_output_resolution else ''
         
         ## Check the output_exposure variable
