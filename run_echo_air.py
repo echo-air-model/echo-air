@@ -223,10 +223,7 @@ if __name__ == "__main__":
         logging.info('\n')
         
         # Create the map of concentrations
-        conc.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
-        
-        # Export the shapefiles
-        conc.export_concentrations(shape_out, f_out)
+        conc.output_concentrations()
         logging.info("- [CONCENTRATION] Concentration files output into: {}.".format(output_dir))
 
         ## Perform concentration-related EJ analyses

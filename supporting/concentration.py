@@ -21,11 +21,13 @@ import os
 from os import path
 import sys
 from inspect import currentframe, getframeinfo
-sys.path.append('./supporting')
+# sys.path.append('./supporting')
+sys.path.append('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/supporting')
 from isrm import isrm
 from emissions import emissions
 from concentration_layer import concentration_layer
-sys.path.append('./scripts')
+# sys.path.append('./scripts')
+sys.path.append('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/scripts')
 from tool_utils import *
 import concurrent.futures
 
@@ -57,7 +59,7 @@ class concentration:
           directory of choice
 
     '''
-    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, debug_mode, run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, debug_mode,  output_geometry_fps, output_resolution='ISRM', run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         
         # Initialize concentration object by reading in the emissions and isrm 
@@ -71,7 +73,9 @@ class concentration:
         self.isrm_geom = self.isrm.geometry
         self.crs = self.isrm.crs
         self.name = self.emissions.emissions_name
+        self.output_resolution = output_resolution
         self.debug_mode = debug_mode
+        self.output_geometry_fps = output_geometry_fps
         self.verbose = verbose
         self.run_calcs = run_calcs
         #verboseprint = logging.info if self.verbose else lambda *a, **k:None # for logging
@@ -81,6 +85,8 @@ class concentration:
         # Run concentration calculations
         if self.run_calcs:
             self.detailed_conc, self.detailed_conc_clean, self.total_conc = self.combine_concentrations()
+            # self.summary_conc, self.crosswalk = self.get_summary_conc()
+                
             verboseprint(self.verbose, '- [CONCENTRATION] Total concentrations are now ready.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
             logging.info('\n')
@@ -161,7 +167,11 @@ class concentration:
         fpath = os.path.join(output_dir, fname)
         
         # Grab relevant layer
-        c_to_plot = self.detailed_conc_clean[['ISRM_ID','geometry',var]].copy()
+        if self.detailed_conc_flag:
+            c_to_plot = self.detailed_conc_clean[['ISRM_ID','geometry',var]].copy()
+
+        else:
+            c_to_plot = self.summary_conc[['NAME', 'geometry', var]].copy()
         
         # Clip to output region
         c_to_plot = gpd.clip(c_to_plot, output_region)
@@ -223,11 +233,110 @@ class concentration:
             fpath = os.path.join(output_dir, fname)
             
             # Make a copy and change column names to meet shapefile requirements
-            gdf_export = self.total_conc.copy()
-            gdf_export.columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
+            gdf_export = self.summary_conc.copy()
+            gdf_export.columns = ['NAME', 'geometry', 'PM25_UG_M3']
             
             # Export
             gdf_export.to_file(fpath)
             logging.info('   - [CONCENTRATION] Total concentrations output as {}'.format(fname))
         
         return 
+    
+    def get_summary_conc(self):
+        ''' Creates the summary concentration object if the output resolution is coarser
+            than the ISRM grid '''
+        
+        # This function will take two different approaches based on the output resolution
+        if self.output_resolution in ['AB','AD','C']:
+            print('UH OH!')
+            # Load the output resolution data
+            boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
+            
+            # Make a copy of the ISRM data
+            tmp = self.total_conc.copy()
+            
+            # Intersect these two dataframes
+            intersect = gpd.overlay(tmp, boundary, keep_geom_type=False, how='intersection')
+
+            # Add the area column for the intersected data
+            intersect['area_km2'] = intersect.geometry.area/(1000.0*1000.0)    
+            total_area = intersect.groupby('NAME').sum()['area_km2'].to_dict()
+            
+            # Add a total area and area fraction to the intersect object
+            intersect['area_total'] = intersect['NAME'].map(total_area)
+            intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
+
+            # Update the concentration to scale by the fraction
+            intersect['TOTAL_CONC_UG/M3'] = intersect['area_frac'] * intersect['TOTAL_CONC_UG/M3']  
+                
+            # Remove any null variables
+            intersect['TOTAL_CONC_UG/M3'] = intersect['TOTAL_CONC_UG/M3'].fillna(0)
+         
+            # Sum up for each larger shape
+            summary_conc = intersect.groupby(['NAME'])[['TOTAL_CONC_UG/M3']].sum().reset_index()
+            
+            ## Clean up
+            summary_conc = summary_conc[['NAME','TOTAL_CONC_UG/M3']].copy()
+                        
+            # Clean up
+            summary_conc = summary_conc.reset_index(drop=True)
+            
+            # Merge with boundary data
+            summary_conc = pd.merge(boundary, summary_conc, on='NAME')
+            
+            # Also, save a crosswalk
+            crosswalk = intersect[['NAME','ISRM_ID','area_frac', 'area_total']].copy()
+             
+        # If not, create summary_conc from total_conc
+        else:
+            # Just copy the total concentration
+            summary_conc = self.total_conc.copy()
+            
+            # Change the column names
+            summary_conc.rename(columns={'ISRM_ID':'NAME'}, inplace=True)
+            
+            # Create the crosswalk
+            crosswalk = summary_conc[['NAME']].copy()
+            crosswalk['ISRM_ID'] = crosswalk['NAME']
+            crosswalk['area_frac'], crosswalk['area_total'] = (1,1) # placeholder values
+        
+        return summary_conc, crosswalk
+    
+    def output_concentrations(self):
+        ''' Function for outputting concentration data '''
+        
+        # Draw the map
+        conc.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
+        
+        # Export the shapefiles
+        conc.export_concentrations(shape_out, f_out)
+        
+        return
+
+#%% Load data
+region_of_interest = 'CA'
+region_category = ''
+
+output_geometry_fps = {'AB': '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/air_basins.feather',
+                       'AD': '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/air_districts.feather',
+                       'C': '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/counties.feather'}
+
+
+output_region = get_output_region(region_of_interest, region_category, 
+                                  output_geometry_fps, '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/ca_border.feather')
+
+emis_obj = emissions('/Users/libbykoolik/Documents/Research/OEHHA Project/Retrospective Analysis/Emissions Data/mobile_ca_emfac21_042623/emfac21_2000.feather',#'/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/emissions_for_testing/missing_icell_jcell.feather', 
+                     '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/testing_output_resolution', 
+                     'test', 
+                     True, verbose=True)
+
+isrm_obj = isrm('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/CA_ISRM', 
+                output_region, 
+                region_of_interest, 
+                True, 
+                True, verbose=True)
+#%%
+test_conc = concentration(emis_obj, isrm_obj, False, False, True,  output_geometry_fps, output_resolution='ISRM', verbose=True)
+# test_conc.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/testing_output_resolution',
+#                                    'test', '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/ca_border.feather',
+#                                    export=True)
