@@ -85,7 +85,7 @@ class concentration:
         # Run concentration calculations
         if self.run_calcs:
             self.detailed_conc, self.detailed_conc_clean, self.total_conc = self.combine_concentrations()
-            # self.summary_conc, self.crosswalk = self.get_summary_conc()
+            self.summary_conc, self.crosswalk = self.get_summary_conc()
                 
             verboseprint(self.verbose, '- [CONCENTRATION] Total concentrations are now ready.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -248,7 +248,7 @@ class concentration:
         
         # This function will take two different approaches based on the output resolution
         if self.output_resolution in ['AB','AD','C']:
-            print('UH OH!')
+            
             # Load the output resolution data
             boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
             
@@ -325,10 +325,10 @@ output_geometry_fps = {'AB': '/Users/libbykoolik/Documents/Research/OEHHA Projec
 output_region = get_output_region(region_of_interest, region_category, 
                                   output_geometry_fps, '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/ca_border.feather')
 
-emis_obj = emissions('/Users/libbykoolik/Documents/Research/OEHHA Project/Retrospective Analysis/Emissions Data/mobile_ca_emfac21_042623/emfac21_2000.feather',#'/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/emissions_for_testing/missing_icell_jcell.feather', 
+emis_obj = emissions('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/emissions_for_testing/missing_icell_jcell.feather', # '/Users/libbykoolik/Documents/Research/OEHHA Project/Retrospective Analysis/Emissions Data/mobile_ca_emfac21_042623/emfac21_2000.feather',
                      '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/testing_output_resolution', 
                      'test', 
-                     True, verbose=True)
+                     True, units='ton/yr', verbose=True)
 
 isrm_obj = isrm('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/CA_ISRM', 
                 output_region, 
@@ -336,7 +336,8 @@ isrm_obj = isrm('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/ech
                 True, 
                 True, verbose=True)
 #%%
-test_conc = concentration(emis_obj, isrm_obj, False, False, True,  output_geometry_fps, output_resolution='ISRM', verbose=True)
-# test_conc.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/testing_output_resolution',
-#                                    'test', '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/ca_border.feather',
-#                                    export=True)
+test_conc = concentration(emis_obj, isrm_obj, False, False, True,  output_geometry_fps, output_resolution='C', verbose=True)
+
+test_conc.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/testing_output_resolution',
+                                    'test', '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/ca_border.feather',
+                                    export=True)
