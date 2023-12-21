@@ -57,7 +57,7 @@ class concentration:
           directory of choice
 
     '''
-    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, debug_mode, run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, output_dir, debug_mode,  run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         
         # Initialize concentration object by reading in the emissions and isrm 
@@ -74,6 +74,7 @@ class concentration:
         self.debug_mode = debug_mode
         self.verbose = verbose
         self.run_calcs = run_calcs
+        self.output_dir = output_dir
         #verboseprint = logging.info if self.verbose else lambda *a, **k:None # for logging
         verboseprint(self.verbose, '- [CONCENTRATION] Creating a new concentration object',
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -94,7 +95,7 @@ class concentration:
     def run_layer(self, layer):
         ''' Estimates concentratiton for a single layer '''
         # Creates a concentration_layer object for the given layer
-        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.run_parallel, run_calcs=True, debug_mode = self.debug_mode, verbose=self.verbose)
+        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.output_dir, self.run_parallel, run_calcs=True, debug_mode = self.debug_mode, verbose=self.verbose)
         
         # Copies out just the detailed_conc object and adds the LAYER column
         detailed_conc_layer = conc_layer.detailed_conc.copy()

@@ -50,7 +50,7 @@ class concentration_layer:
           contribution to the total ground-level PM2.5 concentrations
         
     '''
-    def __init__(self, emis_obj, isrm_obj, layer, run_parallel, debug_mode, run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, layer, output_dir, run_parallel, debug_mode, run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         # Initialize concentration object by reading in the emissions and isrm 
         self.emissions = emis_obj
@@ -66,6 +66,7 @@ class concentration_layer:
         self.name = self.emissions.emissions_name
         self.debug_mode = debug_mode
         self.verbose = verbose
+        self.output_dir = output_dir
         
         # Print a few things for logging purposes
         logging.info('- [CONCENTRATION] Estimating concentrations from layer {} of the ISRM.'.format(self.layer))
@@ -78,8 +79,11 @@ class concentration_layer:
             # Allocate emissions to the ISRM grid
             verboseprint(self.verbose, '   - [CONCENTRATION] Reallocating emissions to the ISRM grid.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.PM25e, self.NH3e, self.VOCe, self.NOXe, self.SOXe = self.process_emissions(self.emissions, self.isrm, self.verbose)
-        
+            self.PM25e, self.NH3e, self.VOCe, self.NOXe, self.SOXe = self.process_emissions(self.emissions, self.isrm, self.verbose, self.output_dir)
+            
+            # Save the allocated emissions
+            ...
+            
             # Estimate concentrations
             verboseprint(self.verbose, '   - [CONCENTRATION] Calculating concentrations of PM25 from each pollutant.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -168,7 +172,7 @@ class concentration_layer:
         
         return tmp_cut
     
-    def process_emissions(self, emis, isrm_obj, verbose):
+    def process_emissions(self, emis, isrm_obj, verbose, output_dir):
         ''' Processes emissions before calculating concentrations '''
         # Define pollutant names
         pollutants = ['PM25', 'NH3', 'VOC', 'NOX', 'SOX']
@@ -218,8 +222,49 @@ class concentration_layer:
                 
                 tmp_dct[pollutant] = self.allocate_emissions(emis_slice, isrm_obj.geodata, 
                                                              pollutant, verbose, self.debug_mode)
+                
+        # TEMP
+        self.save_allocated_emis(tmp_dct, output_dir)
             
         return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
+    
+    def save_allocated_emis(self, tmp_dct, output_dir):
+        ''' Temporary function for outputting allocated emissions '''
+        
+        # Set up a dataframe based on the PM25 one
+        aloc_emis = tmp_dct['PM25'].copy()
+        
+        # Grab just geometry
+        geodata = aloc_emis[['ISRM_ID', 'geometry']].copy()
+        
+        # Remove geometry from aloc_emis
+        aloc_emis = aloc_emis.drop('geometry', axis=1)
+        
+        # Rename column
+        aloc_emis.rename(columns={'EMISSIONS_UG/S':'PM25_UG/S'}, inplace=True)
+        
+        # Loop through other pollutants
+        for pol in ['NH3', 'VOC', 'NOX', 'SOX']:
+            # Copy the geodataframe
+            tmp = tmp_dct[pol].copy()
+            
+            # Fix column names
+            tmp.drop('geometry', axis=1, inplace=True)
+            tmp.rename(columns={'EMISSIONS_UG/S':'{}_UG/S'.format(pol)}, inplace=True)
+            
+            # Merge with aloc_emis
+            aloc_emis = pd.merge(aloc_emis, tmp, on='ISRM_ID')
+            
+        # Add the geodata back in
+        aloc_emis = pd.merge(aloc_emis, geodata, on='ISRM_ID')
+            
+        # Create a file name
+        fname_tmp = 'allocated_emis'
+        
+        # Output
+        aloc_emis.to_file(path.join(output_dir, 'shapes', fname_tmp))
+            
+        return
     
     def get_concentration(self, pol_emis, pol_isrm, layer):
         ''' For a given pollutant layer, get the resulting PM25 concentration '''
