@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2024-01-18
 """
 
 # Import Libraries
@@ -36,9 +36,11 @@ class concentration_layer:
         - emis_obj: an emissions object
         - isrm_obj: an ISRM object
         - layer: the vertical layer of the ISRM grid to use
+        - output_dir: a string pointing to the output directory
+        - output_emis_flag: a Boolean indicating whether ISRM-allocated emissions should be output
         - run_parallel: a Boolean indicating whether or not to run in parallel
-        - run_calcs: whether calculations should be run or just checked
         - debug_mode: a Boolean indicating whether or not to output debug statements
+        - run_calcs: whether calculations should be run or just checked
         - verbose: whether the tool should return more logging statements
         
     CALCULATES:
@@ -50,7 +52,7 @@ class concentration_layer:
           contribution to the total ground-level PM2.5 concentrations
         
     '''
-    def __init__(self, emis_obj, isrm_obj, layer, output_dir, run_parallel, debug_mode, run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, run_parallel, debug_mode,  run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         # Initialize concentration object by reading in the emissions and isrm 
         self.emissions = emis_obj
@@ -58,15 +60,18 @@ class concentration_layer:
         
         # Get a few other metadata
         self.layer = layer
+        self.output_dir = output_dir
+        self.output_emis_flag = output_emis_flag
         self.run_parallel = run_parallel
+        self.debug_mode = debug_mode
+        self.verbose = verbose
+        
+        # Get data from the inputs to the layer
         self.isrm_id = self.isrm.ISRM_ID
         self.receptor_id = self.isrm.receptor_IDs
         self.isrm_geom = self.isrm.geometry
         self.crs = self.isrm.crs
         self.name = self.emissions.emissions_name
-        self.debug_mode = debug_mode
-        self.verbose = verbose
-        self.output_dir = output_dir
         
         # Print a few things for logging purposes
         logging.info('- [CONCENTRATION] Estimating concentrations from layer {} of the ISRM.'.format(self.layer))
@@ -79,10 +84,7 @@ class concentration_layer:
             # Allocate emissions to the ISRM grid
             verboseprint(self.verbose, '   - [CONCENTRATION] Reallocating emissions to the ISRM grid.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.PM25e, self.NH3e, self.VOCe, self.NOXe, self.SOXe = self.process_emissions(self.emissions, self.isrm, self.verbose, self.output_dir)
-            
-            # Save the allocated emissions
-            ...
+            self.PM25e, self.NH3e, self.VOCe, self.NOXe, self.SOXe = self.process_emissions(self.emissions, self.isrm, self.verbose, self.output_dir, self.output_emis_flag)
             
             # Estimate concentrations
             verboseprint(self.verbose, '   - [CONCENTRATION] Calculating concentrations of PM25 from each pollutant.',
@@ -124,7 +126,7 @@ class concentration_layer:
         
         ## Pre-Process Slightly for Easier Functioning Downstream
         # Deep copy the emissions layer and add an ID field
-        verboseprint(verbose, '- [CONCENTRATION] Allocating {} emissions to grid for ISRM layer.'.format(pollutant),
+        verboseprint(verbose, '      - [CONCENTRATION] Allocating {} emissions to grid for ISRM layer.'.format(pollutant),
                      debug_mode, frameinfo=getframeinfo(currentframe()))
         emis = emis_layer.copy(deep=True)
         emis['EMIS_ID'] = 'EMIS_'+emis.index.astype(str)
@@ -172,7 +174,7 @@ class concentration_layer:
         
         return tmp_cut
     
-    def process_emissions(self, emis, isrm_obj, verbose, output_dir):
+    def process_emissions(self, emis, isrm_obj, verbose, output_dir, output_emis_flag):
         ''' Processes emissions before calculating concentrations '''
         # Define pollutant names
         pollutants = ['PM25', 'NH3', 'VOC', 'NOX', 'SOX']
@@ -222,14 +224,17 @@ class concentration_layer:
                 
                 tmp_dct[pollutant] = self.allocate_emissions(emis_slice, isrm_obj.geodata, 
                                                              pollutant, verbose, self.debug_mode)
-                
-        # TEMP
-        self.save_allocated_emis(tmp_dct, output_dir)
+        
+        # Output the emissions, if specified by the user
+        if output_emis_flag:
+            self.save_allocated_emis(tmp_dct, output_dir, verbose)
             
         return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
     
-    def save_allocated_emis(self, tmp_dct, output_dir):
-        ''' Temporary function for outputting allocated emissions '''
+    def save_allocated_emis(self, tmp_dct, output_dir, verbose):
+        ''' Function for outputting allocated emissions '''
+        verboseprint(verbose, '      - [CONCENTRATION] Preparing to export the ISRM-allocated emissions as a shapefile.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Set up a dataframe based on the PM25 one
         aloc_emis = tmp_dct['PM25'].copy()
@@ -259,10 +264,12 @@ class concentration_layer:
         aloc_emis = pd.merge(aloc_emis, geodata, on='ISRM_ID')
             
         # Create a file name
-        fname_tmp = 'allocated_emis'
+        fname_tmp = '{}_layer{}_allocated_emis.shp'.format(self.name, self.layer)
         
         # Output
         aloc_emis.to_file(path.join(output_dir, 'shapes', fname_tmp))
+        verboseprint(verbose, '      - [CONCENTRATION] ISRM-allocated emissions have been saved in the output directory.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
             
         return
     
