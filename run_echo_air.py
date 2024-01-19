@@ -4,7 +4,7 @@
 Main Run File
 
 @author: libbykoolik
-Last updated: 2023-09-12
+Last updated: 2024-01-18
 """
 #%% Import useful libraries, supporting objects, and scripts
 # Useful libraries for main script
@@ -90,6 +90,7 @@ if __name__ == "__main__":
         output_resolution = cf.output_resolution
         output_exposure = cf.output_exposure
         detailed_conc_flag = cf.detailed_conc
+        output_emis_flag = cf.output_emis
 
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
@@ -212,7 +213,7 @@ if __name__ == "__main__":
         logging.info('\n<< Estimating concentrations. >>')        
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
-        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, debug_mode=debug_mode, run_calcs=True, verbose=verbose)
+        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode=debug_mode, run_calcs=True, verbose=verbose)
 
 
         ## Create plots and export results
