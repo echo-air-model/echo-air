@@ -213,8 +213,7 @@ if __name__ == "__main__":
         logging.info('\n<< Estimating concentrations. >>')        
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
-        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode=debug_mode, run_calcs=True, verbose=verbose)
-
+        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
 
         ## Create plots and export results
         # Parallelizing this process resulted in errors. This is an area for improvement in
@@ -224,7 +223,7 @@ if __name__ == "__main__":
         logging.info('\n')
         
         # Create the map of concentrations
-        conc.output_concentrations()
+        conc.output_concentrations(output_region, output_dir, f_out, ca_shp_path, shape_out)
         logging.info("- [CONCENTRATION] Concentration files output into: {}.".format(output_dir))
 
         ## Perform concentration-related EJ analyses

@@ -168,8 +168,18 @@ class concentration:
             pol = 'Emissions of '+var.split('_')[-1]
         else:
             pol = 'All Emissions'
-        t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(pol)
-        fname = f_out + '_' + pol + '_concentrations.png'
+        
+        # A few things vary on the output resolution
+        if self.output_resolution in ['AB','AD','C']:
+            st_str = '* Area-Weighted Average'
+            fname = f_out + '_' + pol + 'area_wtd_concentrations.png'
+            t_str = r'PM$_{2.5}$ Concentrations* '+'from {}'.format(pol)
+            
+        else:
+            t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(pol)
+            fname = f_out + '_' + pol + '_concentrations.png'
+            
+        # Tie things together
         fname = str.lower(fname)
         fpath = os.path.join(output_dir, fname)
         
@@ -205,6 +215,11 @@ class concentration:
         ax.set_title(t_str)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
+        
+        # If output region is used, add a footnote
+        if self.output_resolution in ['AB','AD','C']:
+            ax.text(minx-(maxx-minx)*0.1, miny-(maxy-miny)*0.1, st_str, fontsize=12)
+        
         fig.tight_layout()
         
         if export:
@@ -293,6 +308,8 @@ class concentration:
             
             # Also, save a crosswalk
             crosswalk = intersect[['NAME','ISRM_ID','area_frac', 'area_total']].copy()
+            crosswalk = crosswalk[~crosswalk['NAME'].isna()].copy()
+            crosswalk = pd.merge(crosswalk, tmp[['ISRM_ID','TOTAL_CONC_UG/M3']], on='ISRM_ID', how='left')
              
         # If not, create summary_conc from total_conc
         else:
@@ -309,42 +326,13 @@ class concentration:
         
         return summary_conc, crosswalk
     
-    def output_concentrations(self):
+    def output_concentrations(self, output_region, output_dir, f_out, ca_shp_path, shape_out):
         ''' Function for outputting concentration data '''
-        
+    
         # Draw the map
-        conc.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
+        self.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
         
         # Export the shapefiles
-        conc.export_concentrations(shape_out, f_out)
+        self.export_concentrations(shape_out, f_out)
         
         return
-
-#%% Load data
-region_of_interest = 'CA'
-region_category = ''
-
-output_geometry_fps = {'AB': '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/air_basins.feather',
-                       'AD': '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/air_districts.feather',
-                       'C': '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/counties.feather'}
-
-
-output_region = get_output_region(region_of_interest, region_category, 
-                                  output_geometry_fps, '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/ca_border.feather')
-
-emis_obj = emissions('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/emissions_for_testing/missing_icell_jcell.feather', # '/Users/libbykoolik/Documents/Research/OEHHA Project/Retrospective Analysis/Emissions Data/mobile_ca_emfac21_042623/emfac21_2000.feather',
-                     '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/testing_output_resolution', 
-                     'test', 
-                     True, units='ton/yr', verbose=True)
-
-isrm_obj = isrm('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/CA_ISRM', 
-                output_region, 
-                region_of_interest, 
-                True, 
-                True, verbose=True)
-#%%
-test_conc = concentration(emis_obj, isrm_obj, False, False, True,  output_geometry_fps, output_resolution='C', verbose=True)
-
-test_conc.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/testing_data/testing_output_resolution',
-                                    'test', '/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/data/ca_border.feather',
-                                    export=True)
