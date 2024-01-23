@@ -186,7 +186,7 @@ def run_exposure_calcs(conc, pop_alloc, verbose, debug_mode):
           ISRM grid cell geometry
         - verbose: a Boolean indicating whether or not detailed logging statements should
           be printed
-        - ebug_mode: a Boolean indicating whether or not to output debug statements
+        - debug_mode: a Boolean indicating whether or not to output debug statements
         
     OUTPUTS: 
         - exposure_gdf: a dataframe containing the exposure concentrations and population

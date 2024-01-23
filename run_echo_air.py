@@ -244,6 +244,9 @@ if __name__ == "__main__":
         else: # Just export the EJ figure
             plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode=debug_mode)
             
+        # Finally, if larger output resolution, export population-weighted map that matches the area-weighted map
+        if 
+        
         ### HEALTH MODULE
         if run_health:
             
