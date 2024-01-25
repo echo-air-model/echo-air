@@ -21,13 +21,13 @@ import os
 from os import path
 import sys
 from inspect import currentframe, getframeinfo
-# sys.path.append('./supporting')
-sys.path.append('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/supporting')
+sys.path.append('./supporting')
+# sys.path.append('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/supporting')
 from isrm import isrm
 from emissions import emissions
 from concentration_layer import concentration_layer
-# sys.path.append('./scripts')
-sys.path.append('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/scripts')
+sys.path.append('./scripts')
+# sys.path.append('/Users/libbykoolik/Documents/Research/OEHHA Project/scripts/echo-air/scripts')
 from tool_utils import *
 import concurrent.futures
 
@@ -307,7 +307,7 @@ class concentration:
             summary_conc = pd.merge(boundary, summary_conc, on='NAME')
             
             # Also, save a crosswalk
-            crosswalk = intersect[['NAME','ISRM_ID','area_frac', 'area_total']].copy()
+            crosswalk = intersect[['NAME','ISRM_ID','area_frac', 'area_total', 'geometry']].copy()
             crosswalk = crosswalk[~crosswalk['NAME'].isna()].copy()
             crosswalk = pd.merge(crosswalk, tmp[['ISRM_ID','TOTAL_CONC_UG/M3']], on='ISRM_ID', how='left')
              
