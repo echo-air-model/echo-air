@@ -245,7 +245,8 @@ if __name__ == "__main__":
             plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode=debug_mode)
             
         # Finally, if larger output resolution, export population-weighted map that matches the area-weighted map
-        if 
+        if output_resolution != 'ISRM':
+            export_pwm_map(pop.pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out)
         
         ### HEALTH MODULE
         if run_health:
