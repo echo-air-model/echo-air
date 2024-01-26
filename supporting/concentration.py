@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2024-01-18
+last modified: 2024-01-25
 """
 
 # Import Libraries
@@ -174,21 +174,16 @@ class concentration:
             st_str = '* Area-Weighted Average'
             fname = f_out + '_' + pol + 'area_wtd_concentrations.png'
             t_str = r'PM$_{2.5}$ Concentrations* '+'from {}'.format(pol)
+            c_to_plot = self.summary_conc[['NAME', 'geometry', var]].copy()
             
         else:
             t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(pol)
             fname = f_out + '_' + pol + '_concentrations.png'
+            c_to_plot = self.detailed_conc_clean[['ISRM_ID', 'geometry', var]].copy()
             
         # Tie things together
         fname = str.lower(fname)
         fpath = os.path.join(output_dir, fname)
-        
-        # Grab relevant layer
-        if self.detailed_conc_flag:
-            c_to_plot = self.detailed_conc_clean[['ISRM_ID','geometry',var]].copy()
-
-        else:
-            c_to_plot = self.summary_conc[['NAME', 'geometry', var]].copy()
         
         # Clip to output region
         c_to_plot = gpd.clip(c_to_plot, output_region)
