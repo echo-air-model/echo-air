@@ -507,6 +507,18 @@ def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path,
     to_shp = output_res_geo[['NAME','TOTAL_PWM','geometry']].copy()
     to_shp.columns = ['NAME', 'PWM_UG_M3', 'geometry']
     to_shp.to_file(path.join(output_dir, 'shapes', f_out + '_pwm_concentration.shp'))
+    
+    ## Finally, output a CSV file with the data
+    # Grab just the relevant columns as a dataframe
+    to_csv = output_res_geo[['NAME', 'TOTAL_PWM', 'ASIAN_PWM', 'BLACK_PWM', 'HISLA_PWM', 
+                             'INDIG_PWM', 'PACIS_PWM', 'WHITE_PWM', 'OTHER_PWM']].copy()
+    
+    # Get total population by region as its own dataframe
+    pop_by_name = intersect.groupby(['NAME'])[['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']].sum().reset_index()
+    
+    # Merge and export
+    to_csv = pd.merge(pop_by_name, to_csv, on='NAME')
+    to_csv.to_csv(path.join(output_dir, f_out + '_aggregated_exposure_concentrations.csv'), index=False)
 
     return output_res_geo
 
