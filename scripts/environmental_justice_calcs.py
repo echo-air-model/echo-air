@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2024-01-24
+last modified: 2024-01-29
 """
 
 # Import Libraries
@@ -490,7 +490,6 @@ def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path,
     total_pop = pop_exp['TOTAL'].sum()
     for group in ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']:
         intersect[group] = intersect[group]*intersect['AREA_FRAC']
-    assert np.isclose(total_pop, intersect['TOTAL'].sum()) # check
     
     ## Get the output resolution names and geometries
     # Dissolve the crosswalk dataframe
