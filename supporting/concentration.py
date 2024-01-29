@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2024-01-18
+last modified: 2024-01-29
 """
 
 # Import Libraries
@@ -59,7 +59,9 @@ class concentration:
           directory of choice
 
     '''
-    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, run_calcs=True, verbose=False):
+    
+    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode,  output_geometry_fps, output_resolution='ISRM', run_calcs=True, verbose=False):
+
         ''' Initializes the Concentration object'''        
         
         # Initialize concentration object by reading in the emissions and isrm 
@@ -73,7 +75,9 @@ class concentration:
         self.isrm_geom = self.isrm.geometry
         self.crs = self.isrm.crs
         self.name = self.emissions.emissions_name
+        self.output_resolution = output_resolution
         self.debug_mode = debug_mode
+        self.output_geometry_fps = output_geometry_fps
         self.verbose = verbose
         self.run_calcs = run_calcs
         self.output_dir = output_dir
@@ -86,6 +90,8 @@ class concentration:
         # Run concentration calculations
         if self.run_calcs:
             self.detailed_conc, self.detailed_conc_clean, self.total_conc = self.combine_concentrations()
+            self.summary_conc, self.crosswalk = self.get_summary_conc()
+                
             verboseprint(self.verbose, '- [CONCENTRATION] Total concentrations are now ready.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
             logging.info('\n')
@@ -160,13 +166,22 @@ class concentration:
             pol = 'Emissions of '+var.split('_')[-1]
         else:
             pol = 'All Emissions'
-        t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(pol)
-        fname = f_out + '_' + pol + '_concentrations.png'
+        
+        # A few things vary on the output resolution
+        if self.output_resolution in ['AB','AD','C']:
+            st_str = '* Area-Weighted Average'
+            fname = f_out + '_' + pol + '_area_wtd_concentrations.png'
+            t_str = r'PM$_{2.5}$ Concentrations* '+'from {}'.format(pol)
+            c_to_plot = self.summary_conc[['NAME', 'geometry', var]].copy()
+            
+        else:
+            t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(pol)
+            fname = f_out + '_' + pol + '_concentrations.png'
+            c_to_plot = self.detailed_conc_clean[['ISRM_ID', 'geometry', var]].copy()
+            
+        # Tie things together
         fname = str.lower(fname)
         fpath = os.path.join(output_dir, fname)
-        
-        # Grab relevant layer
-        c_to_plot = self.detailed_conc_clean[['ISRM_ID','geometry',var]].copy()
         
         # Clip to output region
         c_to_plot = gpd.clip(c_to_plot, output_region)
@@ -193,6 +208,11 @@ class concentration:
         ax.set_title(t_str)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
+        
+        # If output region is used, add a footnote
+        if self.output_resolution in ['AB','AD','C']:
+            ax.text(minx-(maxx-minx)*0.1, miny-(maxy-miny)*0.1, st_str, fontsize=12)
+        
         fig.tight_layout()
         
         if export:
@@ -228,11 +248,84 @@ class concentration:
             fpath = os.path.join(output_dir, fname)
             
             # Make a copy and change column names to meet shapefile requirements
-            gdf_export = self.total_conc.copy()
-            gdf_export.columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
+            gdf_export = self.summary_conc.copy()
+            gdf_export.columns = ['NAME', 'geometry', 'PM25_UG_M3']
             
             # Export
             gdf_export.to_file(fpath)
             logging.info('   - [CONCENTRATION] Total concentrations output as {}'.format(fname))
         
         return 
+    
+    def get_summary_conc(self):
+        ''' Creates the summary concentration object if the output resolution is coarser
+            than the ISRM grid '''
+        
+        # This function will take two different approaches based on the output resolution
+        if self.output_resolution in ['AB','AD','C']:
+            
+            # Load the output resolution data
+            boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
+            
+            # Make a copy of the ISRM data
+            tmp = self.total_conc.copy()
+            
+            # Intersect these two dataframes
+            intersect = gpd.overlay(tmp, boundary, keep_geom_type=False, how='intersection')
+
+            # Add the area column for the intersected data
+            intersect['area_km2'] = intersect.geometry.area/(1000.0*1000.0)    
+            total_area = intersect.groupby('NAME').sum()['area_km2'].to_dict()
+            
+            # Add a total area and area fraction to the intersect object
+            intersect['area_total'] = intersect['NAME'].map(total_area)
+            intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
+
+            # Update the concentration to scale by the fraction
+            intersect['TOTAL_CONC_UG/M3'] = intersect['area_frac'] * intersect['TOTAL_CONC_UG/M3']  
+                
+            # Remove any null variables
+            intersect['TOTAL_CONC_UG/M3'] = intersect['TOTAL_CONC_UG/M3'].fillna(0)
+         
+            # Sum up for each larger shape
+            summary_conc = intersect.groupby(['NAME'])[['TOTAL_CONC_UG/M3']].sum().reset_index()
+            
+            ## Clean up
+            summary_conc = summary_conc[['NAME','TOTAL_CONC_UG/M3']].copy()
+                        
+            # Clean up
+            summary_conc = summary_conc.reset_index(drop=True)
+            
+            # Merge with boundary data
+            summary_conc = pd.merge(boundary, summary_conc, on='NAME')
+            
+            # Also, save a crosswalk
+            crosswalk = intersect[['NAME','ISRM_ID','area_frac', 'area_total', 'geometry']].copy()
+            crosswalk = crosswalk[~crosswalk['NAME'].isna()].copy()
+            crosswalk = pd.merge(crosswalk, tmp[['ISRM_ID','TOTAL_CONC_UG/M3']], on='ISRM_ID', how='left')
+             
+        # If not, create summary_conc from total_conc
+        else:
+            # Just copy the total concentration
+            summary_conc = self.total_conc.copy()
+            
+            # Change the column names
+            summary_conc.rename(columns={'ISRM_ID':'NAME'}, inplace=True)
+            
+            # Create the crosswalk
+            crosswalk = summary_conc[['NAME']].copy()
+            crosswalk['ISRM_ID'] = crosswalk['NAME']
+            crosswalk['area_frac'], crosswalk['area_total'] = (1,1) # placeholder values
+        
+        return summary_conc, crosswalk
+    
+    def output_concentrations(self, output_region, output_dir, f_out, ca_shp_path, shape_out):
+        ''' Function for outputting concentration data '''
+    
+        # Draw the map
+        self.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
+        
+        # Export the shapefiles
+        self.export_concentrations(shape_out, f_out)
+        
+        return

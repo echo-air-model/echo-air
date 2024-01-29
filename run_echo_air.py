@@ -4,7 +4,7 @@
 Main Run File
 
 @author: libbykoolik
-Last updated: 2024-01-18
+Last updated: 2024-01-19
 """
 #%% Import useful libraries, supporting objects, and scripts
 # Useful libraries for main script
@@ -213,8 +213,7 @@ if __name__ == "__main__":
         logging.info('\n<< Estimating concentrations. >>')        
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
-        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode=debug_mode, run_calcs=True, verbose=verbose)
-
+        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
 
         ## Create plots and export results
         # Parallelizing this process resulted in errors. This is an area for improvement in
@@ -224,10 +223,7 @@ if __name__ == "__main__":
         logging.info('\n')
         
         # Create the map of concentrations
-        conc.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
-        
-        # Export the shapefiles
-        conc.export_concentrations(shape_out, f_out)
+        conc.output_concentrations(output_region, output_dir, f_out, ca_shp_path, shape_out)
         logging.info("- [CONCENTRATION] Concentration files output into: {}.".format(output_dir))
 
         ## Perform concentration-related EJ analyses
@@ -248,6 +244,10 @@ if __name__ == "__main__":
         else: # Just export the EJ figure
             plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode=debug_mode)
             
+        # Finally, if larger output resolution, export population-weighted map that matches the area-weighted map
+        if output_resolution != 'ISRM':
+            export_pwm_map(pop.pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out)
+        
         ### HEALTH MODULE
         if run_health:
             
