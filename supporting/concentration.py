@@ -172,7 +172,7 @@ class concentration:
         # A few things vary on the output resolution
         if self.output_resolution in ['AB','AD','C']:
             st_str = '* Area-Weighted Average'
-            fname = f_out + '_' + pol + 'area_wtd_concentrations.png'
+            fname = f_out + '_' + pol + '_area_wtd_concentrations.png'
             t_str = r'PM$_{2.5}$ Concentrations* '+'from {}'.format(pol)
             c_to_plot = self.summary_conc[['NAME', 'geometry', var]].copy()
             
