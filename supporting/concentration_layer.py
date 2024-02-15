@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2024-01-18
+last modified: 2024-02-15
 """
 
 # Import Libraries
@@ -183,7 +183,7 @@ class concentration_layer:
         height_bounds_dict = {0:(0.0, 57.0),
                               1:(57.0, 140.0),
                               2:(760.0, 99999.0),
-                              'linear':(140.0, 760.0)}
+                              'hole':(140.0, 760.0)}
         height_min = height_bounds_dict[self.layer][0]
         height_max = height_bounds_dict[self.layer][1]
         
@@ -276,7 +276,10 @@ class concentration_layer:
     def get_concentration(self, pol_emis, pol_isrm, layer):
         ''' For a given pollutant layer, get the resulting PM25 concentration '''
         # Slice off just the appropriate layer of the ISRM
-        pol_isrm_slice = pol_isrm[layer, :, :]
+        if layer == 'hole': # Create the hole intermediate if needed
+            pol_isrm_slice = np.mean(np.array([pol_isrm[1, :, :],pol_isrm[2, :, :]]), axis=0)
+        else:
+            pol_isrm_slice = pol_isrm[layer, :, :]
         
         # Concentration is the dot product of emissions and ISRM
         conc = np.dot(pol_emis['EMISSIONS_UG/S'], pol_isrm_slice)
