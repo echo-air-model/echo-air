@@ -534,7 +534,7 @@ class emissions:
         logging.info('* [EMISSIONS] Emissions were identified with release heights between 140 - 760 meters.')
         logging.info('* The current version of the ISRM has not been trained on release heights in this range.')
         logging.info('* As a short-term solution, concentrations from these emissions will be estimated using\n  the average of the middle and high release layers.')
-        logging.info('* For more information, please visit https://echo-air-model.github.io.')
+        logging.info('* For more information, please visit https://echo-air-model.github.io/docs/other_information/isrm_hole_patch.html.')
         
         return L0_flag, L1_flag, L2_flag, isrm_hole_flag
     
