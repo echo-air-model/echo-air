@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2024-01-29
+last modified: 2024-02-15
 """
 
 # Import Libraries
@@ -126,6 +126,7 @@ class concentration:
         if self.emissions.L0_flag: conc_layers.append(self.run_layer(0))
         if self.emissions.L1_flag: conc_layers.append(self.run_layer(1))
         if self.emissions.L2_flag: conc_layers.append(self.run_layer(2))
+        if self.emissions.isrm_hole_flag: conc_layers.append(self.run_layer('hole'))
         
         # Concatenate these detailed concentration dataframes
         detailed_concentration = pd.concat(conc_layers)
