@@ -63,6 +63,9 @@ if __name__ == "__main__":
     # Get the number of control files to create
     n = len(df.columns)
     print('<< Generating {} control files. >>'.format(n))
+
+    #Printing Hello World! 
+    print('Hello world!')
     
     #%% Iterate through columns to create control files
     for i in range(n):
