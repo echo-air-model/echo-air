@@ -434,6 +434,16 @@ class emissions:
             
             return 
     
+    def get_max_emitting_area():
+        ''' Calculates the maximum emitting area in square kilometers'''
+        if self.geometry is None:
+            return None
+
+        # Convert the area from meters to kilometers
+        area_km2 = self.geometry.to_crs('EPSG:3310').area / (10**6) #California NAD83 Albers (m)
+        max_area_km2 = area_km2.max()
+        return max_area_km2 
+        
     def buffer_emis(self, emis_non_poly, dist):
         ''' Adds a buffer (in m) to the non-polygon type geometries in order to create polygons '''
         # First, need to project to coordinates in meters
