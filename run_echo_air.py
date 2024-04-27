@@ -226,6 +226,13 @@ if __name__ == "__main__":
         conc.output_concentrations(output_region, output_dir, f_out, ca_shp_path, shape_out)
         logging.info("- [CONCENTRATION] Concentration files output into: {}.".format(output_dir))
 
+        # Find maximum emitting area
+        max_area_km2 = emis.get_max_emitting_area()
+
+        # Output a warning if area is large
+        if max_area_km2 is not None and max_area_km2 > 2500: 
+            logging.info("\n<< Large area emissions detected ({:.2f} km²). Consider carefully if results should be used for disparity, equity, and environmental justice analyses >>".format(max_area_km2))
+          
         ## Perform concentration-related EJ analyses
         exp_pop_alloc = pop.allocate_population(pop.pop_exp, isrmgrid.geodata, 'ISRM_ID', False)
         verboseprint(verbose, '- [POPULATION] Population data is properly allocated to the ISRM grid and ready for EJ calculations.', debug_mode, frameinfo=getframeinfo(currentframe()))
