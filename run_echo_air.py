@@ -154,7 +154,7 @@ if __name__ == "__main__":
             # Start reading in files in parallel
             emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, units=units, name=name, load_file=True, verbose=verbose)
             isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
-            pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            # pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
       
             # To run multiple computations at once, we need to create multiple
             # processes instead of threads. Processes take longer to create, but
@@ -165,7 +165,7 @@ if __name__ == "__main__":
             
             # We need to wait for the population and ISRM files to load before we
             # start creating the exp_pop_alloc or HIA inputs.
-            pop = pop_future.result()
+            # pop = pop_future.result()
             isrmgrid = isrm_future.result()
             
             # Start estimating the concentrations by creating the exp_pop_alloc object.
@@ -173,9 +173,9 @@ if __name__ == "__main__":
             verboseprint(verbose, '- This step will take some time, so the details about it may pop up in other sections.', debug_mode, frameinfo=getframeinfo(currentframe()))
             verboseprint(verbose, '- Notes about this step will be preceded by the tag [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
             logging.info('\n')
-            exp_pop_alloc_future = executor.submit(
-                pop.allocate_population, pop.pop_exp, isrmgrid.geodata, 'ISRM_ID', False)
-            executor_jobs.append(exp_pop_alloc_future)
+            # exp_pop_alloc_future = executor.submit(
+            #     pop.allocate_population, pop.pop_exp, isrmgrid.geodata, 'ISRM_ID', False)
+            # executor_jobs.append(exp_pop_alloc_future)
             
             # Creating HIA inputs takes a long time. Start the process as early as 
             # possible, even if the rest of the health module won't start yet.
@@ -214,7 +214,7 @@ if __name__ == "__main__":
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
         conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
-
+        exit()
         ## Create plots and export results
         # Parallelizing this process resulted in errors. This is an area for improvement in
         # future versions

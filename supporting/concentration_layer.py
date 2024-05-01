@@ -85,7 +85,7 @@ class concentration_layer:
             verboseprint(self.verbose, '   - [CONCENTRATION] Reallocating emissions to the ISRM grid.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.PM25e, self.NH3e, self.VOCe, self.NOXe, self.SOXe = self.process_emissions(self.emissions, self.isrm, self.verbose, self.output_dir, self.output_emis_flag)
-            
+            exit()
             # Estimate concentrations
             verboseprint(self.verbose, '   - [CONCENTRATION] Calculating concentrations of PM25 from each pollutant.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
