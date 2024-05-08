@@ -205,6 +205,18 @@ class concentration:
         minx, miny, maxx, maxy = output_region.total_bounds
         ax.set_xlim(minx, maxx)
         ax.set_ylim(miny, maxy)
+
+        # Add a north arrow 
+        ax.annotate('N', xy=(0.95, 0.95), xytext=(0.95, 0.98),
+            arrowprops=dict(facecolor='black', arrowstyle='->', linewidth=1),
+            fontsize=12, ha='center', va='center', xycoords='axes fraction')
+
+        #Import Scalebar 
+        
+        from matplotlib_scalebar import ScaleBar
+        # Add scale bar
+        scalebar = ScaleBar(1, location='lower left')  # 1 pixel = 1 unit
+        ax.add_artist(scalebar)
         
         ax.set_title(t_str)
         ax.xaxis.set_visible(False)
