@@ -372,6 +372,19 @@ class emissions:
         else: # All five pollutants are accounted for
             has_five_pollutants = True
 
+        # Calculate the maximum emitting area
+        if self.geometry is not None:
+            # Fix any invalid geometries
+            self.geometry = self.geometry.buffer(0)
+
+            # Convert the area from meters to kilometers
+            area_km2 = self.geometry.to_crs('EPSG:3310').area / (10**6) # California NAD83 Albers (m)
+            max_area_km2 = area_km2.max()
+        
+        # Check if the maximum area exceeds the threshold
+        if max_area_km2 > 2500:
+            logging.info('[* EMISSIONS] Large area emissions detected ({:.2f} km2). Consider carefully if results should be used for disparity, equity, and environmental justice analyses.'.format(max_area_km2))
+        
         return has_indices and has_five_pollutants
     
     def map_pollutant_name(self, missing_pol):
