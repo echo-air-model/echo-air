@@ -111,7 +111,10 @@ class emissions:
             if self.valid_emissions:
                 # Update to convert everything to polygons
                 self.check_geo_types()
-            
+
+                # Checking if maximum area exceeds 2500 km^2
+                self.check_polygon_area()
+                
                 # Print statements
                 verboseprint(self.verbose, '- [EMISSIONS] Emissions formatting has been checked and confirmed to be valid.',
                              self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -371,19 +374,6 @@ class emissions:
             
         else: # All five pollutants are accounted for
             has_five_pollutants = True
-
-        # Calculate the maximum emitting area
-        if self.geometry is not None:
-            # Fix any invalid geometries
-            self.geometry = self.geometry.buffer(0)
-
-            # Convert the area from meters to kilometers
-            area_km2 = self.geometry.to_crs('EPSG:3310').area / (10**6) # California NAD83 Albers (m)
-            max_area_km2 = area_km2.max()
-        
-        # Check if the maximum area exceeds the threshold
-        if max_area_km2 > 2500:
-            logging.info('[* EMISSIONS] Large area emissions detected ({:.2f} km2). Consider carefully if results should be used for disparity, equity, and environmental justice analyses.'.format(max_area_km2))
         
         return has_indices and has_five_pollutants
     
@@ -447,15 +437,19 @@ class emissions:
             
             return 
     
-    def get_max_emitting_area():
-        ''' Calculates the maximum emitting area in square kilometers'''
-        if self.geometry is None:
-            return None
-
-        # Convert the area from meters to kilometers
-        area_km2 = self.geometry.to_crs('EPSG:3310').area / (10**6) #California NAD83 Albers (m)
-        max_area_km2 = area_km2.max()
-        return max_area_km2 
+    def check_polygon_area(self):
+        # Calculate polygon areas in square meters
+        self.geometry['AREA_M2'] = self.geometry['geometry'].area
+        
+        # Convert square meters to square kilometers
+        self.geometry['AREA_KM2'] = self.geometry['AREA_M2'] / 10**6
+        
+        # Get the maximum polygon area
+        max_area = self.geometry['AREA_KM2'].max()
+        
+        # Check if maximum area exceeds 2500 km^2
+        if max_area > 2500:
+            logging.info('[* EMISSIONS] Large area emissions detected ({:.2f} km2). Consider carefully if results should be used for disparity, equity, and environmental justice analyses.'.format(max_area_km2))
         
     def buffer_emis(self, emis_non_poly, dist):
         ''' Adds a buffer (in m) to the non-polygon type geometries in order to create polygons '''
