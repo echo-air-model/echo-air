@@ -28,6 +28,7 @@ from concentration_layer import concentration_layer
 sys.path.append('./scripts')
 from tool_utils import *
 import concurrent.futures
+from matplotlib_scalebar.scalebar import ScaleBar
 
 #%% Define the Concentration Object
 class concentration:
@@ -206,16 +207,13 @@ class concentration:
         ax.set_xlim(minx, maxx)
         ax.set_ylim(miny, maxy)
 
-        # Add a north arrow 
-        ax.annotate('N', xy=(0.95, 0.95), xytext=(0.95, 0.98),
-            arrowprops=dict(facecolor='black', arrowstyle='->', linewidth=1),
+        # Add north arrow
+        ax.annotate('', xy=(0.96, 0.94), xytext=(0.94, 0.92), arrowprops=dict(facecolor='black', shrink=0.4),
             fontsize=12, ha='center', va='center', xycoords='axes fraction')
-
-        #Import Scalebar 
+        ax.annotate('N', xy=(0.96, 0.94), fontsize=12, ha='center', va='center', xycoords='axes fraction')
         
-        from matplotlib_scalebar import ScaleBar
         # Add scale bar
-        scalebar = ScaleBar(1, location='lower left')  # 1 pixel = 1 unit
+        scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
         ax.add_artist(scalebar)
         
         ax.set_title(t_str)
