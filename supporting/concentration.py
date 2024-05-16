@@ -208,9 +208,9 @@ class concentration:
         ax.set_ylim(miny, maxy)
 
         # Add north arrow
-        ax.annotate('', xy=(0.96, 0.94), xytext=(0.94, 0.92), arrowprops=dict(facecolor='black', shrink=0.4),
+        ax.annotate('', xy=(0.94, 0.95), xytext=(0.94, 0.92), arrowprops=dict(facecolor='black', shrink=0.4),
             fontsize=12, ha='center', va='center', xycoords='axes fraction')
-        ax.annotate('N', xy=(0.96, 0.94), fontsize=12, ha='center', va='center', xycoords='axes fraction')
+        ax.annotate('N', xy=(0.94, 0.96), fontsize=12, ha='center', va='center', xycoords='axes fraction')
         
         # Add scale bar
         scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
