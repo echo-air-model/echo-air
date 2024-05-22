@@ -262,7 +262,6 @@ class concentration_layer:
         }
 
         fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(50,10))
-
         
         for ax, (pol, data) in zip(axes, pollutants.items()):
             
@@ -270,14 +269,16 @@ class concentration_layer:
             if output_region is not None:
                 data = gpd.clip(data, output_region)
             
-
-
             data.plot(column='EMISSIONS_UG/S', ax=ax, legend=True, 
                         legend_kwds={'label': "Emissions (ug/s)"})
-            ax.set_title(f'{pol} Emissions Allocation')
+
+            output_region.boundary.plot(ax=ax, edgecolor='black')  
+
+            #ca_prj.plot(edgecolor='black', facecolor='none', ax=ax)
+            ax.set_title(f'{pol} Emissions')
             ax.axis('off')
+            ax.set_aspect('equal')
     
-            
             # If output region is used, set the bounds
             if output_region is not None:
                 minx, miny, maxx, maxy = output_region.total_bounds
