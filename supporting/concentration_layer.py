@@ -14,6 +14,7 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib_scalebar.scalebar import ScaleBar
 import seaborn as sns
 from scipy.io import netcdf_file as nf
 import os
@@ -262,7 +263,7 @@ class concentration_layer:
             'Volatile Organic Compounds (VOC)': self.VOCe
         }
 
-        fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(50,10))
+        fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(22,6))
         
         for ax, (pol, data) in zip(axes, pollutants.items()):
             
@@ -282,6 +283,15 @@ class concentration_layer:
 
 
             output_region.boundary.plot(ax=ax, edgecolor='black', facecolor = 'none')  
+            
+            # Add north arrow
+            ax.annotate('', xy=(0.94, 0.95), xytext=(0.94, 0.92), arrowprops=dict(facecolor='black', shrink=0.4),
+            fontsize=12, ha='center', va='center', xycoords='axes fraction')
+            ax.annotate('N', xy=(0.94, 0.96), fontsize=12, ha='center', va='center', xycoords='axes fraction')
+        
+            # Add scale bar
+            scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+            ax.add_artist(scalebar)
 
             ax.set_title(f'{pol} Emissions')
     
