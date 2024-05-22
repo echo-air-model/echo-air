@@ -14,6 +14,7 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy.io import netcdf_file as nf
 import os
 from os import path
@@ -269,15 +270,20 @@ class concentration_layer:
             if output_region is not None:
                 data = gpd.clip(data, output_region)
             
-            data.plot(column='EMISSIONS_UG/S', ax=ax, legend=True, 
-                        legend_kwds={'label': "Emissions (ug/s)"})
+            sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
 
-            output_region.boundary.plot(ax=ax, edgecolor='black')  
+            data.plot(column='EMISSIONS_UG/S',
+                        legend_kwds={'label': "Emissions (ug/s)"},
+                        legend=True, 
+                        cmap='mako_r',
+                        edgecolor='none',
+                        antialiased=False,
+                        ax=ax)
 
-            #ca_prj.plot(edgecolor='black', facecolor='none', ax=ax)
+
+            output_region.boundary.plot(ax=ax, edgecolor='black', facecolor = 'none')  
+
             ax.set_title(f'{pol} Emissions')
-            ax.axis('off')
-            ax.set_aspect('equal')
     
             # If output region is used, set the bounds
             if output_region is not None:
