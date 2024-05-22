@@ -257,10 +257,10 @@ class concentration_layer:
 
         pollutants = {
             'Primary PM2.5': self.PM25e,
-            'Ammonia (NH3)': self.NH3e,
-            'Oxides of Nitrogen (NOx)': self.NOXe,
-            'Oxides of Sulfur (SOx)': self.SOXe,
-            'Volatile Organic Compounds (VOC)': self.VOCe
+            'NH3': self.NH3e,
+            'NOx': self.NOXe,
+            'SOx': self.SOXe,
+            'VOC': self.VOCe
         }
 
         fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(22,6))
