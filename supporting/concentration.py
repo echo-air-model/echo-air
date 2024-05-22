@@ -28,6 +28,7 @@ from concentration_layer import concentration_layer
 sys.path.append('./scripts')
 from tool_utils import *
 import concurrent.futures
+from matplotlib_scalebar.scalebar import ScaleBar
 
 #%% Define the Concentration Object
 class concentration:
@@ -43,6 +44,10 @@ class concentration:
         - output_dir: a string pointing to the output directory
         - output_emis_flag: a Boolean indicating whether ISRM-allocated emissions should be output
         - debug_mode: a Boolean indicating whether or not to output debug statements
+        - shp_path: data variable file path for the boarder
+        - output_region: a geodataframe containing only the region of interest
+        - shp_path: data variable file path for the boarder
+        - output_region: a geodataframe containing only the region of interest
         
     CALCULATES:
         - detailed_conc: geodataframe of the detailed concentrations at ground-level 
@@ -60,7 +65,7 @@ class concentration:
 
     '''
     
-    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode,  output_geometry_fps, output_resolution='ISRM', run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution='ISRM', run_calcs=True, verbose=False):
 
         ''' Initializes the Concentration object'''        
         
@@ -77,6 +82,8 @@ class concentration:
         self.name = self.emissions.emissions_name
         self.output_resolution = output_resolution
         self.debug_mode = debug_mode
+        self.shp_path = ca_shp_path
+        self.output_region = output_region
         self.output_geometry_fps = output_geometry_fps
         self.verbose = verbose
         self.run_calcs = run_calcs
@@ -105,7 +112,7 @@ class concentration:
     def run_layer(self, layer):
         ''' Estimates concentratiton for a single layer '''
         # Creates a concentration_layer object for the given layer
-        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.output_dir, self.output_emis_flag, self.run_parallel, run_calcs=True, debug_mode = self.debug_mode, verbose=self.verbose)
+        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.output_dir, self.output_emis_flag, self.run_parallel, self.shp_path, self.output_region, run_calcs=True, debug_mode = self.debug_mode, verbose=self.verbose)
         
         # Copies out just the detailed_conc object and adds the LAYER column
         detailed_conc_layer = conc_layer.detailed_conc.copy()
@@ -206,6 +213,16 @@ class concentration:
         ax.set_xlim(minx, maxx)
         ax.set_ylim(miny, maxy)
         
+        
+        # Add north arrow
+        ax.annotate('', xy=(0.94, 0.95), xytext=(0.94, 0.92), arrowprops=dict(facecolor='black', shrink=0.4),
+            fontsize=12, ha='center', va='center', xycoords='axes fraction')
+        ax.annotate('N', xy=(0.94, 0.96), fontsize=12, ha='center', va='center', xycoords='axes fraction')
+        
+        # Add scale bar
+        scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+        ax.add_artist(scalebar)
+
         ax.set_title(t_str)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
