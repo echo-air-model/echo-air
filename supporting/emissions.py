@@ -449,7 +449,7 @@ class emissions:
         
         # Check if maximum area exceeds 2500 km^2
         if max_area > 2500:
-            logging.info('* [EMISSIONS] Large area emissions detected ({:.2f} km2). Consider carefully if results should be used for disparity, equity, and environmental justice analyses.'.format(max_area_km2))
+            logging.info('* [EMISSIONS] Large area emissions detected ({:.2f} km2). Consider carefully if results should be used for disparity, equity, and environmental justice analyses.'.format(max_area))
         
     def buffer_emis(self, emis_non_poly, dist):
         ''' Adds a buffer (in m) to the non-polygon type geometries in order to create polygons '''
