@@ -200,8 +200,8 @@ class emissions:
         else:
             raise ValueError('Emissions file is of an unknown type. Cannot proceed')
         
-        # Project to the desired CRS (e.g., EPSG:3310) if not already in that CRS
-        desired_crs = 'epsg:3310'
+        # Project to the desired CRS if not already in that CRS
+        desired_crs = 'epsg:3310'  # California NAD83 Albers (m)
         if crs != desired_crs:
             geometry = geometry.to_crs(desired_crs)
 
@@ -458,7 +458,6 @@ class emissions:
 
     def buffer_emis(self, emis_non_poly, dist):
         ''' Adds a buffer (in m) to the non-polygon type geometries in order to create polygons '''
-        
         emis_non_poly['geometry'] = emis_non_poly.buffer(dist)
         return emis_non_poly
 
