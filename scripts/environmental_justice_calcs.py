@@ -23,6 +23,7 @@ from inspect import currentframe, getframeinfo
 sys.path.append('./scripts')
 from tool_utils import *
 import concurrent.futures
+from matplotlib_scalebar.scalebar import ScaleBar
 
 #%%
 def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
@@ -579,6 +580,15 @@ def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_
     minx, miny, maxx, maxy = output_region.total_bounds
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
+
+    # Add north arrow
+    ax.annotate('', xy=(0.94, 0.95), xytext=(0.94, 0.92), arrowprops=dict(facecolor='black', shrink=0.4),
+        fontsize=12, ha='center', va='center', xycoords='axes fraction')
+    ax.annotate('N', xy=(0.94, 0.96), fontsize=12, ha='center', va='center', xycoords='axes fraction')
+    
+    # Add scale bar
+    scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+    ax.add_artist(scalebar)
     
     ax.set_title(t_str)
     ax.xaxis.set_visible(False)
