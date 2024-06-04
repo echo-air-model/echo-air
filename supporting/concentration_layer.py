@@ -14,6 +14,8 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib_scalebar.scalebar import ScaleBar
+import seaborn as sns
 from scipy.io import netcdf_file as nf
 import os
 from os import path
@@ -39,6 +41,8 @@ class concentration_layer:
         - output_dir: a string pointing to the output directory
         - output_emis_flag: a Boolean indicating whether ISRM-allocated emissions should be output
         - run_parallel: a Boolean indicating whether or not to run in parallel
+        - shp_path: data variable file path for the boarder
+        - output_region: a geodataframe containing only the region of interest
         - debug_mode: a Boolean indicating whether or not to output debug statements
         - run_calcs: whether calculations should be run or just checked
         - verbose: whether the tool should return more logging statements
@@ -52,7 +56,7 @@ class concentration_layer:
           contribution to the total ground-level PM2.5 concentrations
         
     '''
-    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, run_parallel, debug_mode,  run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, run_parallel, shp_path, output_region, debug_mode,  run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         # Initialize concentration object by reading in the emissions and isrm 
         self.emissions = emis_obj
@@ -65,6 +69,8 @@ class concentration_layer:
         self.run_parallel = run_parallel
         self.debug_mode = debug_mode
         self.verbose = verbose
+        self.shp_path = shp_path
+        self.output_region = output_region 
         
         # Get data from the inputs to the layer
         self.isrm_id = self.isrm.ISRM_ID
@@ -81,6 +87,7 @@ class concentration_layer:
         
         # Run concentration calculations
         if run_calcs:
+            
             # Allocate emissions to the ISRM grid
             verboseprint(self.verbose, '   - [CONCENTRATION] Reallocating emissions to the ISRM grid.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -113,33 +120,62 @@ class concentration_layer:
                                                               self.pSO4)
             verboseprint(self.verbose, '   - [CONCENTRATION] Detailed concentrations are estimated from layer {}.'.format(self.layer),
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
+        
+        if output_emis_flag:
+            self.visualize_individual_emissions()
             
     def __str__(self):
         return 'Concentration layer object created from the emissions from '+self.name + ' and the ISRM grid.'
 
     def __repr__(self):
         return '< Concentration layer object created from '+self.name + ' and the ISRM grid.>'
-
+    
     @staticmethod
-    def allocate_emissions(emis_layer, isrm_geography, pollutant, verbose, debug_mode):    
+    def allocate_emissions(self, emis_layer, isrm_geography, pollutant, verbose, debug_mode):
         ''' Reallocates the emissions into the ISRM geography using a spatial intersect '''
-        
         ## Pre-Process Slightly for Easier Functioning Downstream
-        # Deep copy the emissions layer and add an ID field
         verboseprint(verbose, '      - [CONCENTRATION] Allocating {} emissions to grid for ISRM layer.'.format(pollutant),
                      debug_mode, frameinfo=getframeinfo(currentframe()))
+        
+        # Perform intersection to get crosswalk
+        intersect = self.intersect_geometries(emis_layer, isrm_geography, verbose, debug_mode)
+        
+        # Store the total emissions from the raw emissions data for later comparison
+        old_total = emis_layer['EMISSIONS_UG/S'].sum()
+        
+        # Update the EMISSIONS_UG/S field to scale emissions by the area fraction
+        intersect['EMISSIONS_UG/S'] = intersect['area_frac'] * intersect['EMISSIONS_UG/S']
+        
+        # Sum over ISRM grid cell
+        reallocated_emis = intersect.groupby('ISRM_ID')[['EMISSIONS_UG/S']].sum().reset_index()
+        
+        # Preserve all ISRM grid cells for consistent shapes
+        reallocated_emis = isrm_geography[['ISRM_ID', 'geometry']].merge(reallocated_emis,
+                                                                          how='left',
+                                                                          left_on='ISRM_ID',
+                                                                          right_on='ISRM_ID')
+        reallocated_emis['EMISSIONS_UG/S'].fillna(0, inplace=True)
+        
+        # Confirm that the total has not changed
+        assert np.isclose(reallocated_emis['EMISSIONS_UG/S'].sum(), old_total)
+        
+        return reallocated_emis
+
+    @staticmethod
+    def intersect_geometries(self, emis_layer, isrm_geography, verbose, debug_mode):
+        ''' Performs geometric intersection between ISRM and emissions geometries and returns a crosswalk '''
+        
+        # Deep copy the emissions layer and add an ID field
+        verboseprint(verbose, '      - [CONCENTRATION] Creating geometry intersection crosswalk.',
+                     debug_mode, frameinfo=getframeinfo(currentframe()))
         emis = emis_layer.copy(deep=True)
-        emis['EMIS_ID'] = 'EMIS_'+emis.index.astype(str)
+        emis['EMIS_ID'] = 'EMIS_' + emis.index.astype(str)
         
         # Re-project the emissions layer into the ISRM coordinate reference system
         emis = emis.to_crs(isrm_geography.crs)
         
-        # Store the total emissions from the raw emissions data for later comparison
-        old_total = emis['EMISSIONS_UG/S'].sum()
-        
-        ## Perform Intersect to Reallocate Emissions
         # Get total area of each emissions cell
-        emis['area_km2'] = emis.geometry.area/(1000*1000)
+        emis['area_km2'] = emis.geometry.area / (1000 * 1000)
         
         # Create intersect object between emis and ISRM grid
         intersect = gpd.overlay(emis, isrm_geography, how='intersection')
@@ -149,23 +185,7 @@ class concentration_layer:
         intersect['area_total'] = intersect['EMIS_ID'].map(emis_totalarea)
         intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
         
-        # Update the EMISSIONS_UG/S field to scale emissions by the area fraction
-        intersect['EMISSIONS_UG/S'] = intersect['area_frac'] * intersect['EMISSIONS_UG/S']  
-            
-        # Sum over ISRM grid cell
-        reallocated_emis = intersect.groupby('ISRM_ID')[['EMISSIONS_UG/S']].sum().reset_index()
-        
-        ## Preserve all ISRM grid cells for consistent shapes
-        reallocated_emis = isrm_geography[['ISRM_ID','geometry']].merge(reallocated_emis,
-                                                          how='left',
-                                                          left_on='ISRM_ID',
-                                                          right_on='ISRM_ID')
-        reallocated_emis['EMISSIONS_UG/S'].fillna(0, inplace=True)
-        
-        ## Confirm that the total has not changed
-        assert np.isclose(reallocated_emis['EMISSIONS_UG/S'].sum(), old_total)
-        
-        return reallocated_emis
+        return intersect
     
     def cut_emissions(self, pol_obj, height_min, height_max):
         ''' Cuts an emissions pollutant object based on the height column '''
@@ -231,6 +251,77 @@ class concentration_layer:
             
         return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
     
+    def visualize_individual_emissions(self, pollutant_name=''):
+
+        ''' Create a 5-panel plot of total emissions for each individual pollutant and save as a PNG file '''
+        
+        if self.verbose:
+            logging.info('- Drawing map of total emissions by pollutant.')
+
+        # Read in CA boundary
+        ca_shp = gpd.read_feather(self.shp_path)
+        ca_prj = ca_shp.to_crs(self.crs)
+        
+        # Reproject output_region
+        output_region = self.output_region.to_crs(self.crs)
+
+        pollutants = {
+            'Primary PM2.5': self.PM25e,
+            'NH3': self.NH3e,
+            'NOx': self.NOXe,
+            'SOx': self.SOXe,
+            'VOC': self.VOCe
+        }
+
+        fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(22,6))
+
+        # Clip to output region if provided
+            if output_region is not None:
+                data = gpd.clip(data, output_region)
+        
+        for ax, (pol, data) in zip(axes, pollutants.items()):
+            
+            sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
+
+            data.plot(column='EMISSIONS_UG/S',
+                        legend_kwds={'label': "Emissions (ug/s)"},
+                        legend=True, 
+                        cmap='mako_r',
+                        edgecolor='none',
+                        antialiased=False,
+                        ax=ax)
+
+
+            output_region.boundary.plot(ax=ax, edgecolor='black', facecolor = 'none')  
+            
+            # Add north arrow
+            ax.annotate('', xy=(0.94, 0.95), xytext=(0.94, 0.92), arrowprops=dict(facecolor='black', shrink=0.4),
+            fontsize=12, ha='center', va='center', xycoords='axes fraction')
+            ax.annotate('N', xy=(0.94, 0.96), fontsize=12, ha='center', va='center', xycoords='axes fraction')
+        
+            # Add scale bar
+            scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+            ax.add_artist(scalebar)
+
+            ax.set_title(f'{pol} Emissions')
+    
+            # If output region is used, set the bounds
+            if output_region is not None:
+                minx, miny, maxx, maxy = output_region.total_bounds
+                ax.set_xlim(minx, maxx)
+                ax.set_ylim(miny, maxy)
+                ax.xaxis.set_visible(False)
+                ax.yaxis.set_visible(False)
+
+        plt.tight_layout()
+        plt.savefig(path.join(self.output_dir, 'emissions_all_pollutants.png'))
+        plt.close()
+        
+        verboseprint(self.verbose, '   - [CONCENTRATION] Emissions visualizations have been saved as a png',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
+        logging.info('- [CONCENTRATION] Map of emissions visualizations output as emissions_all_pollutants.png')
+
+
     def save_allocated_emis(self, tmp_dct, output_dir, verbose):
         ''' Function for outputting allocated emissions '''
         verboseprint(verbose, '      - [CONCENTRATION] Preparing to export the ISRM-allocated emissions as a shapefile.',
@@ -268,7 +359,7 @@ class concentration_layer:
         
         # Output
         aloc_emis.to_file(path.join(output_dir, 'shapes', fname_tmp))
-        verboseprint(verbose, '      - [CONCENTRATION] ISRM-allocated emissions have been saved in the output directory.',
+        verboseprint(verbose, '      - [CONCENTRATION] Shapefiles of ISRM-allocated emissions have been saved in the output directory.',
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
             
         return
