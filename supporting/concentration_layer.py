@@ -131,14 +131,14 @@ class concentration_layer:
         return '< Concentration layer object created from '+self.name + ' and the ISRM grid.>'
     
     @staticmethod
-    def allocate_emissions(self, emis_layer, isrm_geography, pollutant, verbose, debug_mode):
+    def allocate_emissions(emis_layer, isrm_geography, pollutant, verbose, debug_mode):
         ''' Reallocates the emissions into the ISRM geography using a spatial intersect '''
         ## Pre-Process Slightly for Easier Functioning Downstream
         verboseprint(verbose, '      - [CONCENTRATION] Allocating {} emissions to grid for ISRM layer.'.format(pollutant),
                      debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Perform intersection to get crosswalk
-        intersect = self.intersect_geometries(emis_layer, isrm_geography, verbose, debug_mode)
+        intersect = concentration_layer.intersect_geometries(emis_layer, isrm_geography, verbose, debug_mode)
         
         # Store the total emissions from the raw emissions data for later comparison
         old_total = emis_layer['EMISSIONS_UG/S'].sum()
@@ -162,7 +162,7 @@ class concentration_layer:
         return reallocated_emis
 
     @staticmethod
-    def intersect_geometries(self, emis_layer, isrm_geography, verbose, debug_mode):
+    def intersect_geometries(emis_layer, isrm_geography, verbose, debug_mode):
         ''' Performs geometric intersection between ISRM and emissions geometries and returns a crosswalk '''
         
         # Deep copy the emissions layer and add an ID field
@@ -275,11 +275,10 @@ class concentration_layer:
 
         fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(22,6))
 
-        # Clip to output region if provided
+        for ax, (pol, data) in zip(axes, pollutants.items()):
+            # Clip to output region if provided
             if output_region is not None:
                 data = gpd.clip(data, output_region)
-        
-        for ax, (pol, data) in zip(axes, pollutants.items()):
             
             sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
 
