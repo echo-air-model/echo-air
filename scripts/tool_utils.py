@@ -19,6 +19,9 @@ import datetime
 import geopandas as gpd
 import logging
 from inspect import currentframe, getframeinfo
+from pyproj import Transformer
+import matplotlib.transforms as transforms
+import numpy as np
 
 #%% ISRM Tool Utils
 def check_setup():
@@ -310,3 +313,57 @@ def get_output_region(region_of_interest, region_category, output_geometry_fps, 
         output_region = gpd.read_feather(ca_fps)
         
     return output_region
+
+def calculate_true_north_angle(center_lon, center_lat, crs):
+    """
+        Calculate the angle between the positive y-axis and true north.
+        
+        Parameters:
+        - center_lon: Longitude of the center point of the map.
+        - center_lat: Latitude of the center point of the map.
+        - crs: The coordinate reference system of the map.
+
+        Returns:
+        - angle: The angle in degrees.
+    """
+
+    # Create a transformer to convert from WGS84 to the given CRS
+    # This transformer converts coordinates from WGS84 (EPSG:4326) to the given coordinate reference system crs.
+    transformer = Transformer.from_crs("epsg:4326", crs, always_xy=True)
+
+    # Transform points
+    x0, y0 = transformer.transform(center_lon, center_lat)
+    x1, y1 = transformer.transform(center_lon, center_lat + 0.1)  # Small northward step
+
+    # Calculate the angle to the north
+    angle = (np.degrees(np.arctan2(x1 - x0, y1 - y0))) % 360
+    
+    return angle
+
+
+def add_north_arrow(ax, angle, x=0.93, y=0.92, arrow_length=0.05):
+    """
+        Add a simple north arrow to the plot with a specified rotation angle.
+        
+        Parameters:
+        - ax: The axis to add the north arrow to.
+        - angle: The angle to rotate the north arrow.
+        - x, y: The coordinates of the arrow's tip (in axis coordinates).
+        - arrow_length: The length of the arrow.
+    """
+    # Ensure angle is a float
+    angle = float(angle)
+
+    # Rotation transformation
+    t = transforms.Affine2D().rotate_deg_around(x, y, -angle) + ax.transAxes
+
+    # Coordinates for the arrow
+    arrow_head = [x, y + arrow_length]
+    arrow_bottom_left = [x - arrow_length / 3, y]
+    arrow_bottom_right = [x + arrow_length / 3, y]
+
+    # Add the arrow
+    ax.annotate('', xy=arrow_head, xytext=(x, y),
+                arrowprops=dict(facecolor='black', shrink=0.4),
+                fontsize=12, ha='center', va='center', xycoords='axes fraction', transform=t)
+    ax.annotate('N', xy=(x, y + arrow_length), fontsize=12, ha='center', va='center', xycoords='axes fraction')
