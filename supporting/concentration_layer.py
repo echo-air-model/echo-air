@@ -131,15 +131,26 @@ class concentration_layer:
         return '< Concentration layer object created from '+self.name + ' and the ISRM grid.>'
     
     @staticmethod
-    def allocate_emissions(intersect, old_total, isrm_geography, pollutant, verbose, debug_mode):
+    def allocate_emissions(intersect, emis_layer, isrm_geography, pollutant, verbose, debug_mode):
         ''' 
         Reallocates the emissions into the ISRM geography using a spatial intersect.
 
         Intersect is the crosswalk result from intersect_geometries
         '''
+
         ## Pre-Process Slightly for Easier Functioning Downstream
         verboseprint(verbose, '      - [CONCENTRATION] Allocating {} emissions to grid for ISRM layer.'.format(pollutant),
                      debug_mode, frameinfo=getframeinfo(currentframe()))
+        
+        # Deep copy the emissions layer and add an ID field
+        emis = emis_layer.copy(deep=True)
+        emis['EMIS_ID'] = 'EMIS_' + emis.index.astype(str)
+        
+        # Re-project the emissions layer into the ISRM coordinate reference system
+        emis = emis.to_crs(isrm_geography.crs)
+        
+        # Store the total emissions from the raw emissions data for later comparison
+        old_total = emis['EMISSIONS_UG/S'].sum()
         
         # Update the EMISSIONS_UG/S field to scale emissions by the area fraction
         intersect['EMISSIONS_UG/S'] = intersect['area_frac'] * intersect['EMISSIONS_UG/S']
@@ -171,9 +182,6 @@ class concentration_layer:
         
         # Re-project the emissions layer into the ISRM coordinate reference system
         emis = emis.to_crs(isrm_geography.crs)
-        
-        # Store the total emissions from the raw emissions data for later comparison
-        old_total = emis['EMISSIONS_UG/S'].sum()
 
         # Get total area of each emissions cell
         emis['area_km2'] = emis.geometry.area / (1000 * 1000)
@@ -186,7 +194,7 @@ class concentration_layer:
         intersect['area_total'] = intersect['EMIS_ID'].map(emis_totalarea)
         intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
         
-        return intersect, old_total
+        return intersect
     
     def cut_emissions(self, pol_obj, height_min, height_max):
         ''' Cuts an emissions pollutant object based on the height column '''
@@ -216,7 +224,7 @@ class concentration_layer:
         emis_slice = emis_slice[(emis_slice['HEIGHT_M'] >= height_min) & (emis_slice['HEIGHT_M'] < height_max)]
 
         # Calculate intersected geometries
-        intersect, old_total = self.intersect_geometries(emis_slice, isrm_obj.geodata, verbose, self.debug_mode)
+        intersect = self.intersect_geometries(emis_slice, isrm_obj.geodata, verbose, self.debug_mode)
         
         # Set up a dictionary for more intuitive storage
         tmp_dct = {}
@@ -226,9 +234,13 @@ class concentration_layer:
             with concurrent.futures.ProcessPoolExecutor(max_workers=5) as cl_executor:
                 futures = {}
                 for pollutant in pollutants:
-                    
+                    # Grab a pollutant layer (In this case, PM 2.5. The intersected geometries are the same for all pollutants)
+                    emis_slice = emis.get_pollutant_layer(pollutants[0])
+
+                    # Cut the pollutant layer based on the height
+                    emis_slice = emis_slice[(emis_slice['HEIGHT_M'] >= height_min) & (emis_slice['HEIGHT_M'] < height_max)]
                     # verboseprint(self.verbose, f'- Estimating concentrations of PM2.5 from {pollutant}')
-                    futures[pollutant] = cl_executor.submit(self.allocate_emissions, intersect, old_total, isrm_obj.geodata, pollutant, verbose, self.debug_mode)
+                    futures[pollutant] = cl_executor.submit(self.allocate_emissions, intersect, emis_slice, isrm_obj.geodata, pollutant, verbose, self.debug_mode)
 
                 verboseprint(verbose, '- [CONCENTRATION] Waiting for all allocations to complete',
                              self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -240,9 +252,15 @@ class concentration_layer:
                 tmp_dct = {x: futures[x].result() for x in pollutants}
                 
         else: # If linear, loop through pollutants
-        
+
             for pollutant in pollutants:
-                tmp_dct[pollutant] = self.allocate_emissions(intersect, old_total, isrm_obj.geodata, 
+                # Grab a pollutant layer (In this case, PM 2.5. The intersected geometries are the same for all pollutants)
+                emis_slice = emis.get_pollutant_layer(pollutants[0])
+
+                # Cut the pollutant layer based on the height
+                emis_slice = emis_slice[(emis_slice['HEIGHT_M'] >= height_min) & (emis_slice['HEIGHT_M'] < height_max)]
+
+                tmp_dct[pollutant] = self.allocate_emissions(intersect, emis_slice, isrm_obj.geodata, 
                                                              pollutant, verbose, self.debug_mode)
         
         # Output the emissions, if specified by the user
