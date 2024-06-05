@@ -310,7 +310,7 @@ class concentration_layer:
         # Loop through each subplot and each corresponding pollutant
         for ax, (pol, data) in zip(axes, pollutants.items()):
             
-            # Clip to output region if provided
+            # Clip to output region
             data = gpd.clip(data, output_region)
 
             # Plot data on the current subplot
