@@ -331,9 +331,6 @@ class concentration_layer:
             ax.xaxis.set_visible(False)
             ax.yaxis.set_visible(False)
             
-            # Add a white background to cover areas outside the output region
-            ax.set_facecolor('white')
-            
             # Add north arrow
             add_north_arrow(ax,float(angle_to_north))
         
