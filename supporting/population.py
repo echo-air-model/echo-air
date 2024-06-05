@@ -178,7 +178,7 @@ class population:
         # Define the racial/ethnic groups and estimate the intersection population
         cols = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
         for c in cols:
-            intersect[c] = intersect[c] * intersect['AREA_FRAC']
+            intersect[c] = intersect[c] * intersect['area_frac']
         
         # Perform two updates if doing this for hia
         if hia_flag:
