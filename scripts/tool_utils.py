@@ -384,6 +384,7 @@ def intersect_geometries(input_layer, target_geography, area_column, verbose=Fal
     
     RETURNS:
         - intersect: GeoDataFrame with intersections and area fractions
+        - input_copy: input dataframe containing the geometries to be intersecte
     '''
     verboseprint(verbose, 'Intersecting geometries between input layer and target geography.',
                      debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -409,4 +410,4 @@ def intersect_geometries(input_layer, target_geography, area_column, verbose=Fal
     intersect['total_area'] = intersect['TEMP_ID'].map(total_area)
     intersect['area_frac'] = intersect[area_column] / intersect['total_area']
     
-    return intersect
+    return intersect, input_copy
