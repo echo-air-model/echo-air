@@ -169,11 +169,8 @@ class population:
             verboseprint(self.verbose, '- [POPULATION] Allocating total population from population input file to ISRM grid cells.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
-        # Confirm that the coordinate reference systems match
-        # assert pop_obj.crs == new_geometry.crs, 'Coordinate reference system does not match. Population cannot be reallocated'
-        
         # Use the utility function for intersection and area fraction
-        intersect = intersect_geometries(pop_obj, new_geometry, 'POP_ID', verbose=self.verbose, debug_mode=self.debug_mode)
+        intersect, pop_tmp = intersect_geometries(pop_obj, new_geometry, 'AREA_M2', verbose=self.verbose, debug_mode=self.debug_mode)
 
         # Define the racial/ethnic groups and estimate the intersection population
         cols = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
