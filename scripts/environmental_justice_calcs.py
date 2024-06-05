@@ -581,10 +581,12 @@ def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
 
+    # Calculates the longitude and latitude of the center
+    center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
+    
     # Add north arrow
-    ax.annotate('', xy=(0.94, 0.95), xytext=(0.94, 0.92), arrowprops=dict(facecolor='black', shrink=0.4),
-        fontsize=12, ha='center', va='center', xycoords='axes fraction')
-    ax.annotate('N', xy=(0.94, 0.96), fontsize=12, ha='center', va='center', xycoords='axes fraction')
+    angle_to_north = calculate_true_north_angle(center_lon, center_lat, output_res_geo.crs)
+    add_north_arrow(ax,float(angle_to_north))
     
     # Add scale bar
     scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
