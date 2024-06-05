@@ -170,23 +170,10 @@ class population:
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Confirm that the coordinate reference systems match
-        #assert pop_tmp.crs == new_geometry.crs, 'Coordinate reference system does not match. Population cannot be reallocated'
-        if self.crs == new_geometry.crs:
-            pop_tmp = pop_obj.copy(deep=True)
-        else:
-            pop_tmp = self.project_pop(pop_obj, new_geometry.crs)
+        # assert pop_obj.crs == new_geometry.crs, 'Coordinate reference system does not match. Population cannot be reallocated'
         
-        # Add the land area as a feature of this dataframe
-        pop_tmp['AREA_M2'] = pop_tmp.geometry.area/(1000.*1000.)
-        
-        
-        # Create intersect object
-        intersect = gpd.overlay(pop_tmp, new_geometry, how='intersection')
-        pop_totalarea = intersect.groupby('POP_ID').sum()['AREA_M2'].to_dict()
-    
-        # Add a total area and area fraction to the intersect object
-        intersect['AREA_POP_TOTAL'] = intersect['POP_ID'].map(pop_totalarea)
-        intersect['AREA_FRAC'] = intersect['AREA_M2'] / intersect['AREA_POP_TOTAL']
+        # Use the utility function for intersection and area fraction
+        intersect = intersect_geometries(pop_obj, new_geometry, 'POP_ID', verbose=self.verbose, debug_mode=self.debug_mode)
 
         # Define the racial/ethnic groups and estimate the intersection population
         cols = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
