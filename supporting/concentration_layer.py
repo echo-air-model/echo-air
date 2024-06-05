@@ -198,7 +198,7 @@ class concentration_layer:
         emis_slice = emis_slice[(emis_slice['HEIGHT_M'] >= height_min) & (emis_slice['HEIGHT_M'] < height_max)]
 
         # Calculate intersected geometries
-        intersect = intersect_geometries(emis_slice, isrm_obj.geodata, 'area_km2', verbose, self.debug_mode)
+        intersect, input_copy = intersect_geometries(emis_slice, isrm_obj.geodata, 'area_km2', verbose, self.debug_mode)
         
         # Set up a dictionary for more intuitive storage
         tmp_dct = {}
