@@ -19,6 +19,9 @@ import datetime
 import geopandas as gpd
 import logging
 from inspect import currentframe, getframeinfo
+from pyproj import Transformer
+import matplotlib.transforms as transforms
+import numpy as np
 
 #%% ISRM Tool Utils
 def check_setup():
@@ -310,3 +313,100 @@ def get_output_region(region_of_interest, region_category, output_geometry_fps, 
         output_region = gpd.read_feather(ca_fps)
         
     return output_region
+
+def calculate_true_north_angle(center_lon, center_lat, crs):
+    """
+        Calculate the angle between the positive y-axis and true north.
+        
+        Parameters:
+        - center_lon: Longitude of the center point of the map.
+        - center_lat: Latitude of the center point of the map.
+        - crs: The coordinate reference system of the map.
+
+        Returns:
+        - angle: The angle in degrees.
+    """
+
+    # Create a transformer to convert from WGS84 to the given CRS
+    # This transformer converts coordinates from WGS84 (EPSG:4326) to the given coordinate reference system crs.
+    transformer = Transformer.from_crs("epsg:4326", crs, always_xy=True)
+
+    # Transform points
+    x0, y0 = transformer.transform(center_lon, center_lat)
+    x1, y1 = transformer.transform(center_lon, center_lat + 0.1)  # Small northward step
+
+    # Calculate the angle to the north
+    angle = (np.degrees(np.arctan2(x1 - x0, y1 - y0))) % 360
+    
+    return angle
+
+
+def add_north_arrow(ax, angle, x=0.93, y=0.92, arrow_length=0.05):
+    """
+        Add a simple north arrow to the plot with a specified rotation angle.
+        
+        Parameters:
+        - ax: The axis to add the north arrow to.
+        - angle: The angle to rotate the north arrow.
+        - x, y: The coordinates of the arrow's tip (in axis coordinates).
+        - arrow_length: The length of the arrow.
+    """
+    # Ensure angle is a float
+    angle = float(angle)
+
+    # Rotation transformation
+    t = transforms.Affine2D().rotate_deg_around(x, y, -angle) + ax.transAxes
+
+    # Coordinates for the arrow
+    arrow_head = [x, y + arrow_length]
+    arrow_bottom_left = [x - arrow_length / 3, y]
+    arrow_bottom_right = [x + arrow_length / 3, y]
+
+    # Add the arrow
+    ax.annotate('', xy=arrow_head, xytext=(x, y),
+                arrowprops=dict(facecolor='black', shrink=0.4),
+                fontsize=12, ha='center', va='center', xycoords='axes fraction', transform=t)
+    ax.annotate('N', xy=(x, y + arrow_length), fontsize=12, ha='center', va='center', xycoords='axes fraction')
+
+
+
+def intersect_geometries(input_layer, target_geography, area_column, verbose=False, debug_mode=False):
+    '''
+    Performs geometric intersection between input layer and target geography, calculates area fractions.
+
+    INPUTS:
+        - input_layer: GeoDataFrame containing the source geometries
+        - target_geography: GeoDataFrame containing the target geometries for intersection
+        - id_column: Column name for IDs in the input_layer
+        - area_column: Name of the column to store area calculations
+        - verbose: Boolean for verbosity of output
+        - debug_mode: Boolean for debug mode output
+    
+    RETURNS:
+        - intersect: GeoDataFrame with intersections and area fractions
+    '''
+    verboseprint(verbose, 'Intersecting geometries between input layer and target geography.',
+                     debug_mode, frameinfo=getframeinfo(currentframe()))
+
+                    
+    # Check if CRS match, if not project the input layer to the target geography's CRS
+    if input_layer.crs == target_geography.crs:
+        input_copy = input_layer.copy(deep=True)
+    else:
+        input_copy = input_layer.to_crs(target_geography.crs)
+    
+    # Add an ID field
+    input_copy['TEMP_ID'] = 'TEMP_' + input_copy.index.astype(str)
+
+    # Get total area of each input geometry cell
+    input_copy[area_column] = input_copy.geometry.area / (1000 * 1000)  # Convert to square kilometers if necessary
+    
+    # Create intersect object between input and target grid
+    intersect = gpd.overlay(input_copy, target_geography, how='intersection')
+    total_area = intersect.groupby('TEMP_ID').sum()[area_column].to_dict()
+    
+    # Add a total area and area fraction to the intersect object
+    intersect['total_area'] = intersect['TEMP_ID'].map(total_area)
+    intersect['area_frac'] = intersect[area_column] / intersect['total_area']
+    
+    return intersect
