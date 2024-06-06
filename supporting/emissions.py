@@ -542,9 +542,11 @@ class emissions:
         L0_flag = sum(heights<57.0) > 0
         L1_flag = sum((heights>=57.0)&(heights<=140.0)) > 0
         L2_flag = sum(heights>=760.0) > 0
+
+        # Check for a hole
         isrm_hole_flag = sum((heights>140.0)&(heights<760.0)) > 0 
         
-        # Return a warning message for the isrm_hole
+        # If the hole exists, issue a warning
         if isrm_hole_flag:
             logging.info('* [EMISSIONS] Emissions were identified with release heights between 140 - 760 meters.')
             logging.info('* The current version of the ISRM has not been trained on release heights in this range.')
