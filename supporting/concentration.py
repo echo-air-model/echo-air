@@ -210,16 +210,6 @@ class concentration:
         minx, miny, maxx, maxy = output_region.total_bounds
         ax.set_xlim(minx, maxx)
         ax.set_ylim(miny, maxy)
-        
-        
-        # Add north arrow
-        ax.annotate('', xy=(0.94, 0.95), xytext=(0.94, 0.92), arrowprops=dict(facecolor='black', shrink=0.4),
-            fontsize=12, ha='center', va='center', xycoords='axes fraction')
-        ax.annotate('N', xy=(0.94, 0.96), fontsize=12, ha='center', va='center', xycoords='axes fraction')
-        
-        # Add scale bar
-        scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
-        ax.add_artist(scalebar)
 
         ax.set_title(t_str)
         ax.xaxis.set_visible(False)
