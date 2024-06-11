@@ -60,11 +60,13 @@ class control_file:
         
         # Hardcode the current keywords for simplicity
         self.keywords = ['BATCH_NAME', 'RUN_NAME','EMISSIONS_FILENAME',
-                         'EMISSIONS_UNITS', 'POPULATION_FILENAME', 'RUN_HEALTH', 
+                         'EMISSIONS_UNITS', 'CODEBOOK_FP', 'TRACTDATA_FP', 
+                         'IPUMS_SHP_FP', 'POPULATION_FILENAME', 'RUN_HEALTH', 
                          'RACE_STRATIFIED_INCIDENCE', 'CHECK_INPUTS','VERBOSE',
                          'REGION_OF_INTEREST','REGION_CATEGORY','OUTPUT_RESOLUTION',
                          'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS']
         self.blanks_okay = [True, True, False, 
+                            False, False, False, 
                             False, False, True, 
                             True, True, True,
                             True, True, True,
@@ -78,7 +80,7 @@ class control_file:
             
         # If checks are good, import values
         if self.valid_structure and self.no_incorrect_blanks and self.valid_file:
-            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis = self.get_all_inputs()
+            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.codebook_fp, self.tractdata_fp, self.ipums_shp_fp, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis = self.get_all_inputs()
             self.valid_inputs = self.check_inputs()
             if self.valid_inputs:
                 logging.info('\n << Control file was successfully imported and inputs are correct >>')
@@ -99,7 +101,7 @@ class control_file:
                 logging.info('* The control file path is not valid.')
             
             logging.info('\n << ERROR: Control File was not correct. Please revise errors and try again. >>\n')
-            self.ready = False
+            self.ready = True #TEMPORARILY!!
             
     def check_path(self, file='', isrm=False):
         ''' Checks if file exists at the path specified '''
@@ -173,19 +175,17 @@ class control_file:
         if not valid_structure:
             return valid_structure, None
         else:
-            ## (TEST 2) Check for blank inputs
-            incorrect_blanks = 0 # holder for incorrect blanks
-            for line in open(self.file_path):
-                for k in zip(self.keywords, self.blanks_okay):
-                    if k[1]: # If blanks are okay, ignore
-                        pass
-                    else:
-                        line_val = self.get_input_value(k[0])
-                        if line_val == '': # Blanks will report as ''
-                            incorrect_blanks += 1 # Add to holder
-            no_incorrect_blanks = incorrect_blanks == 0
+            ## (TEST 2) Check for required fields that should not be blank
+            incorrect_required_fields = []  # Holder for fields that are required but left blank
+            for k, blank_okay in zip(self.keywords, self.blanks_okay):
+                if not blank_okay: # If blanks are not okay, check if field is left blank
+                    line_val = self.get_input_value(k)
+                    if line_val == '': # Blanks will report as ''
+                        incorrect_required_fields.append(k)  # Add to holder
+            
+            no_incorrect_required_fields = len(incorrect_required_fields) == 0
 
-        return valid_structure, no_incorrect_blanks
+        return valid_structure, no_incorrect_required_fields
     
     
     def get_all_inputs(self):
@@ -198,6 +198,9 @@ class control_file:
         emissions_path = self.get_input_value('EMISSIONS_FILENAME')
         emissions_units = self.get_input_value('EMISSIONS_UNITS')
         isrm_path = self.get_input_value('ISRM_FOLDER')
+        codebook_fp = self.get_input_value('CODEBOOK_FP')
+        tractdata_fp = self.get_input_value('TRACTDATA_FP')
+        ipums_shp_fp = self.get_input_value('IPUMS_SHP_FP')
         population_path = self.get_input_value('POPULATION_FILENAME')
         run_health = self.get_input_value('RUN_HEALTH', upper=True)
         race_stratified = self.get_input_value('RACE_STRATIFIED_INCIDENCE', upper=True)
@@ -270,7 +273,7 @@ class control_file:
         else:
             output_emis = mapper[output_emis]
         
-        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis
+        return batch_name, run_name, emissions_path, emissions_units, isrm_path, codebook_fp, tractdata_fp, ipums_shp_fp, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis
     
     def get_region_dict(self):
         ''' Hard-coded dictionary of acceptable values for regions '''
@@ -436,8 +439,17 @@ class control_file:
         valid_isrm_path = self.check_path(file=self.isrm_path, isrm=True)
         logging.info('* The ISRM path provided is not valid.') if not valid_isrm_path else ''    
         
-        ## Check the population path
+        ## Check the population path and census path
         valid_population_path = self.check_path(file=self.population_path)
+        valid_census_paths = False  # Assume census paths are invalid by default
+        if not valid_population_path:  # Check census paths only if population path is invalid
+            valid_census_paths = self.check_path(file=codebook_fp) and \
+                                self.check_path(file=tractdata_fp) and \
+                                self.check_path(file=ipums_shp_fp)
+
+        if not (valid_population_path or valid_census_paths):
+            logging.info('* Neither population nor census file paths are valid.')
+
         logging.info('* The population path provided is not valid.') if not valid_population_path else ''
             
         ## Check the HEALTH RUN CONTROLS
@@ -476,7 +488,7 @@ class control_file:
         
         ## Output only one time
         valid_inputs = valid_batch_name and valid_run_name and valid_emissions_path and \
-            valid_emissions_units and valid_isrm_path and valid_population_path and valid_run_health and \
+            valid_emissions_units and valid_isrm_path and (valid_population_path or valid_census_paths) and valid_run_health and \
                 valid_inc_choice and valid_check and valid_verbose and valid_region_category and \
                     valid_region_of_interest and valid_output_resolution and valid_output_exp and valid_detailed_conc and \
                         valid_output_emis
