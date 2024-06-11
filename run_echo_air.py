@@ -29,6 +29,7 @@ from emissions import emissions
 from health_data import health_data
 from isrm import isrm
 from population import population
+from census import census
 
 # Import supporting scripts
 sys.path.insert(0,'./scripts')
@@ -81,6 +82,9 @@ if __name__ == "__main__":
         units = cf.emissions_units
         isrm_path = cf.isrm_path
         population_path = cf.population_path
+        codebook_fp = cf.codebook_fp
+        tractdata_fp = cf.tractdata_fp
+        ipums_shp_fp = cf.ipums_shp_fp
         run_health = cf.run_health
         race_stratified = cf.race_stratified
         check = cf.check
