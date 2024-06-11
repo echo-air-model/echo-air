@@ -46,7 +46,6 @@ class concentration:
         - debug_mode: a Boolean indicating whether or not to output debug statements
         - shp_path: data variable file path for the boarder
         - output_region: a geodataframe containing only the region of interest
-        - shp_path: data variable file path for the boarder
         
     CALCULATES:
         - detailed_conc: geodataframe of the detailed concentrations at ground-level 
