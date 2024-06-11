@@ -271,7 +271,7 @@ class concentration_layer:
     
     def visualize_individual_emissions(self, pollutant_name=''):
         ''' Create a 5-panel plot of total emissions for each individual pollutant and save as a PNG file '''
-        
+
         if self.verbose:
             logging.info('- Drawing map of total emissions by pollutant.')
 
@@ -292,6 +292,12 @@ class concentration_layer:
             'VOC': self.VOCe
         }
 
+        # Concatenate all pollutant data into a single GeoDataFrame
+        combined_data = pd.concat([df.assign(pollutant=name) for name, df in pollutants.items()])
+
+        # Clip the combined data to the output region
+        clipped_data = gpd.clip(combined_data, output_region)
+
         # Set theme
         sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
 
@@ -308,22 +314,22 @@ class concentration_layer:
         angle_to_north = calculate_true_north_angle(center_lon, center_lat, self.crs)
 
         # Loop through each subplot and each corresponding pollutant
-        for ax, (pol, data) in zip(axes, pollutants.items()):
+        for ax, (pol, _) in zip(axes, pollutants.items()):
             
-            # Clip to output region
-            data = gpd.clip(data, output_region)
+            # Filter data for the current pollutant
+            data = clipped_data[clipped_data['pollutant'] == pol]
 
             # Plot data on the current subplot
             data.plot(column='EMISSIONS_UG/S',
-                        legend_kwds={'label': "Emissions (ug/s)"},
-                        legend=True, 
-                        cmap='mako_r',
-                        edgecolor='none',
-                        antialiased=False,
-                        ax=ax)
+                    legend_kwds={'label': "Emissions (ug/s)"},
+                    legend=True, 
+                    cmap='mako_r',
+                    edgecolor='none',
+                    antialiased=False,
+                    ax=ax)
 
-            # Plot the boundary of the California
-            ca_prj.boundary.plot(ax=ax, edgecolor='black', facecolor = 'none')  
+            # Plot the boundary of California
+            ca_prj.boundary.plot(ax=ax, edgecolor='black', facecolor='none')  
             
             # Set x and y limits, hide the labels
             ax.set_xlim(minx, maxx)
@@ -332,15 +338,15 @@ class concentration_layer:
             ax.yaxis.set_visible(False)
             
             # Add north arrow
-            add_north_arrow(ax,float(angle_to_north))
+            add_north_arrow(ax, float(angle_to_north))
         
             # Add scale bar
             scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
             ax.add_artist(scalebar)
             
-            #Set title of the plot to pollutant name
+            # Set title of the plot to pollutant name
             ax.set_title(f'{pol} Emissions')
-    
+
         # Adjust layout to avoid overlap
         plt.tight_layout()
         # Save the figure as a PNG in output directory
@@ -349,7 +355,7 @@ class concentration_layer:
         plt.close()
         
         verboseprint(self.verbose, '   - [CONCENTRATION] Emissions visualizations have been saved as a png',
-                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
+                    self.debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('- [CONCENTRATION] Map of emissions visualizations output as emissions_all_pollutants.png')
 
 
