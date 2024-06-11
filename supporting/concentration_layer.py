@@ -120,9 +120,6 @@ class concentration_layer:
                                                               self.pSO4)
             verboseprint(self.verbose, '   - [CONCENTRATION] Detailed concentrations are estimated from layer {}.'.format(self.layer),
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-        
-        if output_emis_flag:
-            self.visualize_individual_emissions()
             
     def __str__(self):
         return 'Concentration layer object created from the emissions from '+self.name + ' and the ISRM grid.'
@@ -268,93 +265,6 @@ class concentration_layer:
             self.save_allocated_emis(tmp_dct, output_dir, verbose)
             
         return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
-    
-    def visualize_individual_emissions(self, pollutant_name=''):
-        ''' Create a 5-panel plot of total emissions for each individual pollutant and save as a PNG file '''
-        
-        if self.verbose:
-            logging.info('- Drawing map of total emissions by pollutant.')
-
-        # Read in CA boundary
-        ca_shp = gpd.read_feather(self.shp_path)
-        # Reproject the shapefile to the desired CRS
-        ca_prj = ca_shp.to_crs(self.crs)
-        
-        # Reproject output_region to desired CRS
-        output_region = self.output_region.to_crs(self.crs)
-
-        # Pollutants and data 
-        pollutants = {
-            'Primary PM2.5': self.PM25e,
-            'NH3': self.NH3e,
-            'NOx': self.NOXe,
-            'SOx': self.SOXe,
-            'VOC': self.VOCe
-        }
-
-        # Set theme
-        sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
-
-        # Create a figure with 5 subplots arranged in a single row
-        fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(22,6))
-        
-        # Calculate bounds
-        minx, miny, maxx, maxy = output_region.total_bounds
-
-        # Calculates the longitude and latitude of the center
-        center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
-
-        # Calculate the north arrow angle 
-        angle_to_north = calculate_true_north_angle(center_lon, center_lat, self.crs)
-
-        # Loop through each subplot and each corresponding pollutant
-        for ax, (pol, data) in zip(axes, pollutants.items()):
-            
-            # Clip to output region
-            data = gpd.clip(data, output_region)
-
-            # Plot data on the current subplot
-            data.plot(column='EMISSIONS_UG/S',
-                        legend_kwds={'label': "Emissions (ug/s)"},
-                        legend=True, 
-                        cmap='mako_r',
-                        edgecolor='none',
-                        antialiased=False,
-                        ax=ax)
-
-            # Plot the boundary of the California
-            ca_prj.boundary.plot(ax=ax, edgecolor='black', facecolor = 'none')  
-            
-            # Set x and y limits, hide the labels
-            ax.set_xlim(minx, maxx)
-            ax.set_ylim(miny, maxy)
-            ax.xaxis.set_visible(False)
-            ax.yaxis.set_visible(False)
-            
-            # Add a white background to cover areas outside the output region
-            ax.set_facecolor('white')
-            
-            # Add north arrow
-            add_north_arrow(ax,float(angle_to_north))
-        
-            # Add scale bar
-            scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
-            ax.add_artist(scalebar)
-            
-            #Set title of the plot to pollutant name
-            ax.set_title(f'{pol} Emissions')
-    
-        # Adjust layout to avoid overlap
-        plt.tight_layout()
-        # Save the figure as a PNG in output directory
-        plt.savefig(path.join(self.output_dir, 'emissions_all_pollutants.png'))
-        # Close figure
-        plt.close()
-        
-        verboseprint(self.verbose, '   - [CONCENTRATION] Emissions visualizations have been saved as a png',
-                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
-        logging.info('- [CONCENTRATION] Map of emissions visualizations output as emissions_all_pollutants.png')
-
 
     def save_allocated_emis(self, tmp_dct, output_dir, verbose):
         ''' Function for outputting allocated emissions '''
