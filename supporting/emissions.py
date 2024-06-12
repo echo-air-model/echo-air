@@ -111,6 +111,9 @@ class emissions:
             if self.valid_emissions:
                 # Update to convert everything to polygons
                 self.check_geo_types()
+
+                # Checking max area
+                self.check_polygon_area()
             
                 # Print statements
                 verboseprint(self.verbose, '- [EMISSIONS] Emissions formatting has been checked and confirmed to be valid.',
@@ -197,6 +200,11 @@ class emissions:
         else:
             raise ValueError('Emissions file is of an unknown type. Cannot proceed')
         
+        # Project to the desired CRS if not already in that CRS
+        desired_crs = 'epsg:3310'  # California NAD83 Albers (m)
+        if crs != desired_crs:
+            geometry = geometry.to_crs(desired_crs)
+
         return geometry, emissions_data, crs
     
     def check_id(self, emissions_gdf):
@@ -434,19 +442,25 @@ class emissions:
             
             return 
     
+    def check_polygon_area(self):
+        # Calculate polygon areas in square meters
+        self.geometry['AREA_M2'] = self.geometry['geometry'].area
+        
+        # Convert square meters to square kilometers
+        self.geometry['AREA_KM2'] = self.geometry['AREA_M2'] / 10**6
+        
+        # Get the maximum polygon area
+        max_area = self.geometry['AREA_KM2'].max()
+        
+        # Check if maximum area exceeds 2500 km^2
+        if max_area > 2500:
+            logging.info('* [EMISSIONS] Large area emissions detected ({:.2f} km2). Consider carefully if results should be used for disparity, equity, and environmental justice analyses.'.format(max_area))
+
     def buffer_emis(self, emis_non_poly, dist):
         ''' Adds a buffer (in m) to the non-polygon type geometries in order to create polygons '''
-        # First, need to project to coordinates in meters
-        crs_old = self.crs
-        non_poly_prj = emis_non_poly.copy().to_crs('epsg:3310') # California NAD83 Albers (m)
-        
-        # Create buffer of radius dist
-        non_poly_prj['geometry'] = non_poly_prj.buffer(dist)
-        
-        # Re-project back to original coordinates
-        emis_new_poly = non_poly_prj.to_crs(crs_old)
-        
-        return emis_new_poly
+        emis_non_poly['geometry'] = emis_non_poly.buffer(dist)
+        return emis_non_poly
+
     
     def clean_up(self, details_to_keep, func=np.sum):
         ''' Simplifies emissions file by reducing unnecessary details '''
@@ -526,21 +540,23 @@ class emissions:
         
         # Test the bounds of each layer
         L0_flag = sum(heights<57.0) > 0
-        L1_flag = sum((heights>=57.0)&(heights<140.0)) > 0
+        L1_flag = sum((heights>=57.0)&(heights<=140.0)) > 0
         L2_flag = sum(heights>=760.0) > 0
-        isrm_hole_flag = sum((heights>=140.0)&(heights<760.0)) > 0 
+
+        # Check for a hole
+        isrm_hole_flag = sum((heights>140.0)&(heights<760.0)) > 0 
         
-        # Return a warning message for the isrm_hole
-        logging.info('* [EMISSIONS] Emissions were identified with release heights between 140 - 760 meters.')
-        logging.info('* The current version of the ISRM has not been trained on release heights in this range.')
-        logging.info('* As a short-term solution, concentrations from these emissions will be estimated using\n  the average of the middle and high release layers.')
-        logging.info('* For more information, please visit https://echo-air-model.github.io/docs/other_information/isrm_hole_patch.html.')
+        # If the hole exists, issue a warning
+        if isrm_hole_flag:
+            logging.info('* [EMISSIONS] Emissions were identified with release heights between 140 - 760 meters.')
+            logging.info('* The current version of the ISRM has not been trained on release heights in this range.')
+            logging.info('* As a short-term solution, concentrations from these emissions will be estimated using\n  the average of the middle and high release layers.')
+            logging.info('* For more information, please visit https://echo-air-model.github.io/docs/other_information/isrm_hole_patch.html.')
         
         return L0_flag, L1_flag, L2_flag, isrm_hole_flag
     
     def visualize_emissions(self, emissions_object, pollutant_name=''):
         ''' Creates map of emissions using simple chloropleth '''
-        # Note to build this out further at some point in the future, works for now
         fig, ax = plt.subplots(1,1)
         emissions_object.plot(column='EMISSIONS_UG/S',
                               figsize=(20,10),

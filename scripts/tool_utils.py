@@ -195,7 +195,7 @@ def report_version():
 
     logging.info('╔════════════════════════════════╗')
     logging.info('║ ECHO-AIR Model                 ║')
-    logging.info('║ Version 0.9.8                  ║')
+    logging.info('║ Version 0.9.9                  ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return
@@ -371,3 +371,4 @@ def add_north_arrow(ax, angle, x=0.93, y=0.92, arrow_length=0.05):
                 arrowprops=dict(facecolor='black', shrink=0.4),
                 fontsize=12, ha='center', va='center', xycoords='axes fraction', transform=t)
     ax.annotate('N', xy=(x, y + arrow_length), fontsize=12, ha='center', va='center', xycoords='axes fraction')
+

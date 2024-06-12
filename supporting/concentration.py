@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2024-02-15
+last modified: 2024-06-11
 """
 
 # Import Libraries
@@ -210,7 +210,7 @@ class concentration:
         minx, miny, maxx, maxy = output_region.total_bounds
         ax.set_xlim(minx, maxx)
         ax.set_ylim(miny, maxy)
-        
+
         # Calculates the longitude and latitude of the center
         center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
         
@@ -221,6 +221,7 @@ class concentration:
         scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
         ax.add_artist(scalebar)
 
+        # Add formatting
         ax.set_title(t_str)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
