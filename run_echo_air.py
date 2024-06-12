@@ -121,7 +121,7 @@ if __name__ == "__main__":
             emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
             pop = population(population_path, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
-            
+
         except:
             logging.info("\n<< Correct error messages above before running the program. >>\n")
         quit()
@@ -214,7 +214,7 @@ if __name__ == "__main__":
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
         conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
-      
+
         ## Create plots and export results
         # Parallelizing this process resulted in errors. This is an area for improvement in
         # future versions
