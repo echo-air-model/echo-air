@@ -211,6 +211,17 @@ class concentration:
         ax.set_xlim(minx, maxx)
         ax.set_ylim(miny, maxy)
 
+        # Calculates the longitude and latitude of the center
+        center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
+        
+        angle_to_north = calculate_true_north_angle(center_lon, center_lat, self.crs)
+        add_north_arrow(ax,float(angle_to_north))
+        
+        # Add scale bar
+        scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+        ax.add_artist(scalebar)
+
+        # Add formatting
         ax.set_title(t_str)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
@@ -227,7 +238,7 @@ class concentration:
             fig.savefig(fpath, dpi=200)
             logging.info('- [CONCENTRATION] Map of concentrations output as {}'.format(fname))
         return 
-
+    
     def export_concentrations(self, output_dir, f_out):
         ''' Exports concentration as a shapefile (detailed or total) '''
         verboseprint(self.verbose, '- [CONCENTRATION] Exporting concentrations as a shapefile.',
