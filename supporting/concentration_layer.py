@@ -344,9 +344,12 @@ class concentration_layer:
 
         # Adjust layout to avoid overlap
         plt.tight_layout()
+
+	# Create a file name
+        fname_tmp = '{}_layer{}_allocated_emis.png'.format(self.name, self.layer)
         
         # Save the figure as a PNG in output directory
-        plt.savefig(path.join(self.output_dir, 'emissions_all_pollutants_L{}.png'.format(self.layer)))
+        plt.savefig(path.join(self.output_dir, fname_tmp))
         
         # Close figure
         plt.close()
