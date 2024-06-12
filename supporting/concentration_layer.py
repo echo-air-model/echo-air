@@ -171,6 +171,7 @@ class concentration_layer:
     def intersect_geometries(emis_layer, isrm_geography, verbose, debug_mode):
         ''' 
         Performs geometric intersection between ISRM and emissions geometries and returns a crosswalk '''
+
         
         # Deep copy the emissions layer and add an ID field
         verboseprint(verbose, '      - [CONCENTRATION] Creating geometry intersection crosswalk.',
@@ -216,7 +217,7 @@ class concentration_layer:
 
         # Calculate intersected geometries
         intersect = self.intersect_geometries(emis_slice, isrm_obj.geodata, verbose, self.debug_mode)
-        
+
         # Limit columns
         intersect = intersect[['ISRM_ID','EMIS_ID','area_frac']].copy()
         
@@ -301,7 +302,7 @@ class concentration_layer:
         center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
 
         # Calculate the north arrow angle 
-        #angle_to_north = calculate_true_north_angle(center_lon, center_lat, self.crs)
+        angle_to_north = calculate_true_north_angle(center_lon, center_lat, self.crs)
 
         # Loop through each subplot and each corresponding pollutant
         for ax, pol in zip(axes, pollutants):
@@ -327,11 +328,11 @@ class concentration_layer:
             ax.yaxis.set_visible(False)
             
             # Add north arrow
-            #add_north_arrow(ax, float(angle_to_north))
+            add_north_arrow(ax, float(angle_to_north))
         
             # Add scale bar
-            #scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
-            #ax.add_artist(scalebar)
+            scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+            ax.add_artist(scalebar)
             
             # Set title of the plot to pollutant name
             ax.set_title(f'{pol} Emissions')
@@ -343,9 +344,12 @@ class concentration_layer:
 
         # Adjust layout to avoid overlap
         plt.tight_layout()
+
+	# Create a file name
+        fname_tmp = '{}_layer{}_allocated_emis.png'.format(self.name, self.layer)
         
         # Save the figure as a PNG in output directory
-        plt.savefig(path.join(self.output_dir, 'emissions_all_pollutants_L{}.png'.format(self.layer)))
+        plt.savefig(path.join(self.output_dir, fname_tmp))
         
         # Close figure
         plt.close()
