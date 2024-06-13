@@ -4,7 +4,7 @@
 Population Data Object
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2024-06-13
 """
 
 # Import Libraries
@@ -162,6 +162,7 @@ class population:
     
     def allocate_population(self, pop_obj, new_geometry, new_geometry_ID, hia_flag):
         ''' Reallocates the population into the new geometry using a spatial intersect '''
+        # Print to the log file
         if hia_flag:
             verboseprint(self.verbose, '- [HEALTH] Allocating age-stratified population from population input file to ISRM grid cells.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -170,7 +171,7 @@ class population:
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Use the utility function for intersection and area fraction
-        intersect, pop_tmp = intersect_geometries(pop_obj, new_geometry, 'AREA_M2', verbose=self.verbose, debug_mode=self.debug_mode)
+        intersect, pop_tmp = intersect_geometries(pop_obj, new_geometry, 'AREA_M2', 'POP', verbose=self.verbose, debug_mode=self.debug_mode)
 
         # Define the racial/ethnic groups and estimate the intersection population
         cols = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']

@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2024-06-11
+last modified: 2024-06-13
 """
 
 # Import Libraries
