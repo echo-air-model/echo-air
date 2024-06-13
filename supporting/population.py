@@ -193,11 +193,11 @@ class population:
         new_alloc_pop = new_geometry.merge(new_alloc_pop, how='left',
                                            left_on=new_geometry_ID,
                                            right_on=new_geometry_ID)
-
+        
         # Fill the missing cells with zero population
         new_alloc_pop[cols] = new_alloc_pop[cols].fillna(0)
         
-        # Confirm that the population slipt was close
+        # Confirm that the new population was close to the old one
         old_pop_total = pop_tmp[cols].sum()
         new_pop_total = new_alloc_pop[cols].sum()
         
