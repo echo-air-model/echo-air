@@ -393,7 +393,7 @@ def intersect_geometries(input_layer, target_geography, area_column, id_desc, ve
     if input_layer.crs == target_geography.crs:
         input_copy = input_layer.copy(deep=True)
     else:
-        input_copy = input_layer.to_crs(target_geography.crs)
+        input_copy = input_layer.copy(deep=True).to_crs(target_geography.crs)
     
     # Add an ID field
     id_column = id_desc + '_ID'
