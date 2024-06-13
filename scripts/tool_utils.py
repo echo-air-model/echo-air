@@ -195,7 +195,7 @@ def report_version():
 
     logging.info('╔════════════════════════════════╗')
     logging.info('║ ECHO-AIR Model                 ║')
-    logging.info('║ Version 0.9.8                  ║')
+    logging.info('║ Version 0.9.10                 ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return
@@ -315,17 +315,17 @@ def get_output_region(region_of_interest, region_category, output_geometry_fps, 
     return output_region
 
 def calculate_true_north_angle(center_lon, center_lat, crs):
-    """
-        Calculate the angle between the positive y-axis and true north.
-        
-        Parameters:
+    ''' 
+    Calculate the angle between the positive y-axis and true north.
+
+    INPUTS:
         - center_lon: Longitude of the center point of the map.
         - center_lat: Latitude of the center point of the map.
         - crs: The coordinate reference system of the map.
-
-        Returns:
+        
+    OUTPUTS:
         - angle: The angle in degrees.
-    """
+    '''
 
     # Create a transformer to convert from WGS84 to the given CRS
     # This transformer converts coordinates from WGS84 (EPSG:4326) to the given coordinate reference system crs.
@@ -342,15 +342,20 @@ def calculate_true_north_angle(center_lon, center_lat, crs):
 
 
 def add_north_arrow(ax, angle, x=0.93, y=0.92, arrow_length=0.05):
-    """
-        Add a simple north arrow to the plot with a specified rotation angle.
-        
-        Parameters:
+    ''' 
+    Add a simple north arrow to the plot with a specified rotation angle.
+
+    INPUTS:
         - ax: The axis to add the north arrow to.
         - angle: The angle to rotate the north arrow.
-        - x, y: The coordinates of the arrow's tip (in axis coordinates).
+        - x: The x-coordinate of the arrow's tip (in axis coordinates).
+        - y: The y-coordinate of the arrow's tip (in axis coordinates).
         - arrow_length: The length of the arrow.
-    """
+        
+    OUTPUTS:
+        - None
+    '''
+
     # Ensure angle is a float
     angle = float(angle)
 
@@ -367,8 +372,6 @@ def add_north_arrow(ax, angle, x=0.93, y=0.92, arrow_length=0.05):
                 arrowprops=dict(facecolor='black', shrink=0.4),
                 fontsize=12, ha='center', va='center', xycoords='axes fraction', transform=t)
     ax.annotate('N', xy=(x, y + arrow_length), fontsize=12, ha='center', va='center', xycoords='axes fraction')
-
-
 
 def intersect_geometries(input_layer, target_geography, area_column, verbose=False, debug_mode=False):
     '''
