@@ -1,0 +1,25 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ECHO-AIR MODEL POPULATION CONTROL FILE  		                       ║
+║  last modified: 2024-06-11                                                   ║
+║                                                                              ║
+║  Instructions: Replace the commented out sample inputs with your own inputs. ║
+║  		 Do not change the keywords or anything inside the boxes.      ║
+║  		 Certain fields (noted with *) can be left blank if needed.    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+╓─────────────╖
+║  META DATA  ║
+╙─────────────╜
+- OUTPUT_FILE_NAME: #example
+
+╓───────────────────╖
+║    CENSUS DATA    ║
+╙───────────────────╜
+- CODEBOOK_FP: #/example.txt
+- TRACTDATA_FP: #/example.csv
+- IPUMS_SHP_FP: #example.shp
+
+╓────────────────────────────────╖
+║ RUN CONTROLS                   ║
+║ These should be set to Y or N  ║
+╙────────────────────────────────╜
+- VERBOSE: #Y (*)
