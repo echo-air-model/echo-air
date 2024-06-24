@@ -61,8 +61,18 @@ verbose = cf.verbose
 # Create the output directory
 output_dir, f_out = create_output_dir(file_name, '')
 
+logging.info('╓────────────────────────────────╖')
+logging.info('║ Creating Population Input Files                               ║')
+logging.info('╙────────────────────────────────╜')
+logging.info('\n')
+
 # Create census object
 census_obj = census(codebook_fp, tractdata_fp, ipums_shp_fp, output_dir, f_out, verbose, debug_mode=debug_mode)
 # Processes the data and exports the finished population feather folder
 census_obj.preprocess_data()
-logging.info("Finished.")
+
+logging.info('\n')
+logging.info('╓────────────────────────────────╖')
+logging.info('║ Success! Script complete.      ║')
+logging.info('╙────────────────────────────────╜\n')
+logging.info('<< ECHO-AIR has created and exported all control files indicated. >>')
