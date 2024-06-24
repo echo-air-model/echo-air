@@ -379,6 +379,9 @@ class census:
         # Creating the file name
         fname = self.f_out + '.feather'
         fpath = os.path.join(self.output_dir, fname)
+
+        # Logging statement for exporting
+        logging.info('- Stored at: {}'.format([fpath]]))
         
         # Save to file
         ca_tracts_to_export.to_feather(fpath)
