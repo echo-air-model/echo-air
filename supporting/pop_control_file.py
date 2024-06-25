@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Control File Reading Object
+Population Control File Reading Object
 
-@author: libbykoolik
+@author: amyryao
 
-last modified: 2024-01-19
+last modified: 2024-06-26
 
 """
 
