@@ -23,6 +23,7 @@ from inspect import currentframe, getframeinfo
 sys.path.append('./scripts')
 from tool_utils import *
 import concurrent.futures
+from matplotlib_scalebar.scalebar import ScaleBar
 
 #%%
 def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
@@ -579,6 +580,17 @@ def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_
     minx, miny, maxx, maxy = output_region.total_bounds
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
+
+    # Calculates the longitude and latitude of the center
+    center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
+    
+    # Add north arrow
+    angle_to_north = calculate_true_north_angle(center_lon, center_lat, output_res_geo.crs)
+    add_north_arrow(ax,float(angle_to_north))
+    
+    # Add scale bar
+    scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+    ax.add_artist(scalebar)
     
     ax.set_title(t_str)
     ax.xaxis.set_visible(False)
