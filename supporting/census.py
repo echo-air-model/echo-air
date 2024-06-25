@@ -3,8 +3,8 @@
 """
 Census Object
 
-@author: libbykoolik
-last modified: 2024-06-19
+@author: amyryao
+last modified: 2024-06-26
 """
 
 # Import libraries
