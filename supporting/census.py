@@ -294,38 +294,23 @@ class census:
         # Strip any leading or trailing whitespace
         ca_tracts['RACE/ETHNICITY'] = ca_tracts['RACE/ETHNICITY'].str.strip()
         
-  
-
-        # Define both versions of race_eth_mapper
-        race_eth_mapper_1 = {
+        # Define race/ethnicity mapper with exceptions
+        race_eth_mapper = {
             'American Indian and Alaska Native alone': 'INDIG',
             'Asian alone': 'ASIAN',
             'Black or African American alone': 'BLACK',
             'Hispanic or Latino': 'HISLA',
+            'Hispanic/Latino': 'HISLA',  # Note the difference here
             'Native Hawaiian and Other Pacific Islander alone': 'PACIS',
             'Some Other Race alone': 'OTHER',
+            'Some other race alone': 'OTHER',  # Note the difference here
+            'Two or more races': 'OTHER',  # Note the difference here
             'Two or More Races': 'OTHER',
             'White alone': 'WHITE'
         }
         
-        race_eth_mapper_2 = {
-            'American Indian and Alaska Native alone': 'INDIG',
-            'Asian alone': 'ASIAN',
-            'Black or African American alone': 'BLACK',
-            'Hispanic/Latino': 'HISLA',  # Note the difference here
-            'Native Hawaiian and Other Pacific Islander alone': 'PACIS',
-            'Some other race alone': 'OTHER',  # Note the difference here
-            'Two or more races': 'OTHER',  # Note the difference here
-            'White alone': 'WHITE'
-        }
-        
-        # Strip any leading or trailing whitespace from the 'RACE/ETHNICITY' column
-        ca_tracts['RACE/ETHNICITY'] = ca_tracts['RACE/ETHNICITY'].str.strip()
-        
-        # Map using race_eth_mapper_2, fallback to race_eth_mapper_1 if NaN (no match found)
-        ca_tracts['GROUP'] = ca_tracts['RACE/ETHNICITY'].map(race_eth_mapper_2).fillna(ca_tracts['RACE/ETHNICITY'].map(race_eth_mapper_1))
-
-   
+        # Map using race_eth_mapper
+        ca_tracts['GROUP'] = ca_tracts['RACE/ETHNICITY'].map(race_eth_mapper)
         
         # Drop rows where 'GROUP' column has NaN values
         ca_tracts = ca_tracts.dropna(subset=['GROUP'])
