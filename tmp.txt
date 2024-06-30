@@ -1,0 +1,136 @@
+╔════════════════════════════════╗
+║ ECHO-AIR Model                 ║
+║ Version 0.9.10                 ║
+╚════════════════════════════════╝
+
+
+<< Reading Control File >>
+* The control file path is not valid.
+
+ << ERROR: Control File was not correct. Please revise errors and try again. >>
+
+╔════════════════════════════════╗
+║ ECHO-AIR Model                 ║
+║ Version 0.9.10                 ║
+╚════════════════════════════════╝
+
+
+<< Reading Control File >>
+* The control file path is not valid.
+
+ << ERROR: Control File was not correct. Please revise errors and try again. >>
+
+<< Reading Control File >>
+<< Reading Control File >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_11>>
+╓────────────────────────────────╖
+║ Creating Population Input Files                               ║
+╙────────────────────────────────╜
+
+
+- [CENSUS] Loading codebook from file: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240606T154534Z-001/nhgis0005_ds173_2010_tract_codebook.txt
+<< Reading Control File >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_12>>
+╓────────────────────────────────╖
+║ Creating Population Input Files                               ║
+╙────────────────────────────────╜
+
+
+- [CENSUS] Loading codebook from file: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240606T154534Z-001/nhgis0005_ds173_2010_tract_codebook.txt
+<< Reading Control File >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_13>>
+╓────────────────────────────────╖
+║ Creating Population Input Files                               ║
+╙────────────────────────────────╜
+
+
+- [CENSUS] Loading codebook from file: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/nhgis0005_ds173_2010_tract_codebook.txt
+- [CENSUS] Codebook loaded successfully
+<< Reading Control File >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_14>>
+╓────────────────────────────────╖
+║ Creating Population Input Files                               ║
+╙────────────────────────────────╜
+
+
+- [CENSUS] Loading codebook from file: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/nhgis0005_ds173_2010_tract_codebook.txt
+- [CENSUS] Codebook loaded successfully
+<< Reading Control File >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_15>>
+╓─────────────────────────────────╖
+║ Creating Population Input Files ║
+╙─────────────────────────────────╜
+
+
+- [CENSUS] Loading codebook from file: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/nhgis0009_ds146_2000_tract_codebook.txt
+- [CENSUS] Codebook loaded successfully
+- [CENSUS] Processing data
+- [CENSUS] Processing the codebook
+- [CENSUS] Codebook processed successfully
+- [CENSUS] Data filtered for California.
+- [CENSUS] Data melted and columns created for RACE/ETHNICITY and AGE
+- [CENSUS] Summarized data and merged with geographic data.
+- Stored at: ['/Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_15/example_15.feather']
+- [CENSUS] Data preprocessing complete and saved to /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_15/example_15.feather.
+
+
+╓────────────────────────────────╖
+║ Success! Script complete.      ║
+╙────────────────────────────────╜
+
+<< ECHO-AIR has created and exported all control files indicated. >>
+<< Reading Control File >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_16>>
+╓─────────────────────────────────╖
+║ Creating Population Input Files ║
+╙─────────────────────────────────╜
+
+
+- [CENSUS] Loading codebook from file: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/nhgis0009_ds146_2000_tract_codebook.txt
+- [CENSUS] Codebook loaded successfully
+- [CENSUS] Processing data
+- [CENSUS] Processing the codebook
+- [CENSUS] Codebook processed successfully
+- [CENSUS] Data filtered for California.
+- [CENSUS] Data melted and columns created for RACE/ETHNICITY and AGE
+- [CENSUS] Summarized data and merged with geographic data.
+- [CENSUS] Stored at: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_16/example_16.feather
+- [CENSUS] Data preprocessing complete and saved to /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_16/example_16.feather.
+
+
+╓────────────────────────────────╖
+║ Success! Script complete.      ║
+╙────────────────────────────────╜
+
+<< ECHO-AIR has created and exported all control files indicated. >>
+<< Reading Control File >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_17>>
+╓─────────────────────────────────╖
+║ Creating Population Input Files ║
+╙─────────────────────────────────╜
+
+
+- [CENSUS] Loading codebook from file: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/nhgis0009_ds146_2000_tract_codebook.txt
+- [CENSUS] Codebook loaded successfully
+- [CENSUS] Processing data
+- [CENSUS] Processing the codebook
+- [CENSUS] Codebook processed successfully
+- [CENSUS] Data filtered for California.
+- [CENSUS] Data melted and columns created for RACE/ETHNICITY and AGE
+- [CENSUS] Summarized data and merged with geographic data.
+- [CENSUS] Stored at: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_17/example_17.feather
+- [CENSUS] Data preprocessing complete and saved to /Users/amyyao/Desktop/echoair/echo-air/outputs/out_example_17/example_17.feather.
+
+
+╓────────────────────────────────╖
+║ Success! Script complete.      ║
+╙────────────────────────────────╜
+
+<< ECHO-AIR has created and exported all control files indicated. >>

@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE metadata SYSTEM "http://www.fgdc.gov/metadata/fgdc-std-001-1998.dtd">
+<metadata>
+	<idinfo>
+		<citation>
+			<citeinfo>
+				<origin>Minnesota Population Center</origin>
+				<pubdate>2006/10/05</pubdate>
+				<title>Historic US Census Tract Boundaries, 2000, 2000</title>
+				<geoform Sync="TRUE">vector digital data</geoform>
+				<pubinfo>
+					<pubplace>Minneapolis, Minnesota</pubplace>
+					<publish>Minnesota Population Center</publish>
+				</pubinfo>
+				<onlink>http://www.nhgis.org</onlink>
+				<lworkcit>
+				</lworkcit>
+				<ftname Sync="TRUE">US_tract_2000</ftname>
+			</citeinfo>
+		</citation>
+		<descript>
+			<abstract>This boundary file contains historic census tract boundaries for which the U.S. Census Bureau tabulated data and was produced by the Minnesota Population Center as part of the National Historical Geographic Information System (NHGIS) project. The NHGIS is an National Science Foundation-sponsored project (Grant No. BCS0094908) to create a digital spatial-temporal database of all available historical US aggregate census materials. The available shapefiles on the NHGIS site represent version 1.0 of historical US census tract boundary files for the 1910-2000 censuses.  These electronic census tract boundary files were created by referencing publicly available, printed U.S. Census Bureau maps and considerable care was taken during their production. TIGER/Line spatial features that corresponded to boundaries on these maps were used to construct proper historic boundaries.  When a TIGER/Line features was not available, we digitized the historic boundary from a geo-referenced, scanned census map.  The boundary files have been checked against currently available historical census aggregate data.</abstract>
+			<purpose>These data are based upon work supported by the National Science Foundation under Grant No. BCS0094908 - in infrastructure grant provided for the social sciences. Its purpose is twofold. First, the NHGIS created and freely distributes a database incorporating all available aggregate census information for the United States between 1790 and 2000. The database contains information for a wide variety of statistical (blocks, block groups, census tracts, metropolitan statistical areas) and administrative units (places, minor civil divisions, counties, states).  Second, the NHGIS produced and freely distributes boundary files for small areas (census tracts and counties) in the United States. Boundary files for tracts are available for the 1910-2000 censuses, and boundary files for counties are available for the 1790-2000 censuses.</purpose>
+			<supplinf>Census tracts are small, relatively permanent geographic entities within counties and contain between 2,500 and 8,000 residents. The Census Bureau helped create and tabulate aggregate data for census tracts for ten cities in 1910. The creation of the census tract was a joint effort between federal and local entities to create a set of small geographic entities based on both population and housing characteristics. It was the localities, not the federal government, that requested the special tabulations and used the data. Additional cities were tracted by the Bureau in later decades and in 1940 the Census Bureau adopted the census tract as an official enumeration unit. The US first experienced complete coverage of census tracts in 2000.
+    Prior to the year 2000, Block Numbering Areas (BNAs) were used for areas that did not meet the tract eligibility criteria for the Census Bureau. At the time of their official recognition in 1940, BNAs and census tracts did not have similar attribute information available. In 1990, however, the Census Bureau delineated the same basic attributes for both the census tract and the BNA. For this reason, BNAs are represented as census tracts in the datasets for 1990. Prior to 1990 only census tracts are represented.
+    Crews-on-vessels refer to military or merchant ship populations, not inhabitants of houseboats or marinas. In 1990 the Census Bureau chose to represent crews-on-vessels in their electronic boundary files. This decision differed from previous and later decades where the crews-on-vessels population was added to the nearby land census tracts with which the vessels was associated. In an attempt to provide consistency over time, crews-on-vessels were removed from all of the tract boundary files. Separate statewide point shapefiles have been created for 1970, 1980 and 1990 representing crews-on-vessels within the county in which the crews-on-vessels were located in that census year.</supplinf>
+			<langdata Sync="TRUE">en</langdata>
+		</descript>
+		<timeperd>
+			<timeinfo>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+				<sngdate>
+					<caldate>2000</caldate>
+				</sngdate>
+			</timeinfo>
+			<current>publication date</current>
+		</timeperd>
+		<status>
+			<progress>In work</progress>
+			<update>As work is completed</update>
+		</status>
+		<spdom>
+			<bounding>
+				<westbc Sync="TRUE">-127.887285</westbc>
+				<eastbc Sync="TRUE">-65.345793</eastbc>
+				<northbc Sync="TRUE">51.604785</northbc>
+				<southbc Sync="TRUE">22.871934</southbc>
+			</bounding>
+			<lboundng>
+				<leftbc Sync="TRUE">-2356113.745757</leftbc>
+				<rightbc Sync="TRUE">2258224.799287</rightbc>
+				<bottombc Sync="TRUE">-1337508.076719</bottombc>
+				<topbc Sync="TRUE">1565781.660886</topbc>
+			</lboundng>
+		</spdom>
+		<keywords>
+			<theme>
+				<themekt>None</themekt>
+				<themekey>historical</themekey>
+				<themekey>census of population and housing</themekey>
+				<themekey>tracts</themekey>
+				<themekey>census boundaries</themekey>
+				<themekey>census geography</themekey>
+				<themekey>census data</themekey>
+				<themekey>population</themekey>
+				<themekey>housing</themekey>
+			</theme>
+			<place>
+				<placekt>None</placekt>
+			</place>
+			<temporal>
+				<tempkt>None</tempkt>
+			</temporal>
+		</keywords>
+		<accconst>All persons are granted a limited license to use and distribute this documentation and the available data, subject to the use constraints listed below.</accconst>
+		<useconst>This dataset was produced with an intended application at the city, county, metropolitan, or state/territory level. Appropriate uses include thematic mapping of census data and spatial analysis of census data.  These unaltered data may be redistributed by a third party.   If these data are altered or incorporated into another dataset, they are not to be redistributed without also: altering the name of the dataset, including a Content Standars for Digital Geospatial Metadata (FGDC-STD-001-1998) compliant metadata file that describes the dataset and reflects the alteration steps that makes the new dataset different from this one, and citing this dataset in the metadata as a source for the altered dataset using the source citation specified below.  If these digital data are used in the production of a report or in the compilation of a standalone printed map, then this dataset is to be cited in the report or on the map using the source citation specified below.  The following source citation should be used when citing this dataset: John S. Adams, William C. Block, Mark Lindberg, Robert McMaster, Steven Ruggles, and Wendy Thomas, National Historical Geographic Information System: Pre-release Version 0.1, Minneapolis: Minnesota Population Center, University of Minnesota, 2004.  No fee may be charged for use or distribution. Publications and research reports based on the database must cite it appropriately. Users are requested to send a copy of any publications, research reports, or educational material making use of the data or documentation. Printed matter should be sent to:  NHGIS  Minnesota Population Center University of Minnesota 50 Willey Hall 225 19th Avenue South Minneapolis, MN 55455</useconst>
+		<ptcontac>
+			<cntinfo>
+				<cntperp>
+					<cntper>Petra Noble</cntper>
+					<cntorg>Minnesota Population Center</cntorg>
+				</cntperp>
+				<cntpos>Research Fellow</cntpos>
+				<cntaddr>
+					<addrtype>physical address</addrtype>
+					<address>50 Willey Hall</address>
+					<address>225 19th Ave S</address>
+					<city>Minneapolis</city>
+					<state>Minnesota</state>
+					<postal>55455</postal>
+					<country>USA</country>
+				</cntaddr>
+				<cntvoice>612-625-7375</cntvoice>
+				<cntemail>nhgis@pop.umn.edu</cntemail>
+			</cntinfo>
+		</ptcontac>
+		<native Sync="TRUE">Microsoft Windows XP Version 5.1 (Build 2600) Service Pack 2; ESRI ArcCatalog 9.2.0.1324</native>
+		<natvform Sync="TRUE">Shapefile</natvform>
+	</idinfo>
+	<dataqual>
+		<attracc>
+			<attraccr>All attributes in this boundary file were checked against attributes in the available aggregate data to ensure accuracy and consistency. The boundary file may contain more or fewer tracts than the aggregate data file. Sources for the boundary files sometimes depicted tracts that were not listed in the aggregate data file.  Sometimes, the aggregate data files contains records for tracts that are not mappable (e.g. crews-on-vessels tracts are denoted as points, tracts for which paper maps not longer exist).</attraccr>
+		</attracc>
+		<logic>All spatial data have been reviewed to assure topological consistency and completeness. All polygons close and do not overlap. No voids exist within polygons. ArcGIS topology features classes were used to identify and fix topological errors (e.g., overlaps, voids, missing polygons) in the tract boundary datasets. The ArcGIS topology rules used to ensure logical consistency were 'Must not overlap'  and 'Area Boundary must be Covered by Boundary of'.</logic>
+		<complete>Version 1.0 of the tract boundary files contains census tracts.  Most tracts, although not all, have a matching record in the aggregate data files.  Tracts without a matching record contain"nodata" in its GISJOIN attribute. We will made those tracts because we had a geographic representation of it.  Additionally, some records in the aggregate data files could not be mapped because they were not depicted on the paper maps or they represent crews-on-vessels tracts, which the Census Bureau denoted as points - NHGIS boundary files are only composed of polygon features.  Version 1.0 boundary files have not been generalized, and tracts containing parts of the following bodies of water do not have historically accurate coastlines: the Great Lakes, Atlantic Ocean, Pacific Ocean, and the Gulf of Mexico.  No tracts overlap, no voids exist between tracts, and any polygon belongs to one and only one tract.  Every tract has a FIPS-like code (GISJOIN) that uniquely identifies it.  The aggregate data file contains a matching code (GISJOIN) so that the files can be easily joined together.
+
+This is a work in progress. A more detailed report will be provided with the final release. The beta version of the files are not generalized. Most counties that were tracted, in whole or in part, between 1910 and 2000 are available in beta format. Counties that include part of the following bodies of water: the Great Lakes, Atlantic Ocean, Gulf of Mexico, and the Pacific Ocean do not have accurate, historical coastlines.</complete>
+		<posacc>
+			<horizpa>
+				<horizpar>The horizontal positional accuracy of the source data (U.S. Census Bureau TIGER/Line 2000 files) can be found at  http://www.census.gov/geo/www/tlmetadata/tl2kmeta.txt. To create historic county boundaries, we used existing TIGER lines whereever possible. When no TIGER line existed, we digitized new linework from scanned and rectified U.S. Census Bureau tract maps.</horizpar>
+			</horizpa>
+		</posacc>
+		<lineage>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Census Bureau</origin>
+						<pubdate>1942</pubdate>
+						<title>1940 census tracts [city, state]</title>
+						<pubinfo>
+							<pubplace>Washington D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>various</srcscale>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Census Bureau</origin>
+						<pubdate>1952</pubdate>
+						<title>U.S. Census of population. Volume II Characteristics of population</title>
+						<pubinfo>
+							<pubplace>Washington D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>various</srcscale>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Census Bureau</origin>
+						<pubdate>1960</pubdate>
+						<title>U.S. Censuses of population and housing: 1960 census tracts. Final report</title>
+						<pubinfo>
+							<pubplace>Washington D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>various</srcscale>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Census Bureau</origin>
+						<pubdate>1972</pubdate>
+						<title>U.S. Census of population and housing: 1970 census tracts. Final report</title>
+						<pubinfo>
+							<pubplace>Washington D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>various</srcscale>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Census Bureau</origin>
+						<pubdate>1983</pubdate>
+						<title>1980 Census of population and housing census tracts. Final report PHC</title>
+						<pubinfo>
+							<pubplace>Washington D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>various</srcscale>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Census Bureau</origin>
+						<pubdate>1993</pubdate>
+						<title>1990 census of population and housing. Population and housing characteristics for census tracts and block numbering areas. Final report</title>
+						<pubinfo>
+							<pubplace>Washington D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>various</srcscale>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Census Bureau</origin>
+						<pubdate>1994</pubdate>
+						<title>TIGER/Line 1992: the coast-to-coast digital map database</title>
+						<pubinfo>
+							<pubplace>Washington D.C.</pubplace>
+							<publish>U.S. Census Bureau, Data User Services Division</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>various</srcscale>
+				<typesrc>digital</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Census Bureau</origin>
+						<pubdate>2000</pubdate>
+						<title>Census 2000 TIGER/Line files [machine-readable data files].</title>
+						<pubinfo>
+							<pubplace>Washington D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<srcscale>various</srcscale>
+				<typesrc>online</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Census Bureau</origin>
+						<pubdate>2001</pubdate>
+						<title>2000 Summary File 1 (SF1)</title>
+						<pubinfo>
+							<pubplace>Washington D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+						<onlink>http://factfinder.census.gov</onlink>
+					</citeinfo>
+				</srccite>
+				<typesrc>digital tape media</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>Cities Census Committee, Inc.</origin>
+						<pubdate>1932</pubdate>
+						<title>Population of the City of New York, 1890-1930</title>
+						<pubinfo>
+							<pubplace>New York</pubplace>
+							<publish>Cities Census Committee, Inc.</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>Howard Whipple Green</origin>
+						<pubdate>1927</pubdate>
+						<title>An analysis of population data by census tracts with location index, Cleveland and vicinity</title>
+						<pubinfo>
+							<pubplace>Cleveland, OH</pubplace>
+							<publish>Cleveland Health Council</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Bureau of the Census</origin>
+						<pubdate>1971</pubdate>
+						<title>U.S. Census of Housing: 1970. Block Statistics</title>
+						<pubinfo>
+							<pubplace>Washington, D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Bureau of the Census</origin>
+						<pubdate>1961</pubdate>
+						<title>U.S. Census of Housing: 1960. Volume III, City Blocks. Series HC(3)</title>
+						<pubinfo>
+							<pubplace>Washington, D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Bureau of the Census</origin>
+						<pubdate>1952</pubdate>
+						<title>U.S. Census fo Housing: 1950. Volume V, Block Statistics</title>
+						<pubinfo>
+							<pubplace>Washington, D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<typesrc>paper</typesrc>
+			</srcinfo>
+			<srcinfo>
+				<srccite>
+					<citeinfo>
+						<origin>U.S. Bureau of the Census</origin>
+						<pubdate>1982</pubdate>
+						<title>1980 Census of Population and Housing. Block Statistics</title>
+						<pubinfo>
+							<pubplace>Washington, D.C.</pubplace>
+							<publish>U.S. Government Printing Office</publish>
+						</pubinfo>
+					</citeinfo>
+				</srccite>
+				<typesrc>microfiche</typesrc>
+			</srcinfo>
+			<procstep>
+				<procdesc>The U.S. Census Bureau's Census 2000 TIGER/Line files were downloaded from the Internet (http://www.census.gov/geo/www/tiger/tiger2k/tgr2000.html).</procdesc>
+			</procstep>
+			<procstep>
+				<procdesc>Obtained 1992 TIGER/Line files on CD-ROM.</procdesc>
+			</procstep>
+			<procstep>
+				<procdesc>Using a custom Arc Macro Language (AML) script, staff converted the TIGER/Line files into Arc/Info coverages. The AML then projected the coverages into the proper UTM zone, created regions for the 1990 and 2000 census tracts and water, and extracted the 1980 census tracts from the 1992 TIGER/Line files. The end product, for editing purposes, was a polygon base map consisting of the boundary of a single county, the 1990 and 2000 tract boundaries for that county, and a coverage containing the 1980 census tracts from the 1992 TIGER/Line files.</procdesc>
+				<procsv>Arc/Info 8.3</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>Paper census tract maps were scanned and the resultant image geo-referenced to the TIGER/Line tract boundaries.</procdesc>
+				<procsv>Arc/Info 8.3</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>Starting with the 1990 TIGER-derived base map, editors worked on a county-by-county basis, backwards in time, decade by decade. A duplicate copy of the completed 1980 tract map became the edit map for the 1970 census tract map, and so on. A primary goal was to make tract borders match, where unchanged, from census year to census year. By reusing borders across different years, the NHGIS boundary files maximize the geographic correspondance between the datasets and avoid the problem of map conflation.</procdesc>
+				<procsv>Arc/Info 8.3</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>With the scanned, geo-referenced tract map in the background, editors modified tract boundaries to match boundaries on the paper map. TIGER/Line features were used to verify tract borders by feature name (e.g., street, river, railroad) and was the first choice for obtaining additional line work. For example, if a tract border changed from a railroad line to a street and if the street still existed in the TIGER/Line file, the appropriate line from the TIGER/Line file was incorporated into the census tract boundaries. In cases where a new border was required that was not found in the TIGER/Line files, editors drew from a variety of ancillary data, including block maps and comparability tables from printed census documents. Usually, the editor digitized the new boundary using the scanned tract map as a guide.</procdesc>
+				<procsv>Arc/Info 8.3</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>After making a new census tract, the editor calculated that tract's ID equal to the value denoted on the scanned map.</procdesc>
+				<procsv>Arc/Info 8.3</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>The most common editing procedure required to make new census tracts were merge, split, swap, and calculate. For merge, an editor merged together two or more tracts to make a new tract. For split, an editor split one tract into two or more tracts. For swap, editors swapped polygons between two or more tracts but didn't create and destroy any tracts. For calculate, the editors simply calculated the tract's ID to the new value denoted on the scanned map.</procdesc>
+				<procsv>Arc/Info 8.3</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>When staff finished editing all counties, a custom AML script appended all tracts and water in a given state to create a statewide coverage. Besides appending all tracts together, the AML also projected the coverages from UTM to Lambert Conformal Conic.</procdesc>
+				<procsv>Arc/Info 8.3</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>To remove water from tracts along the coasts, staff edited the water regions for all coastal states and then used a custom AML to remove water from the coastal census tracts.</procdesc>
+				<procsv>Arc/Info 8.3</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>NHGIS staff undertook an extensive review process after finishing tract editing. Staff examined coverages for topological errors, and they compared tract IDs with IDs found on the historical aggregate data files. The ID comparison process highlighted tracts that were missed during editing, extra tracts, and mistakes in the tract IDs.</procdesc>
+				<procsv>Arc/Info 8.3</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>Converted the statewide tract coverages to ArcSDE feature classes using a custom C# program.</procdesc>
+				<procsv>ArcObjects and Visual Studio .NET</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>Projected feature classes from Lambert Conformal Conic to the Contiguous US Albers Equal Area Conic projection.</procdesc>
+				<procsv>ArcCatalog 9.0</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>Appended all statewide tract feature classes together to make a seamless, nationwide feature class containing all tracts for a given decade.</procdesc>
+				<procsv>ArcCatalog 9.0</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>ArcGIS topology rules were used to check for topology errors in the nationwide feature classes. All errors were fixed using ArcMap 9.0.</procdesc>
+				<procsv>ArcCatalog 9.0 and ArcMap 9.0</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>Census tracts were checked against aggregate data files again to ensure that no census tracts were lost during the coverage-to-feature class conversion process</procdesc>
+				<procsv>ArcCatalog 9.0</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>Used ArcCatalog's metadata tools to write FGDC-compliant metadata.</procdesc>
+				<procsv>ArcCatalog 9.0</procsv>
+			</procstep>
+			<procstep>
+				<procdesc>Converted tracts from feature classes to shapefiles for Internet dissemination.</procdesc>
+				<procsv>ArcCatalog 9.0</procsv>
+			</procstep>
+			<procstep>
+				<procdesc Sync="TRUE">Metadata imported.</procdesc>
+				<srcused Sync="TRUE">C:\WorkSpace\tract.xml</srcused>
+				<date Sync="TRUE">20070111</date>
+				<time Sync="TRUE">07434200</time>
+			</procstep>
+		</lineage>
+	</dataqual>
+	<spdoinfo>
+		<direct Sync="TRUE">Vector</direct>
+		<ptvctinf>
+			<sdtsterm Name="US_tract_2000">
+				<sdtstype Sync="TRUE">G-polygon</sdtstype>
+				<ptvctcnt Sync="TRUE">0</ptvctcnt>
+			</sdtsterm>
+			<sdtsterm>
+				<sdtstype>GT-polygon composed of chains</sdtstype>
+				<ptvctcnt>1338</ptvctcnt>
+			</sdtsterm>
+			<esriterm Name="US_tract_2000">
+				<efeatyp Sync="TRUE">Simple</efeatyp>
+				<efeageom Sync="TRUE">Polygon</efeageom>
+				<esritopo Sync="TRUE">FALSE</esritopo>
+				<efeacnt Sync="TRUE">0</efeacnt>
+				<spindex Sync="TRUE">FALSE</spindex>
+				<linrefer Sync="TRUE">FALSE</linrefer>
+				<XYRank Sync="TRUE">1</XYRank>
+				<ZRank Sync="TRUE">1</ZRank>
+				<topoWeight Sync="TRUE">5.000000</topoWeight>
+				<validateEvents Sync="TRUE">FALSE</validateEvents>
+				<partTopoRules>
+					<topoRuleID Sync="TRUE">546</topoRuleID>
+				</partTopoRules>
+				<partTopoRules>
+					<topoRuleID Sync="TRUE">547</topoRuleID>
+				</partTopoRules>
+			</esriterm>
+		</ptvctinf>
+	</spdoinfo>
+	<spref>
+		<horizsys>
+			<planar>
+				<planci>
+					<plance Sync="TRUE">coordinate pair</plance>
+					<plandu Sync="TRUE">meters</plandu>
+					<coordrep>
+						<absres Sync="TRUE">0.000000</absres>
+						<ordres Sync="TRUE">0.000000</ordres>
+					</coordrep>
+				</planci>
+				<mapproj>
+					<mapprojn Sync="TRUE">Albers Conical Equal Area</mapprojn>
+					<albers>
+						<stdparll Sync="TRUE">29.500000</stdparll>
+						<stdparll Sync="TRUE">45.500000</stdparll>
+						<longcm Sync="TRUE">-96.000000</longcm>
+						<latprjo Sync="TRUE">37.500000</latprjo>
+						<feast Sync="TRUE">0.000000</feast>
+						<fnorth Sync="TRUE">0.000000</fnorth>
+					</albers>
+				</mapproj>
+			</planar>
+			<geodetic>
+				<horizdn Sync="TRUE">North American Datum of 1983</horizdn>
+				<ellips Sync="TRUE">Geodetic Reference System 80</ellips>
+				<semiaxis Sync="TRUE">6378137.000000</semiaxis>
+				<denflat Sync="TRUE">298.257222</denflat>
+			</geodetic>
+			<cordsysn>
+				<geogcsn Sync="TRUE">GCS_North_American_1983</geogcsn>
+				<projcsn Sync="TRUE">USA_Contiguous_Albers_Equal_Area_Conic</projcsn>
+			</cordsysn>
+		</horizsys>
+		<vertdef>
+			<altsys>
+				<altenc Sync="TRUE">Explicit elevation coordinate included with horizontal coordinates</altenc>
+				<altres Sync="TRUE">1.000000</altres>
+			</altsys>
+		</vertdef>
+	</spref>
+	<eainfo>
+		<detailed Name="US_tract_2000">
+			<enttyp>
+				<enttypl Sync="TRUE">US_tract_2000</enttypl>
+				<enttypt Sync="TRUE">Feature Class</enttypt>
+				<enttypc Sync="TRUE">0</enttypc>
+			</enttyp>
+			<attr>
+				<attrlabl Sync="TRUE">GISJOIN</attrlabl>
+				<attalias Sync="TRUE">GISJOIN</attalias>
+				<attrtype Sync="TRUE">String</attrtype>
+				<attwidth Sync="TRUE">15</attwidth>
+				<atprecis Sync="TRUE">0</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">NHGISST</attrlabl>
+				<attalias Sync="TRUE">NHGISST</attalias>
+				<attrtype Sync="TRUE">String</attrtype>
+				<attwidth Sync="TRUE">3</attwidth>
+				<atprecis Sync="TRUE">0</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">NHGISCTY</attrlabl>
+				<attalias Sync="TRUE">NHGISCTY</attalias>
+				<attrtype Sync="TRUE">String</attrtype>
+				<attwidth Sync="TRUE">3</attwidth>
+			</attr>
+			<attr>
+				<attrlabl>Shape</attrlabl>
+				<attrdef>Feature geometry</attrdef>
+				<attrdefs>ESRI</attrdefs>
+				<attrdomv>
+					<udom>Coordinates defining the features</udom>
+				</attrdomv>
+				<attrtype Sync="TRUE">String</attrtype>
+				<attwidth Sync="TRUE">4</attwidth>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">GISJOIN2</attrlabl>
+				<attalias Sync="TRUE">GISJOIN2</attalias>
+				<attrtype Sync="TRUE">String</attrtype>
+				<attwidth Sync="TRUE">16</attwidth>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">SHAPE</attrlabl>
+				<attalias Sync="TRUE">SHAPE</attalias>
+				<attrtype Sync="TRUE">String</attrtype>
+				<attwidth Sync="TRUE">15</attwidth>
+				<attrdef Sync="TRUE">Feature geometry.</attrdef>
+				<attrdefs Sync="TRUE">ESRI</attrdefs>
+				<attrdomv>
+					<udom Sync="TRUE">Coordinates defining the features.</udom>
+				</attrdomv>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">FID</attrlabl>
+				<attalias Sync="TRUE">FID</attalias>
+				<attrtype Sync="TRUE">Float</attrtype>
+				<attwidth Sync="TRUE">19</attwidth>
+				<attrdef Sync="TRUE">Internal feature number.</attrdef>
+				<attrdefs Sync="TRUE">ESRI</attrdefs>
+				<attrdomv>
+					<udom Sync="TRUE">Sequential unique whole numbers that are automatically generated.</udom>
+				</attrdomv>
+				<atnumdec Sync="TRUE">11</atnumdec>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">SHAPE_AREA</attrlabl>
+				<attalias Sync="TRUE">SHAPE_AREA</attalias>
+				<attrtype Sync="TRUE">Float</attrtype>
+				<attwidth Sync="TRUE">19</attwidth>
+				<attrdef Sync="TRUE">Area of feature in internal units squared.</attrdef>
+				<attrdefs Sync="TRUE">ESRI</attrdefs>
+				<attrdomv>
+					<udom Sync="TRUE">Positive real numbers that are automatically generated.</udom>
+				</attrdomv>
+				<atnumdec Sync="TRUE">11</atnumdec>
+			</attr>
+			<attr>
+				<attrlabl Sync="TRUE">SHAPE_LEN</attrlabl>
+				<attalias Sync="TRUE">SHAPE_LEN</attalias>
+				<attrtype Sync="TRUE">Double</attrtype>
+				<attwidth Sync="TRUE">19</attwidth>
+				<atprecis Sync="TRUE">0</atprecis>
+				<attscale Sync="TRUE">0</attscale>
+			</attr>
+		</detailed>
+		<overview>
+			<eaover>The most important attribute in this shapefile is GISJOIN because it provides the link between the shapefile and the aggregate data files. Any aggregate data file obtained through the NHGIS data acces system will contain a GISJOIN attribute.  Use this attribute to link the data with the shapefile for mapping purposes.  Please note that values in GISJOIN begin with "G" in order to retain leading zeros. This update took effect on May 7, 2008. 
+ 
+GISJOIN2 is an alternative linking attribute. GISJOIN2 is similar to GISJOIN except that its values do not begin with "G". GISJOIN2 may be used when linking to an aggregate data file extracted before May 7, 2008.
+
+Other attributes in the shapefile include area (in square meters), perimeter (in meters), FID (a ArcGIS-generated unique identifier for each record), NHGISST (the NHGIS state code, derived from FIPS codes), and NHGISCTY (the NHGIS county code, also derived from FIPS codes).</eaover>
+			<dsoverv>This shapefile contains census tracts for the Census of Population and Housing.</dsoverv>
+		</overview>
+	</eainfo>
+	<metainfo>
+		<metd Sync="TRUE">20080424</metd>
+		<metrd>2006/10/01</metrd>
+		<metfrd>As necessary</metfrd>
+		<metc>
+			<cntinfo>
+				<cntorgp>
+					<cntorg>Minnesota Population Center</cntorg>
+					<cntper>Petra Noble</cntper>
+				</cntorgp>
+				<cntaddr>
+					<address>50 Willey Hall</address>
+					<address>225 19th Avenue South</address>
+					<city>Minneapolis</city>
+					<state>Minnesota</state>
+					<postal>55455</postal>
+					<country>USA</country>
+					<addrtype>REQUIRED: The mailing and/or physical address for the organization or individual.</addrtype>
+				</cntaddr>
+				<cntvoice>612-625-7375</cntvoice>
+				<cntemail>nhgis@pop.umn.edu</cntemail>
+			</cntinfo>
+		</metc>
+		<metstdn Sync="TRUE">FGDC Content Standards for Digital Geospatial Metadata</metstdn>
+		<metstdv Sync="TRUE">FGDC-STD-001-1998</metstdv>
+		<langmeta Sync="TRUE">en</langmeta>
+		<mettc Sync="TRUE">local time</mettc>
+		<metextns>
+			<onlink Sync="TRUE">http://www.esri.com/metadata/esriprof80.html</onlink>
+			<metprof Sync="TRUE">ESRI Metadata Profile</metprof>
+		</metextns>
+	</metainfo>
+	<Esri>
+		<ModDate>20080424</ModDate>
+		<ModTime>20183300</ModTime>
+		<MetaID>{DE8DF9DB-A980-4EDD-B18F-B7251EF2E699}</MetaID>
+		<CreaDate>20070111</CreaDate>
+		<CreaTime>07434200</CreaTime>
+		<SyncOnce>FALSE</SyncOnce>
+		<SyncDate>20080424</SyncDate>
+		<SyncTime>20183300</SyncTime>
+		<DataProperties>
+			<lineage>
+				<Process Date="20080409" Time="141229" Name="Select Data" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\SelectData">SelectData "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC" POPGIS.t2000 "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080409" Time="164703" Name="Select Data" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\SelectData">SelectData "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC" POPGIS.t2000 "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="105800" Name="Add GISJOINA" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\AddField">AddField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOINA TEXT # # 15 # NULLABLE NON_REQUIRED # "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="111108" Name="Calculate GISJOINA" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\CalculateField">CalculateField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOINA [GISJOIN] VB # "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="112035" Name="Delete GISJOINA" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\DeleteField">DeleteField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOINA "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="113047" Name="Add GISJOINA" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\AddField">AddField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOINA TEXT # # 15 # NULLABLE NON_REQUIRED # "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="114815" Name="Calculate GISJOINA" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\CalculateField">CalculateField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOINA [GISJOIN] VB # "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="115111" Name="DeleteField_17" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\DeleteField">DeleteField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOIN "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="122158" Name="Add GISJOIN" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\AddField">AddField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOIN TEXT # # 16 # NULLABLE NON_REQUIRED # "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="122637" Name="Calculate GISJOIN" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\CalculateField">CalculateField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOIN ""G" &amp; [GISJOINA]" VB # "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="124353" Name="Add GISJOIN2" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\AddField">AddField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOIN2 TEXT # # 15 # NULLABLE NON_REQUIRED # "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="125327" Name="Calculate GISJOIN2" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\CalculateField">CalculateField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOIN2 [GISJOINA] VB # "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080418" Time="125715" Name="Delete GISJOINA" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\DeleteField">DeleteField "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000" GISJOINA "Database Connections\sdenhgis.socsci.umn.edu (5153).sde\POPGIS.Contiguous_USA_TC\POPGIS.t2000"</Process>
+				<Process Date="20080424" Time="202436" ToolSource="C:\Program Files\ArcGIS\ArcToolbox\Toolboxes\Data Management Tools.tbx\CopyFeatures">CopyFeatures tLayer G:\conflation\shapefiles\packing\gisjoin_gisjoin2_feature_class\tract\us_tract_2000\US_tract_2000.shp # 0 0 0</Process>
+				<Process ToolSource="c:\program files (x86)\arcgis\desktop10.1\ArcToolbox\Toolboxes\Data Management Tools.tbx\Append" Date="20130506" Time="162516">Append G:\data_projects\istads\shape_processing\AK_tract_2000.shp;G:\data_projects\istads\shape_processing\HI_tract_2000.shp G:\data_projects\istads\shape_processing\US_tract_2000.shp NO_TEST "NHGISST "NHGISST" true false false 3 Text 0 0 ,First,#,G:\data_projects\istads\shape_processing\AK_tract_2000.shp,NHGISST,-1,-1,G:\data_projects\istads\shape_processing\HI_tract_2000.shp,NHGISST,-1,-1;NHGISCTY "NHGISCTY" true false false 4 Text 0 0 ,First,#,G:\data_projects\istads\shape_processing\AK_tract_2000.shp,NHGISCTY,-1,-1,G:\data_projects\istads\shape_processing\HI_tract_2000.shp,NHGISCTY,-1,-1;GISJOIN "GISJOIN" true false false 16 Text 0 0 ,First,#,G:\data_projects\istads\shape_processing\AK_tract_2000.shp,GISJOIN,-1,-1,G:\data_projects\istads\shape_processing\HI_tract_2000.shp,GISJOIN,-1,-1;GISJOIN2 "GISJOIN2" true false false 15 Text 0 0 ,First,#,G:\data_projects\istads\shape_processing\AK_tract_2000.shp,GISJOIN2,-1,-1,G:\data_projects\istads\shape_processing\HI_tract_2000.shp,GISJOIN2,-1,-1;SHAPE_AREA "SHAPE_AREA" true false false 19 Double 0 0 ,First,#,G:\data_projects\istads\shape_processing\AK_tract_2000.shp,SHAPE_AREA,-1,-1,G:\data_projects\istads\shape_processing\HI_tract_2000.shp,SHAPE_AREA,-1,-1;SHAPE_LEN "SHAPE_LEN" true false false 19 Double 0 0 ,First,#,G:\data_projects\istads\shape_processing\AK_tract_2000.shp,SHAPE_LEN,-1,-1,G:\data_projects\istads\shape_processing\HI_tract_2000.shp,SHAPE_LEN,-1,-1" #</Process></lineage>
+			<itemProps><itemLocation><linkage Sync="TRUE">file://\\thalia.socsci.umn.edu\popgis\labpcs\data_projects\istads\shape_processing\tract\US_tract_2000</linkage><protocol Sync="TRUE">Local Area Network</protocol></itemLocation></itemProps><copyHistory><copy source="G:\data_projects\istads\shape_processing\US_tract_2000" dest="\\thalia.socsci.umn.edu\popgis\labpcs\data_projects\istads\shape_processing\tract\US_tract_2000" date="20130514" time="10194700"></copy></copyHistory></DataProperties>
+	</Esri>
+	<mdDateSt Sync="TRUE">20080424</mdDateSt>
+	<dataIdInfo>
+		<envirDesc Sync="TRUE">Microsoft Windows XP Version 5.1 (Build 2600) Service Pack 2; ESRI ArcCatalog 9.2.0.1324</envirDesc>
+		<dataLang>
+			<languageCode Sync="TRUE" value="en"/>
+		</dataLang>
+		<idCitation>
+			<resTitle Sync="TRUE">US_tract_2000</resTitle>
+			<presForm>
+				<PresFormCd Sync="TRUE" value="005"/>
+			</presForm>
+		</idCitation>
+		<spatRpType>
+			<SpatRepTypCd Sync="TRUE" value="001"/>
+		</spatRpType>
+		<dataExt>
+			<geoEle>
+				<GeoBndBox esriExtentType="native">
+					<westBL Sync="TRUE">-2356113.745757</westBL>
+					<eastBL Sync="TRUE">2258224.799287</eastBL>
+					<northBL Sync="TRUE">1565781.660886</northBL>
+					<southBL Sync="TRUE">-1337508.076719</southBL>
+					<exTypeCode Sync="TRUE">1</exTypeCode>
+				</GeoBndBox>
+			</geoEle>
+		</dataExt>
+		<geoBox esriExtentType="decdegrees">
+			<westBL Sync="TRUE">-127.887285</westBL>
+			<eastBL Sync="TRUE">-65.345793</eastBL>
+			<northBL Sync="TRUE">51.604785</northBL>
+			<southBL Sync="TRUE">22.871934</southBL>
+			<exTypeCode Sync="TRUE">1</exTypeCode>
+		</geoBox>
+	</dataIdInfo>
+	<mdLang>
+		<languageCode Sync="TRUE" value="en"/>
+	</mdLang>
+	<mdStanName Sync="TRUE">ISO 19115 Geographic Information - Metadata</mdStanName>
+	<mdStanVer Sync="TRUE">DIS_ESRI1.0</mdStanVer>
+	<mdChar>
+		<CharSetCd Sync="TRUE" value="004"/>
+	</mdChar>
+	<mdHrLv>
+		<ScopeCd Sync="TRUE" value="005"/>
+	</mdHrLv>
+	<mdHrLvName Sync="TRUE">dataset</mdHrLvName>
+	<distinfo>
+		<resdesc Sync="TRUE">Downloadable Data</resdesc>
+		<stdorder>
+			<digform>
+				<digtinfo>
+					<transize Sync="TRUE">0.000</transize>
+					<dssize Sync="TRUE">0.000</dssize>
+				</digtinfo>
+			</digform>
+		</stdorder>
+	</distinfo>
+	<distInfo>
+		<distributor>
+			<distorTran>
+				<onLineSrc>
+					<orDesc Sync="TRUE">002</orDesc>
+					<linkage Sync="TRUE">file://\\thalia.socsci.umn.edu\popgis\labpcs\conflation\shapefiles\packing\gisjoin_gisjoin2_feature_class\tract\us_tract_2000\US_tract_2000.shp</linkage>
+					<protocol Sync="TRUE">Local Area Network</protocol>
+				</onLineSrc>
+				<transSize Sync="TRUE">0.000</transSize>
+			</distorTran>
+			<distorFormat>
+				<formatName Sync="TRUE">Shapefile</formatName>
+			</distorFormat>
+		</distributor>
+	</distInfo>
+	<refSysInfo>
+		<RefSystem>
+			<refSysID>
+				<identCode Sync="TRUE">USA_Contiguous_Albers_Equal_Area_Conic</identCode>
+			</refSysID>
+		</RefSystem>
+	</refSysInfo>
+	<spatRepInfo>
+		<VectSpatRep>
+			<topLvl>
+				<TopoLevCd Sync="TRUE" value="001"/>
+			</topLvl>
+			<geometObjs Name="US_tract_2000">
+				<geoObjTyp>
+					<GeoObjTypCd Sync="TRUE" value="001"/>
+				</geoObjTyp>
+				<geoObjCnt Sync="TRUE">0</geoObjCnt>
+			</geometObjs>
+		</VectSpatRep>
+	</spatRepInfo>
+</metadata>

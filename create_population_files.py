@@ -61,9 +61,9 @@ verbose = cf.verbose
 # Create the output directory
 output_dir, f_out = create_output_dir(file_name, '')
 
-logging.info('╓────────────────────────────────╖')
-logging.info('║ Creating Population Input Files                               ║')
-logging.info('╙────────────────────────────────╜')
+logging.info('╓─────────────────────────────────╖')
+logging.info('║ Creating Population Input Files ║')
+logging.info('╙─────────────────────────────────╜')
 logging.info('\n')
 
 # Create census object

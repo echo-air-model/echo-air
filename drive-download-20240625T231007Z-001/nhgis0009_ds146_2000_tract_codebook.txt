@@ -1,0 +1,1638 @@
+--------------------------------------------------------------------------------
+Codebook for NHGIS data file 'nhgis0009_ds146_2000_tract'
+--------------------------------------------------------------------------------
+ 
+Contents
+    - Data Summary
+    - Data Dictionary
+    - Citation and Use
+ 
+Additional documentation on NHGIS data sources is available at: 
+    https://www.nhgis.org/documentation/tabular-data 
+ 
+--------------------------------------------------------------------------------
+Data Summary
+--------------------------------------------------------------------------------
+ 
+Year:             2000
+Geographic level: Census Tract (by State--County)
+Dataset:          2000 Census: SF 1a - 100% Data [Areas Larger Than Block Groups]
+   NHGIS code:    2000_SF1a
+   NHGIS ID:      ds146
+Breakdown(s):     Geographic Subarea:
+                     Total area (00)
+ 
+Tables:
+ 
+1. Hispanic or Latino Population by Sex by Age
+   Universe:    Hispanic or Latino Persons
+   Source code: NP012F
+   NHGIS code:  FM3
+ 
+2. Not Hispanic or Latino Population by Race by Sex by Age
+   Universe:    Not Hispanic or Latino Persons
+   Source code: NPCT012H
+   NHGIS code:  FUQ
+ 
+--------------------------------------------------------------------------------
+Data Dictionary
+--------------------------------------------------------------------------------
+ 
+Context Fields 
+        GISJOIN:     GIS Join Match Code
+        YEAR:        Data File Year
+        STUSAB:      File Identification
+        REGIONA:     Region Code
+        DIVISIONA:   Division Code
+        STATE:       State Name
+        STATEA:      State Code
+        COUNTY:      County Name
+        COUNTYA:     County Code
+        CTY_SUBA:    County Subdivision Code
+        COUSUBCC:    FIPS County Subdivion Class Code
+        PLACEA:      Place Code
+        PLACECC:     FIPS Place Class Code
+        PLACEDC:     Place Description Code
+        TRACTA:      Census Tract Code
+        TRBL_CTA:    Tribal Census Tract Code
+        BLCK_GRPA:   Block Group Code
+        TRBL_BGA:    Tribal Block Group Code
+        C_CITYA:     Consolidated City Code
+        AIANHHA:     American Indian Area/Alaska Native Area/Hawaiian Home Land Code
+        RES_ONLYA:   American Indian Area/Alaska Native Area (Reservation or Statistical Entity Only) Code
+        TRUSTA:      American Indian Area (Off-Reservation Trust Land Only)/Hawaiian Home Land Code
+        AIANHHCC:    FIPS American Indian Area/Alaska Native Area/Hawaiian Home Land Class Code
+        AITSCE:      American Indian Tribal Subdivision (Census)
+        TRBL_SUBA:   Tribal Subdivision Code
+        ANRCA:       Alaska Native Regional Corporation Code
+        MSA_CMSAA:   Metropolitan Statistical Area/Consolidated Metropolitan Statistical Area Code
+        CMSA:        Consolidated Metropolitan Statistical Area
+        MACCI:       Metropolitan Area Central City Indicator
+        PMSAA:       Primary Metropolitan Statistical Area Code
+        NECMAA:      New England County Metropolitan Area Code
+        NECMACCI:    New England County Metropolitan Area Central City Indicator
+        URB_AREAA:   Urban Area Code
+        UATYPE:      Urban Area Type
+        CD106A:      Congressional District (106th) Code
+        CD108A:      Congressional District (108th) Code
+        CD109A:      Congressional District (109th) Code
+        ZIP3A:       3-Digit ZIP Code Tabulation Area Code
+        ZCTAA:       5-Digit ZIP Code Tabulation Area Code
+        AREALAND:    Area (Land)
+        AREAWATR:    Area (Water)
+        NAME:        Area Name-Legal/Statistical Area Description (LSAD) Term-Part Indicator
+        FUNCSTAT:    Functional Status Code
+        INTPTLAT:    Internal Point (Latitude)
+        INTPLON:     Internal Point (Longitude)
+        LSADC:       Legal/Statistical Area Description Code
+        MACC:        Metropolitan Area Central City
+        UACP:        Urban Area Central Place
+ 
+Breakdown:
+    Geographic Subarea: Total area (00)
+ 
+    Table 1:     Hispanic or Latino Population by Sex by Age
+    Universe:    Hispanic or Latino Persons
+    Source code: NP012F
+    NHGIS code:  FM3
+        FM3001:      Male >> Under 5 years
+        FM3002:      Male >> 5 to 9 years
+        FM3003:      Male >> 10 to 14 years
+        FM3004:      Male >> 15 to 17 years
+        FM3005:      Male >> 18 and 19 years
+        FM3006:      Male >> 20 years
+        FM3007:      Male >> 21 years
+        FM3008:      Male >> 22 to 24 years
+        FM3009:      Male >> 25 to 29 years
+        FM3010:      Male >> 30 to 34 years
+        FM3011:      Male >> 35 to 39 years
+        FM3012:      Male >> 40 to 44 years
+        FM3013:      Male >> 45 to 49 years
+        FM3014:      Male >> 50 to 54 years
+        FM3015:      Male >> 55 to 59 years
+        FM3016:      Male >> 60 and 61 years
+        FM3017:      Male >> 62 to 64 years
+        FM3018:      Male >> 65 and 66 years
+        FM3019:      Male >> 67 to 69 years
+        FM3020:      Male >> 70 to 74 years
+        FM3021:      Male >> 75 to 79 years
+        FM3022:      Male >> 80 to 84 years
+        FM3023:      Male >> 85 years and over
+        FM3024:      Female >> Under 5 years
+        FM3025:      Female >> 5 to 9 years
+        FM3026:      Female >> 10 to 14 years
+        FM3027:      Female >> 15 to 17 years
+        FM3028:      Female >> 18 and 19 years
+        FM3029:      Female >> 20 years
+        FM3030:      Female >> 21 years
+        FM3031:      Female >> 22 to 24 years
+        FM3032:      Female >> 25 to 29 years
+        FM3033:      Female >> 30 to 34 years
+        FM3034:      Female >> 35 to 39 years
+        FM3035:      Female >> 40 to 44 years
+        FM3036:      Female >> 45 to 49 years
+        FM3037:      Female >> 50 to 54 years
+        FM3038:      Female >> 55 to 59 years
+        FM3039:      Female >> 60 and 61 years
+        FM3040:      Female >> 62 to 64 years
+        FM3041:      Female >> 65 and 66 years
+        FM3042:      Female >> 67 to 69 years
+        FM3043:      Female >> 70 to 74 years
+        FM3044:      Female >> 75 to 79 years
+        FM3045:      Female >> 80 to 84 years
+        FM3046:      Female >> 85 years and over
+ 
+    Table 2:     Not Hispanic or Latino Population by Race by Sex by Age
+    Universe:    Not Hispanic or Latino Persons
+    Source code: NPCT012H
+    NHGIS code:  FUQ
+        FUQ001:      White alone >> Male >> Under 1 year
+        FUQ002:      White alone >> Male >> 1 year
+        FUQ003:      White alone >> Male >> 2 years
+        FUQ004:      White alone >> Male >> 3 years
+        FUQ005:      White alone >> Male >> 4 years
+        FUQ006:      White alone >> Male >> 5 years
+        FUQ007:      White alone >> Male >> 6 years
+        FUQ008:      White alone >> Male >> 7 years
+        FUQ009:      White alone >> Male >> 8 years
+        FUQ010:      White alone >> Male >> 9 years
+        FUQ011:      White alone >> Male >> 10 years
+        FUQ012:      White alone >> Male >> 11 years
+        FUQ013:      White alone >> Male >> 12 years
+        FUQ014:      White alone >> Male >> 13 years
+        FUQ015:      White alone >> Male >> 14 years
+        FUQ016:      White alone >> Male >> 15 years
+        FUQ017:      White alone >> Male >> 16 years
+        FUQ018:      White alone >> Male >> 17 years
+        FUQ019:      White alone >> Male >> 18 years
+        FUQ020:      White alone >> Male >> 19 years
+        FUQ021:      White alone >> Male >> 20 years
+        FUQ022:      White alone >> Male >> 21 years
+        FUQ023:      White alone >> Male >> 22 years
+        FUQ024:      White alone >> Male >> 23 years
+        FUQ025:      White alone >> Male >> 24 years
+        FUQ026:      White alone >> Male >> 25 years
+        FUQ027:      White alone >> Male >> 26 years
+        FUQ028:      White alone >> Male >> 27 years
+        FUQ029:      White alone >> Male >> 28 years
+        FUQ030:      White alone >> Male >> 29 years
+        FUQ031:      White alone >> Male >> 30 years
+        FUQ032:      White alone >> Male >> 31 years
+        FUQ033:      White alone >> Male >> 32 years
+        FUQ034:      White alone >> Male >> 33 years
+        FUQ035:      White alone >> Male >> 34 years
+        FUQ036:      White alone >> Male >> 35 years
+        FUQ037:      White alone >> Male >> 36 years
+        FUQ038:      White alone >> Male >> 37 years
+        FUQ039:      White alone >> Male >> 38 years
+        FUQ040:      White alone >> Male >> 39 years
+        FUQ041:      White alone >> Male >> 40 years
+        FUQ042:      White alone >> Male >> 41 years
+        FUQ043:      White alone >> Male >> 42 years
+        FUQ044:      White alone >> Male >> 43 years
+        FUQ045:      White alone >> Male >> 44 years
+        FUQ046:      White alone >> Male >> 45 years
+        FUQ047:      White alone >> Male >> 46 years
+        FUQ048:      White alone >> Male >> 47 years
+        FUQ049:      White alone >> Male >> 48 years
+        FUQ050:      White alone >> Male >> 49 years
+        FUQ051:      White alone >> Male >> 50 years
+        FUQ052:      White alone >> Male >> 51 years
+        FUQ053:      White alone >> Male >> 52 years
+        FUQ054:      White alone >> Male >> 53 years
+        FUQ055:      White alone >> Male >> 54 years
+        FUQ056:      White alone >> Male >> 55 years
+        FUQ057:      White alone >> Male >> 56 years
+        FUQ058:      White alone >> Male >> 57 years
+        FUQ059:      White alone >> Male >> 58 years
+        FUQ060:      White alone >> Male >> 59 years
+        FUQ061:      White alone >> Male >> 60 years
+        FUQ062:      White alone >> Male >> 61 years
+        FUQ063:      White alone >> Male >> 62 years
+        FUQ064:      White alone >> Male >> 63 years
+        FUQ065:      White alone >> Male >> 64 years
+        FUQ066:      White alone >> Male >> 65 years
+        FUQ067:      White alone >> Male >> 66 years
+        FUQ068:      White alone >> Male >> 67 years
+        FUQ069:      White alone >> Male >> 68 years
+        FUQ070:      White alone >> Male >> 69 years
+        FUQ071:      White alone >> Male >> 70 years
+        FUQ072:      White alone >> Male >> 71 years
+        FUQ073:      White alone >> Male >> 72 years
+        FUQ074:      White alone >> Male >> 73 years
+        FUQ075:      White alone >> Male >> 74 years
+        FUQ076:      White alone >> Male >> 75 years
+        FUQ077:      White alone >> Male >> 76 years
+        FUQ078:      White alone >> Male >> 77 years
+        FUQ079:      White alone >> Male >> 78 years
+        FUQ080:      White alone >> Male >> 79 years
+        FUQ081:      White alone >> Male >> 80 years
+        FUQ082:      White alone >> Male >> 81 years
+        FUQ083:      White alone >> Male >> 82 years
+        FUQ084:      White alone >> Male >> 83 years
+        FUQ085:      White alone >> Male >> 84 years
+        FUQ086:      White alone >> Male >> 85 years
+        FUQ087:      White alone >> Male >> 86 years
+        FUQ088:      White alone >> Male >> 87 years
+        FUQ089:      White alone >> Male >> 88 years
+        FUQ090:      White alone >> Male >> 89 years
+        FUQ091:      White alone >> Male >> 90 years
+        FUQ092:      White alone >> Male >> 91 years
+        FUQ093:      White alone >> Male >> 92 years
+        FUQ094:      White alone >> Male >> 93 years
+        FUQ095:      White alone >> Male >> 94 years
+        FUQ096:      White alone >> Male >> 95 years
+        FUQ097:      White alone >> Male >> 96 years
+        FUQ098:      White alone >> Male >> 97 years
+        FUQ099:      White alone >> Male >> 98 years
+        FUQ100:      White alone >> Male >> 99 years
+        FUQ101:      White alone >> Male >> 100 to 104 years
+        FUQ102:      White alone >> Male >> 105 to 109 years
+        FUQ103:      White alone >> Male >> 110 years and over
+        FUQ104:      White alone >> Female >> Under 1 year
+        FUQ105:      White alone >> Female >> 1 year
+        FUQ106:      White alone >> Female >> 2 years
+        FUQ107:      White alone >> Female >> 3 years
+        FUQ108:      White alone >> Female >> 4 years
+        FUQ109:      White alone >> Female >> 5 years
+        FUQ110:      White alone >> Female >> 6 years
+        FUQ111:      White alone >> Female >> 7 years
+        FUQ112:      White alone >> Female >> 8 years
+        FUQ113:      White alone >> Female >> 9 years
+        FUQ114:      White alone >> Female >> 10 years
+        FUQ115:      White alone >> Female >> 11 years
+        FUQ116:      White alone >> Female >> 12 years
+        FUQ117:      White alone >> Female >> 13 years
+        FUQ118:      White alone >> Female >> 14 years
+        FUQ119:      White alone >> Female >> 15 years
+        FUQ120:      White alone >> Female >> 16 years
+        FUQ121:      White alone >> Female >> 17 years
+        FUQ122:      White alone >> Female >> 18 years
+        FUQ123:      White alone >> Female >> 19 years
+        FUQ124:      White alone >> Female >> 20 years
+        FUQ125:      White alone >> Female >> 21 years
+        FUQ126:      White alone >> Female >> 22 years
+        FUQ127:      White alone >> Female >> 23 years
+        FUQ128:      White alone >> Female >> 24 years
+        FUQ129:      White alone >> Female >> 25 years
+        FUQ130:      White alone >> Female >> 26 years
+        FUQ131:      White alone >> Female >> 27 years
+        FUQ132:      White alone >> Female >> 28 years
+        FUQ133:      White alone >> Female >> 29 years
+        FUQ134:      White alone >> Female >> 30 years
+        FUQ135:      White alone >> Female >> 31 years
+        FUQ136:      White alone >> Female >> 32 years
+        FUQ137:      White alone >> Female >> 33 years
+        FUQ138:      White alone >> Female >> 34 years
+        FUQ139:      White alone >> Female >> 35 years
+        FUQ140:      White alone >> Female >> 36 years
+        FUQ141:      White alone >> Female >> 37 years
+        FUQ142:      White alone >> Female >> 38 years
+        FUQ143:      White alone >> Female >> 39 years
+        FUQ144:      White alone >> Female >> 40 years
+        FUQ145:      White alone >> Female >> 41 years
+        FUQ146:      White alone >> Female >> 42 years
+        FUQ147:      White alone >> Female >> 43 years
+        FUQ148:      White alone >> Female >> 44 years
+        FUQ149:      White alone >> Female >> 45 years
+        FUQ150:      White alone >> Female >> 46 years
+        FUQ151:      White alone >> Female >> 47 years
+        FUQ152:      White alone >> Female >> 48 years
+        FUQ153:      White alone >> Female >> 49 years
+        FUQ154:      White alone >> Female >> 50 years
+        FUQ155:      White alone >> Female >> 51 years
+        FUQ156:      White alone >> Female >> 52 years
+        FUQ157:      White alone >> Female >> 53 years
+        FUQ158:      White alone >> Female >> 54 years
+        FUQ159:      White alone >> Female >> 55 years
+        FUQ160:      White alone >> Female >> 56 years
+        FUQ161:      White alone >> Female >> 57 years
+        FUQ162:      White alone >> Female >> 58 years
+        FUQ163:      White alone >> Female >> 59 years
+        FUQ164:      White alone >> Female >> 60 years
+        FUQ165:      White alone >> Female >> 61 years
+        FUQ166:      White alone >> Female >> 62 years
+        FUQ167:      White alone >> Female >> 63 years
+        FUQ168:      White alone >> Female >> 64 years
+        FUQ169:      White alone >> Female >> 65 years
+        FUQ170:      White alone >> Female >> 66 years
+        FUQ171:      White alone >> Female >> 67 years
+        FUQ172:      White alone >> Female >> 68 years
+        FUQ173:      White alone >> Female >> 69 years
+        FUQ174:      White alone >> Female >> 70 years
+        FUQ175:      White alone >> Female >> 71 years
+        FUQ176:      White alone >> Female >> 72 years
+        FUQ177:      White alone >> Female >> 73 years
+        FUQ178:      White alone >> Female >> 74 years
+        FUQ179:      White alone >> Female >> 75 years
+        FUQ180:      White alone >> Female >> 76 years
+        FUQ181:      White alone >> Female >> 77 years
+        FUQ182:      White alone >> Female >> 78 years
+        FUQ183:      White alone >> Female >> 79 years
+        FUQ184:      White alone >> Female >> 80 years
+        FUQ185:      White alone >> Female >> 81 years
+        FUQ186:      White alone >> Female >> 82 years
+        FUQ187:      White alone >> Female >> 83 years
+        FUQ188:      White alone >> Female >> 84 years
+        FUQ189:      White alone >> Female >> 85 years
+        FUQ190:      White alone >> Female >> 86 years
+        FUQ191:      White alone >> Female >> 87 years
+        FUQ192:      White alone >> Female >> 88 years
+        FUQ193:      White alone >> Female >> 89 years
+        FUQ194:      White alone >> Female >> 90 years
+        FUQ195:      White alone >> Female >> 91 years
+        FUQ196:      White alone >> Female >> 92 years
+        FUQ197:      White alone >> Female >> 93 years
+        FUQ198:      White alone >> Female >> 94 years
+        FUQ199:      White alone >> Female >> 95 years
+        FUQ200:      White alone >> Female >> 96 years
+        FUQ201:      White alone >> Female >> 97 years
+        FUQ202:      White alone >> Female >> 98 years
+        FUQ203:      White alone >> Female >> 99 years
+        FUQ204:      White alone >> Female >> 100 to 104 years
+        FUQ205:      White alone >> Female >> 105 to 109 years
+        FUQ206:      White alone >> Female >> 110 years and over
+        FUQ207:      Black or African American alone >> Male >> Under 1 year
+        FUQ208:      Black or African American alone >> Male >> 1 year
+        FUQ209:      Black or African American alone >> Male >> 2 years
+        FUQ210:      Black or African American alone >> Male >> 3 years
+        FUQ211:      Black or African American alone >> Male >> 4 years
+        FUQ212:      Black or African American alone >> Male >> 5 years
+        FUQ213:      Black or African American alone >> Male >> 6 years
+        FUQ214:      Black or African American alone >> Male >> 7 years
+        FUQ215:      Black or African American alone >> Male >> 8 years
+        FUQ216:      Black or African American alone >> Male >> 9 years
+        FUQ217:      Black or African American alone >> Male >> 10 years
+        FUQ218:      Black or African American alone >> Male >> 11 years
+        FUQ219:      Black or African American alone >> Male >> 12 years
+        FUQ220:      Black or African American alone >> Male >> 13 years
+        FUQ221:      Black or African American alone >> Male >> 14 years
+        FUQ222:      Black or African American alone >> Male >> 15 years
+        FUQ223:      Black or African American alone >> Male >> 16 years
+        FUQ224:      Black or African American alone >> Male >> 17 years
+        FUQ225:      Black or African American alone >> Male >> 18 years
+        FUQ226:      Black or African American alone >> Male >> 19 years
+        FUQ227:      Black or African American alone >> Male >> 20 years
+        FUQ228:      Black or African American alone >> Male >> 21 years
+        FUQ229:      Black or African American alone >> Male >> 22 years
+        FUQ230:      Black or African American alone >> Male >> 23 years
+        FUQ231:      Black or African American alone >> Male >> 24 years
+        FUQ232:      Black or African American alone >> Male >> 25 years
+        FUQ233:      Black or African American alone >> Male >> 26 years
+        FUQ234:      Black or African American alone >> Male >> 27 years
+        FUQ235:      Black or African American alone >> Male >> 28 years
+        FUQ236:      Black or African American alone >> Male >> 29 years
+        FUQ237:      Black or African American alone >> Male >> 30 years
+        FUQ238:      Black or African American alone >> Male >> 31 years
+        FUQ239:      Black or African American alone >> Male >> 32 years
+        FUQ240:      Black or African American alone >> Male >> 33 years
+        FUQ241:      Black or African American alone >> Male >> 34 years
+        FUQ242:      Black or African American alone >> Male >> 35 years
+        FUQ243:      Black or African American alone >> Male >> 36 years
+        FUQ244:      Black or African American alone >> Male >> 37 years
+        FUQ245:      Black or African American alone >> Male >> 38 years
+        FUQ246:      Black or African American alone >> Male >> 39 years
+        FUQ247:      Black or African American alone >> Male >> 40 years
+        FUQ248:      Black or African American alone >> Male >> 41 years
+        FUQ249:      Black or African American alone >> Male >> 42 years
+        FUQ250:      Black or African American alone >> Male >> 43 years
+        FUQ251:      Black or African American alone >> Male >> 44 years
+        FUQ252:      Black or African American alone >> Male >> 45 years
+        FUQ253:      Black or African American alone >> Male >> 46 years
+        FUQ254:      Black or African American alone >> Male >> 47 years
+        FUQ255:      Black or African American alone >> Male >> 48 years
+        FUQ256:      Black or African American alone >> Male >> 49 years
+        FUQ257:      Black or African American alone >> Male >> 50 years
+        FUQ258:      Black or African American alone >> Male >> 51 years
+        FUQ259:      Black or African American alone >> Male >> 52 years
+        FUQ260:      Black or African American alone >> Male >> 53 years
+        FUQ261:      Black or African American alone >> Male >> 54 years
+        FUQ262:      Black or African American alone >> Male >> 55 years
+        FUQ263:      Black or African American alone >> Male >> 56 years
+        FUQ264:      Black or African American alone >> Male >> 57 years
+        FUQ265:      Black or African American alone >> Male >> 58 years
+        FUQ266:      Black or African American alone >> Male >> 59 years
+        FUQ267:      Black or African American alone >> Male >> 60 years
+        FUQ268:      Black or African American alone >> Male >> 61 years
+        FUQ269:      Black or African American alone >> Male >> 62 years
+        FUQ270:      Black or African American alone >> Male >> 63 years
+        FUQ271:      Black or African American alone >> Male >> 64 years
+        FUQ272:      Black or African American alone >> Male >> 65 years
+        FUQ273:      Black or African American alone >> Male >> 66 years
+        FUQ274:      Black or African American alone >> Male >> 67 years
+        FUQ275:      Black or African American alone >> Male >> 68 years
+        FUQ276:      Black or African American alone >> Male >> 69 years
+        FUQ277:      Black or African American alone >> Male >> 70 years
+        FUQ278:      Black or African American alone >> Male >> 71 years
+        FUQ279:      Black or African American alone >> Male >> 72 years
+        FUQ280:      Black or African American alone >> Male >> 73 years
+        FUQ281:      Black or African American alone >> Male >> 74 years
+        FUQ282:      Black or African American alone >> Male >> 75 years
+        FUQ283:      Black or African American alone >> Male >> 76 years
+        FUQ284:      Black or African American alone >> Male >> 77 years
+        FUQ285:      Black or African American alone >> Male >> 78 years
+        FUQ286:      Black or African American alone >> Male >> 79 years
+        FUQ287:      Black or African American alone >> Male >> 80 years
+        FUQ288:      Black or African American alone >> Male >> 81 years
+        FUQ289:      Black or African American alone >> Male >> 82 years
+        FUQ290:      Black or African American alone >> Male >> 83 years
+        FUQ291:      Black or African American alone >> Male >> 84 years
+        FUQ292:      Black or African American alone >> Male >> 85 years
+        FUQ293:      Black or African American alone >> Male >> 86 years
+        FUQ294:      Black or African American alone >> Male >> 87 years
+        FUQ295:      Black or African American alone >> Male >> 88 years
+        FUQ296:      Black or African American alone >> Male >> 89 years
+        FUQ297:      Black or African American alone >> Male >> 90 years
+        FUQ298:      Black or African American alone >> Male >> 91 years
+        FUQ299:      Black or African American alone >> Male >> 92 years
+        FUQ300:      Black or African American alone >> Male >> 93 years
+        FUQ301:      Black or African American alone >> Male >> 94 years
+        FUQ302:      Black or African American alone >> Male >> 95 years
+        FUQ303:      Black or African American alone >> Male >> 96 years
+        FUQ304:      Black or African American alone >> Male >> 97 years
+        FUQ305:      Black or African American alone >> Male >> 98 years
+        FUQ306:      Black or African American alone >> Male >> 99 years
+        FUQ307:      Black or African American alone >> Male >> 100 to 104 years
+        FUQ308:      Black or African American alone >> Male >> 105 to 109 years
+        FUQ309:      Black or African American alone >> Male >> 110 years and over
+        FUQ310:      Black or African American alone >> Female >> Under 1 year
+        FUQ311:      Black or African American alone >> Female >> 1 year
+        FUQ312:      Black or African American alone >> Female >> 2 years
+        FUQ313:      Black or African American alone >> Female >> 3 years
+        FUQ314:      Black or African American alone >> Female >> 4 years
+        FUQ315:      Black or African American alone >> Female >> 5 years
+        FUQ316:      Black or African American alone >> Female >> 6 years
+        FUQ317:      Black or African American alone >> Female >> 7 years
+        FUQ318:      Black or African American alone >> Female >> 8 years
+        FUQ319:      Black or African American alone >> Female >> 9 years
+        FUQ320:      Black or African American alone >> Female >> 10 years
+        FUQ321:      Black or African American alone >> Female >> 11 years
+        FUQ322:      Black or African American alone >> Female >> 12 years
+        FUQ323:      Black or African American alone >> Female >> 13 years
+        FUQ324:      Black or African American alone >> Female >> 14 years
+        FUQ325:      Black or African American alone >> Female >> 15 years
+        FUQ326:      Black or African American alone >> Female >> 16 years
+        FUQ327:      Black or African American alone >> Female >> 17 years
+        FUQ328:      Black or African American alone >> Female >> 18 years
+        FUQ329:      Black or African American alone >> Female >> 19 years
+        FUQ330:      Black or African American alone >> Female >> 20 years
+        FUQ331:      Black or African American alone >> Female >> 21 years
+        FUQ332:      Black or African American alone >> Female >> 22 years
+        FUQ333:      Black or African American alone >> Female >> 23 years
+        FUQ334:      Black or African American alone >> Female >> 24 years
+        FUQ335:      Black or African American alone >> Female >> 25 years
+        FUQ336:      Black or African American alone >> Female >> 26 years
+        FUQ337:      Black or African American alone >> Female >> 27 years
+        FUQ338:      Black or African American alone >> Female >> 28 years
+        FUQ339:      Black or African American alone >> Female >> 29 years
+        FUQ340:      Black or African American alone >> Female >> 30 years
+        FUQ341:      Black or African American alone >> Female >> 31 years
+        FUQ342:      Black or African American alone >> Female >> 32 years
+        FUQ343:      Black or African American alone >> Female >> 33 years
+        FUQ344:      Black or African American alone >> Female >> 34 years
+        FUQ345:      Black or African American alone >> Female >> 35 years
+        FUQ346:      Black or African American alone >> Female >> 36 years
+        FUQ347:      Black or African American alone >> Female >> 37 years
+        FUQ348:      Black or African American alone >> Female >> 38 years
+        FUQ349:      Black or African American alone >> Female >> 39 years
+        FUQ350:      Black or African American alone >> Female >> 40 years
+        FUQ351:      Black or African American alone >> Female >> 41 years
+        FUQ352:      Black or African American alone >> Female >> 42 years
+        FUQ353:      Black or African American alone >> Female >> 43 years
+        FUQ354:      Black or African American alone >> Female >> 44 years
+        FUQ355:      Black or African American alone >> Female >> 45 years
+        FUQ356:      Black or African American alone >> Female >> 46 years
+        FUQ357:      Black or African American alone >> Female >> 47 years
+        FUQ358:      Black or African American alone >> Female >> 48 years
+        FUQ359:      Black or African American alone >> Female >> 49 years
+        FUQ360:      Black or African American alone >> Female >> 50 years
+        FUQ361:      Black or African American alone >> Female >> 51 years
+        FUQ362:      Black or African American alone >> Female >> 52 years
+        FUQ363:      Black or African American alone >> Female >> 53 years
+        FUQ364:      Black or African American alone >> Female >> 54 years
+        FUQ365:      Black or African American alone >> Female >> 55 years
+        FUQ366:      Black or African American alone >> Female >> 56 years
+        FUQ367:      Black or African American alone >> Female >> 57 years
+        FUQ368:      Black or African American alone >> Female >> 58 years
+        FUQ369:      Black or African American alone >> Female >> 59 years
+        FUQ370:      Black or African American alone >> Female >> 60 years
+        FUQ371:      Black or African American alone >> Female >> 61 years
+        FUQ372:      Black or African American alone >> Female >> 62 years
+        FUQ373:      Black or African American alone >> Female >> 63 years
+        FUQ374:      Black or African American alone >> Female >> 64 years
+        FUQ375:      Black or African American alone >> Female >> 65 years
+        FUQ376:      Black or African American alone >> Female >> 66 years
+        FUQ377:      Black or African American alone >> Female >> 67 years
+        FUQ378:      Black or African American alone >> Female >> 68 years
+        FUQ379:      Black or African American alone >> Female >> 69 years
+        FUQ380:      Black or African American alone >> Female >> 70 years
+        FUQ381:      Black or African American alone >> Female >> 71 years
+        FUQ382:      Black or African American alone >> Female >> 72 years
+        FUQ383:      Black or African American alone >> Female >> 73 years
+        FUQ384:      Black or African American alone >> Female >> 74 years
+        FUQ385:      Black or African American alone >> Female >> 75 years
+        FUQ386:      Black or African American alone >> Female >> 76 years
+        FUQ387:      Black or African American alone >> Female >> 77 years
+        FUQ388:      Black or African American alone >> Female >> 78 years
+        FUQ389:      Black or African American alone >> Female >> 79 years
+        FUQ390:      Black or African American alone >> Female >> 80 years
+        FUQ391:      Black or African American alone >> Female >> 81 years
+        FUQ392:      Black or African American alone >> Female >> 82 years
+        FUQ393:      Black or African American alone >> Female >> 83 years
+        FUQ394:      Black or African American alone >> Female >> 84 years
+        FUQ395:      Black or African American alone >> Female >> 85 years
+        FUQ396:      Black or African American alone >> Female >> 86 years
+        FUQ397:      Black or African American alone >> Female >> 87 years
+        FUQ398:      Black or African American alone >> Female >> 88 years
+        FUQ399:      Black or African American alone >> Female >> 89 years
+        FUQ400:      Black or African American alone >> Female >> 90 years
+        FUQ401:      Black or African American alone >> Female >> 91 years
+        FUQ402:      Black or African American alone >> Female >> 92 years
+        FUQ403:      Black or African American alone >> Female >> 93 years
+        FUQ404:      Black or African American alone >> Female >> 94 years
+        FUQ405:      Black or African American alone >> Female >> 95 years
+        FUQ406:      Black or African American alone >> Female >> 96 years
+        FUQ407:      Black or African American alone >> Female >> 97 years
+        FUQ408:      Black or African American alone >> Female >> 98 years
+        FUQ409:      Black or African American alone >> Female >> 99 years
+        FUQ410:      Black or African American alone >> Female >> 100 to 104 years
+        FUQ411:      Black or African American alone >> Female >> 105 to 109 years
+        FUQ412:      Black or African American alone >> Female >> 110 years and over
+        FUQ413:      American Indian and Alaska Native alone >> Male >> Under 1 year
+        FUQ414:      American Indian and Alaska Native alone >> Male >> 1 year
+        FUQ415:      American Indian and Alaska Native alone >> Male >> 2 years
+        FUQ416:      American Indian and Alaska Native alone >> Male >> 3 years
+        FUQ417:      American Indian and Alaska Native alone >> Male >> 4 years
+        FUQ418:      American Indian and Alaska Native alone >> Male >> 5 years
+        FUQ419:      American Indian and Alaska Native alone >> Male >> 6 years
+        FUQ420:      American Indian and Alaska Native alone >> Male >> 7 years
+        FUQ421:      American Indian and Alaska Native alone >> Male >> 8 years
+        FUQ422:      American Indian and Alaska Native alone >> Male >> 9 years
+        FUQ423:      American Indian and Alaska Native alone >> Male >> 10 years
+        FUQ424:      American Indian and Alaska Native alone >> Male >> 11 years
+        FUQ425:      American Indian and Alaska Native alone >> Male >> 12 years
+        FUQ426:      American Indian and Alaska Native alone >> Male >> 13 years
+        FUQ427:      American Indian and Alaska Native alone >> Male >> 14 years
+        FUQ428:      American Indian and Alaska Native alone >> Male >> 15 years
+        FUQ429:      American Indian and Alaska Native alone >> Male >> 16 years
+        FUQ430:      American Indian and Alaska Native alone >> Male >> 17 years
+        FUQ431:      American Indian and Alaska Native alone >> Male >> 18 years
+        FUQ432:      American Indian and Alaska Native alone >> Male >> 19 years
+        FUQ433:      American Indian and Alaska Native alone >> Male >> 20 years
+        FUQ434:      American Indian and Alaska Native alone >> Male >> 21 years
+        FUQ435:      American Indian and Alaska Native alone >> Male >> 22 years
+        FUQ436:      American Indian and Alaska Native alone >> Male >> 23 years
+        FUQ437:      American Indian and Alaska Native alone >> Male >> 24 years
+        FUQ438:      American Indian and Alaska Native alone >> Male >> 25 years
+        FUQ439:      American Indian and Alaska Native alone >> Male >> 26 years
+        FUQ440:      American Indian and Alaska Native alone >> Male >> 27 years
+        FUQ441:      American Indian and Alaska Native alone >> Male >> 28 years
+        FUQ442:      American Indian and Alaska Native alone >> Male >> 29 years
+        FUQ443:      American Indian and Alaska Native alone >> Male >> 30 years
+        FUQ444:      American Indian and Alaska Native alone >> Male >> 31 years
+        FUQ445:      American Indian and Alaska Native alone >> Male >> 32 years
+        FUQ446:      American Indian and Alaska Native alone >> Male >> 33 years
+        FUQ447:      American Indian and Alaska Native alone >> Male >> 34 years
+        FUQ448:      American Indian and Alaska Native alone >> Male >> 35 years
+        FUQ449:      American Indian and Alaska Native alone >> Male >> 36 years
+        FUQ450:      American Indian and Alaska Native alone >> Male >> 37 years
+        FUQ451:      American Indian and Alaska Native alone >> Male >> 38 years
+        FUQ452:      American Indian and Alaska Native alone >> Male >> 39 years
+        FUQ453:      American Indian and Alaska Native alone >> Male >> 40 years
+        FUQ454:      American Indian and Alaska Native alone >> Male >> 41 years
+        FUQ455:      American Indian and Alaska Native alone >> Male >> 42 years
+        FUQ456:      American Indian and Alaska Native alone >> Male >> 43 years
+        FUQ457:      American Indian and Alaska Native alone >> Male >> 44 years
+        FUQ458:      American Indian and Alaska Native alone >> Male >> 45 years
+        FUQ459:      American Indian and Alaska Native alone >> Male >> 46 years
+        FUQ460:      American Indian and Alaska Native alone >> Male >> 47 years
+        FUQ461:      American Indian and Alaska Native alone >> Male >> 48 years
+        FUQ462:      American Indian and Alaska Native alone >> Male >> 49 years
+        FUQ463:      American Indian and Alaska Native alone >> Male >> 50 years
+        FUQ464:      American Indian and Alaska Native alone >> Male >> 51 years
+        FUQ465:      American Indian and Alaska Native alone >> Male >> 52 years
+        FUQ466:      American Indian and Alaska Native alone >> Male >> 53 years
+        FUQ467:      American Indian and Alaska Native alone >> Male >> 54 years
+        FUQ468:      American Indian and Alaska Native alone >> Male >> 55 years
+        FUQ469:      American Indian and Alaska Native alone >> Male >> 56 years
+        FUQ470:      American Indian and Alaska Native alone >> Male >> 57 years
+        FUQ471:      American Indian and Alaska Native alone >> Male >> 58 years
+        FUQ472:      American Indian and Alaska Native alone >> Male >> 59 years
+        FUQ473:      American Indian and Alaska Native alone >> Male >> 60 years
+        FUQ474:      American Indian and Alaska Native alone >> Male >> 61 years
+        FUQ475:      American Indian and Alaska Native alone >> Male >> 62 years
+        FUQ476:      American Indian and Alaska Native alone >> Male >> 63 years
+        FUQ477:      American Indian and Alaska Native alone >> Male >> 64 years
+        FUQ478:      American Indian and Alaska Native alone >> Male >> 65 years
+        FUQ479:      American Indian and Alaska Native alone >> Male >> 66 years
+        FUQ480:      American Indian and Alaska Native alone >> Male >> 67 years
+        FUQ481:      American Indian and Alaska Native alone >> Male >> 68 years
+        FUQ482:      American Indian and Alaska Native alone >> Male >> 69 years
+        FUQ483:      American Indian and Alaska Native alone >> Male >> 70 years
+        FUQ484:      American Indian and Alaska Native alone >> Male >> 71 years
+        FUQ485:      American Indian and Alaska Native alone >> Male >> 72 years
+        FUQ486:      American Indian and Alaska Native alone >> Male >> 73 years
+        FUQ487:      American Indian and Alaska Native alone >> Male >> 74 years
+        FUQ488:      American Indian and Alaska Native alone >> Male >> 75 years
+        FUQ489:      American Indian and Alaska Native alone >> Male >> 76 years
+        FUQ490:      American Indian and Alaska Native alone >> Male >> 77 years
+        FUQ491:      American Indian and Alaska Native alone >> Male >> 78 years
+        FUQ492:      American Indian and Alaska Native alone >> Male >> 79 years
+        FUQ493:      American Indian and Alaska Native alone >> Male >> 80 years
+        FUQ494:      American Indian and Alaska Native alone >> Male >> 81 years
+        FUQ495:      American Indian and Alaska Native alone >> Male >> 82 years
+        FUQ496:      American Indian and Alaska Native alone >> Male >> 83 years
+        FUQ497:      American Indian and Alaska Native alone >> Male >> 84 years
+        FUQ498:      American Indian and Alaska Native alone >> Male >> 85 years
+        FUQ499:      American Indian and Alaska Native alone >> Male >> 86 years
+        FUQ500:      American Indian and Alaska Native alone >> Male >> 87 years
+        FUQ501:      American Indian and Alaska Native alone >> Male >> 88 years
+        FUQ502:      American Indian and Alaska Native alone >> Male >> 89 years
+        FUQ503:      American Indian and Alaska Native alone >> Male >> 90 years
+        FUQ504:      American Indian and Alaska Native alone >> Male >> 91 years
+        FUQ505:      American Indian and Alaska Native alone >> Male >> 92 years
+        FUQ506:      American Indian and Alaska Native alone >> Male >> 93 years
+        FUQ507:      American Indian and Alaska Native alone >> Male >> 94 years
+        FUQ508:      American Indian and Alaska Native alone >> Male >> 95 years
+        FUQ509:      American Indian and Alaska Native alone >> Male >> 96 years
+        FUQ510:      American Indian and Alaska Native alone >> Male >> 97 years
+        FUQ511:      American Indian and Alaska Native alone >> Male >> 98 years
+        FUQ512:      American Indian and Alaska Native alone >> Male >> 99 years
+        FUQ513:      American Indian and Alaska Native alone >> Male >> 100 to 104 years
+        FUQ514:      American Indian and Alaska Native alone >> Male >> 105 to 109 years
+        FUQ515:      American Indian and Alaska Native alone >> Male >> 110 years and over
+        FUQ516:      American Indian and Alaska Native alone >> Female >> Under 1 year
+        FUQ517:      American Indian and Alaska Native alone >> Female >> 1 year
+        FUQ518:      American Indian and Alaska Native alone >> Female >> 2 years
+        FUQ519:      American Indian and Alaska Native alone >> Female >> 3 years
+        FUQ520:      American Indian and Alaska Native alone >> Female >> 4 years
+        FUQ521:      American Indian and Alaska Native alone >> Female >> 5 years
+        FUQ522:      American Indian and Alaska Native alone >> Female >> 6 years
+        FUQ523:      American Indian and Alaska Native alone >> Female >> 7 years
+        FUQ524:      American Indian and Alaska Native alone >> Female >> 8 years
+        FUQ525:      American Indian and Alaska Native alone >> Female >> 9 years
+        FUQ526:      American Indian and Alaska Native alone >> Female >> 10 years
+        FUQ527:      American Indian and Alaska Native alone >> Female >> 11 years
+        FUQ528:      American Indian and Alaska Native alone >> Female >> 12 years
+        FUQ529:      American Indian and Alaska Native alone >> Female >> 13 years
+        FUQ530:      American Indian and Alaska Native alone >> Female >> 14 years
+        FUQ531:      American Indian and Alaska Native alone >> Female >> 15 years
+        FUQ532:      American Indian and Alaska Native alone >> Female >> 16 years
+        FUQ533:      American Indian and Alaska Native alone >> Female >> 17 years
+        FUQ534:      American Indian and Alaska Native alone >> Female >> 18 years
+        FUQ535:      American Indian and Alaska Native alone >> Female >> 19 years
+        FUQ536:      American Indian and Alaska Native alone >> Female >> 20 years
+        FUQ537:      American Indian and Alaska Native alone >> Female >> 21 years
+        FUQ538:      American Indian and Alaska Native alone >> Female >> 22 years
+        FUQ539:      American Indian and Alaska Native alone >> Female >> 23 years
+        FUQ540:      American Indian and Alaska Native alone >> Female >> 24 years
+        FUQ541:      American Indian and Alaska Native alone >> Female >> 25 years
+        FUQ542:      American Indian and Alaska Native alone >> Female >> 26 years
+        FUQ543:      American Indian and Alaska Native alone >> Female >> 27 years
+        FUQ544:      American Indian and Alaska Native alone >> Female >> 28 years
+        FUQ545:      American Indian and Alaska Native alone >> Female >> 29 years
+        FUQ546:      American Indian and Alaska Native alone >> Female >> 30 years
+        FUQ547:      American Indian and Alaska Native alone >> Female >> 31 years
+        FUQ548:      American Indian and Alaska Native alone >> Female >> 32 years
+        FUQ549:      American Indian and Alaska Native alone >> Female >> 33 years
+        FUQ550:      American Indian and Alaska Native alone >> Female >> 34 years
+        FUQ551:      American Indian and Alaska Native alone >> Female >> 35 years
+        FUQ552:      American Indian and Alaska Native alone >> Female >> 36 years
+        FUQ553:      American Indian and Alaska Native alone >> Female >> 37 years
+        FUQ554:      American Indian and Alaska Native alone >> Female >> 38 years
+        FUQ555:      American Indian and Alaska Native alone >> Female >> 39 years
+        FUQ556:      American Indian and Alaska Native alone >> Female >> 40 years
+        FUQ557:      American Indian and Alaska Native alone >> Female >> 41 years
+        FUQ558:      American Indian and Alaska Native alone >> Female >> 42 years
+        FUQ559:      American Indian and Alaska Native alone >> Female >> 43 years
+        FUQ560:      American Indian and Alaska Native alone >> Female >> 44 years
+        FUQ561:      American Indian and Alaska Native alone >> Female >> 45 years
+        FUQ562:      American Indian and Alaska Native alone >> Female >> 46 years
+        FUQ563:      American Indian and Alaska Native alone >> Female >> 47 years
+        FUQ564:      American Indian and Alaska Native alone >> Female >> 48 years
+        FUQ565:      American Indian and Alaska Native alone >> Female >> 49 years
+        FUQ566:      American Indian and Alaska Native alone >> Female >> 50 years
+        FUQ567:      American Indian and Alaska Native alone >> Female >> 51 years
+        FUQ568:      American Indian and Alaska Native alone >> Female >> 52 years
+        FUQ569:      American Indian and Alaska Native alone >> Female >> 53 years
+        FUQ570:      American Indian and Alaska Native alone >> Female >> 54 years
+        FUQ571:      American Indian and Alaska Native alone >> Female >> 55 years
+        FUQ572:      American Indian and Alaska Native alone >> Female >> 56 years
+        FUQ573:      American Indian and Alaska Native alone >> Female >> 57 years
+        FUQ574:      American Indian and Alaska Native alone >> Female >> 58 years
+        FUQ575:      American Indian and Alaska Native alone >> Female >> 59 years
+        FUQ576:      American Indian and Alaska Native alone >> Female >> 60 years
+        FUQ577:      American Indian and Alaska Native alone >> Female >> 61 years
+        FUQ578:      American Indian and Alaska Native alone >> Female >> 62 years
+        FUQ579:      American Indian and Alaska Native alone >> Female >> 63 years
+        FUQ580:      American Indian and Alaska Native alone >> Female >> 64 years
+        FUQ581:      American Indian and Alaska Native alone >> Female >> 65 years
+        FUQ582:      American Indian and Alaska Native alone >> Female >> 66 years
+        FUQ583:      American Indian and Alaska Native alone >> Female >> 67 years
+        FUQ584:      American Indian and Alaska Native alone >> Female >> 68 years
+        FUQ585:      American Indian and Alaska Native alone >> Female >> 69 years
+        FUQ586:      American Indian and Alaska Native alone >> Female >> 70 years
+        FUQ587:      American Indian and Alaska Native alone >> Female >> 71 years
+        FUQ588:      American Indian and Alaska Native alone >> Female >> 72 years
+        FUQ589:      American Indian and Alaska Native alone >> Female >> 73 years
+        FUQ590:      American Indian and Alaska Native alone >> Female >> 74 years
+        FUQ591:      American Indian and Alaska Native alone >> Female >> 75 years
+        FUQ592:      American Indian and Alaska Native alone >> Female >> 76 years
+        FUQ593:      American Indian and Alaska Native alone >> Female >> 77 years
+        FUQ594:      American Indian and Alaska Native alone >> Female >> 78 years
+        FUQ595:      American Indian and Alaska Native alone >> Female >> 79 years
+        FUQ596:      American Indian and Alaska Native alone >> Female >> 80 years
+        FUQ597:      American Indian and Alaska Native alone >> Female >> 81 years
+        FUQ598:      American Indian and Alaska Native alone >> Female >> 82 years
+        FUQ599:      American Indian and Alaska Native alone >> Female >> 83 years
+        FUQ600:      American Indian and Alaska Native alone >> Female >> 84 years
+        FUQ601:      American Indian and Alaska Native alone >> Female >> 85 years
+        FUQ602:      American Indian and Alaska Native alone >> Female >> 86 years
+        FUQ603:      American Indian and Alaska Native alone >> Female >> 87 years
+        FUQ604:      American Indian and Alaska Native alone >> Female >> 88 years
+        FUQ605:      American Indian and Alaska Native alone >> Female >> 89 years
+        FUQ606:      American Indian and Alaska Native alone >> Female >> 90 years
+        FUQ607:      American Indian and Alaska Native alone >> Female >> 91 years
+        FUQ608:      American Indian and Alaska Native alone >> Female >> 92 years
+        FUQ609:      American Indian and Alaska Native alone >> Female >> 93 years
+        FUQ610:      American Indian and Alaska Native alone >> Female >> 94 years
+        FUQ611:      American Indian and Alaska Native alone >> Female >> 95 years
+        FUQ612:      American Indian and Alaska Native alone >> Female >> 96 years
+        FUQ613:      American Indian and Alaska Native alone >> Female >> 97 years
+        FUQ614:      American Indian and Alaska Native alone >> Female >> 98 years
+        FUQ615:      American Indian and Alaska Native alone >> Female >> 99 years
+        FUQ616:      American Indian and Alaska Native alone >> Female >> 100 to 104 years
+        FUQ617:      American Indian and Alaska Native alone >> Female >> 105 to 109 years
+        FUQ618:      American Indian and Alaska Native alone >> Female >> 110 years and over
+        FUQ619:      Asian alone >> Male >> Under 1 year
+        FUQ620:      Asian alone >> Male >> 1 year
+        FUQ621:      Asian alone >> Male >> 2 years
+        FUQ622:      Asian alone >> Male >> 3 years
+        FUQ623:      Asian alone >> Male >> 4 years
+        FUQ624:      Asian alone >> Male >> 5 years
+        FUQ625:      Asian alone >> Male >> 6 years
+        FUQ626:      Asian alone >> Male >> 7 years
+        FUQ627:      Asian alone >> Male >> 8 years
+        FUQ628:      Asian alone >> Male >> 9 years
+        FUQ629:      Asian alone >> Male >> 10 years
+        FUQ630:      Asian alone >> Male >> 11 years
+        FUQ631:      Asian alone >> Male >> 12 years
+        FUQ632:      Asian alone >> Male >> 13 years
+        FUQ633:      Asian alone >> Male >> 14 years
+        FUQ634:      Asian alone >> Male >> 15 years
+        FUQ635:      Asian alone >> Male >> 16 years
+        FUQ636:      Asian alone >> Male >> 17 years
+        FUQ637:      Asian alone >> Male >> 18 years
+        FUQ638:      Asian alone >> Male >> 19 years
+        FUQ639:      Asian alone >> Male >> 20 years
+        FUQ640:      Asian alone >> Male >> 21 years
+        FUQ641:      Asian alone >> Male >> 22 years
+        FUQ642:      Asian alone >> Male >> 23 years
+        FUQ643:      Asian alone >> Male >> 24 years
+        FUQ644:      Asian alone >> Male >> 25 years
+        FUQ645:      Asian alone >> Male >> 26 years
+        FUQ646:      Asian alone >> Male >> 27 years
+        FUQ647:      Asian alone >> Male >> 28 years
+        FUQ648:      Asian alone >> Male >> 29 years
+        FUQ649:      Asian alone >> Male >> 30 years
+        FUQ650:      Asian alone >> Male >> 31 years
+        FUQ651:      Asian alone >> Male >> 32 years
+        FUQ652:      Asian alone >> Male >> 33 years
+        FUQ653:      Asian alone >> Male >> 34 years
+        FUQ654:      Asian alone >> Male >> 35 years
+        FUQ655:      Asian alone >> Male >> 36 years
+        FUQ656:      Asian alone >> Male >> 37 years
+        FUQ657:      Asian alone >> Male >> 38 years
+        FUQ658:      Asian alone >> Male >> 39 years
+        FUQ659:      Asian alone >> Male >> 40 years
+        FUQ660:      Asian alone >> Male >> 41 years
+        FUQ661:      Asian alone >> Male >> 42 years
+        FUQ662:      Asian alone >> Male >> 43 years
+        FUQ663:      Asian alone >> Male >> 44 years
+        FUQ664:      Asian alone >> Male >> 45 years
+        FUQ665:      Asian alone >> Male >> 46 years
+        FUQ666:      Asian alone >> Male >> 47 years
+        FUQ667:      Asian alone >> Male >> 48 years
+        FUQ668:      Asian alone >> Male >> 49 years
+        FUQ669:      Asian alone >> Male >> 50 years
+        FUQ670:      Asian alone >> Male >> 51 years
+        FUQ671:      Asian alone >> Male >> 52 years
+        FUQ672:      Asian alone >> Male >> 53 years
+        FUQ673:      Asian alone >> Male >> 54 years
+        FUQ674:      Asian alone >> Male >> 55 years
+        FUQ675:      Asian alone >> Male >> 56 years
+        FUQ676:      Asian alone >> Male >> 57 years
+        FUQ677:      Asian alone >> Male >> 58 years
+        FUQ678:      Asian alone >> Male >> 59 years
+        FUQ679:      Asian alone >> Male >> 60 years
+        FUQ680:      Asian alone >> Male >> 61 years
+        FUQ681:      Asian alone >> Male >> 62 years
+        FUQ682:      Asian alone >> Male >> 63 years
+        FUQ683:      Asian alone >> Male >> 64 years
+        FUQ684:      Asian alone >> Male >> 65 years
+        FUQ685:      Asian alone >> Male >> 66 years
+        FUQ686:      Asian alone >> Male >> 67 years
+        FUQ687:      Asian alone >> Male >> 68 years
+        FUQ688:      Asian alone >> Male >> 69 years
+        FUQ689:      Asian alone >> Male >> 70 years
+        FUQ690:      Asian alone >> Male >> 71 years
+        FUQ691:      Asian alone >> Male >> 72 years
+        FUQ692:      Asian alone >> Male >> 73 years
+        FUQ693:      Asian alone >> Male >> 74 years
+        FUQ694:      Asian alone >> Male >> 75 years
+        FUQ695:      Asian alone >> Male >> 76 years
+        FUQ696:      Asian alone >> Male >> 77 years
+        FUQ697:      Asian alone >> Male >> 78 years
+        FUQ698:      Asian alone >> Male >> 79 years
+        FUQ699:      Asian alone >> Male >> 80 years
+        FUQ700:      Asian alone >> Male >> 81 years
+        FUQ701:      Asian alone >> Male >> 82 years
+        FUQ702:      Asian alone >> Male >> 83 years
+        FUQ703:      Asian alone >> Male >> 84 years
+        FUQ704:      Asian alone >> Male >> 85 years
+        FUQ705:      Asian alone >> Male >> 86 years
+        FUQ706:      Asian alone >> Male >> 87 years
+        FUQ707:      Asian alone >> Male >> 88 years
+        FUQ708:      Asian alone >> Male >> 89 years
+        FUQ709:      Asian alone >> Male >> 90 years
+        FUQ710:      Asian alone >> Male >> 91 years
+        FUQ711:      Asian alone >> Male >> 92 years
+        FUQ712:      Asian alone >> Male >> 93 years
+        FUQ713:      Asian alone >> Male >> 94 years
+        FUQ714:      Asian alone >> Male >> 95 years
+        FUQ715:      Asian alone >> Male >> 96 years
+        FUQ716:      Asian alone >> Male >> 97 years
+        FUQ717:      Asian alone >> Male >> 98 years
+        FUQ718:      Asian alone >> Male >> 99 years
+        FUQ719:      Asian alone >> Male >> 100 to 104 years
+        FUQ720:      Asian alone >> Male >> 105 to 109 years
+        FUQ721:      Asian alone >> Male >> 110 years and over
+        FUQ722:      Asian alone >> Female >> Under 1 year
+        FUQ723:      Asian alone >> Female >> 1 year
+        FUQ724:      Asian alone >> Female >> 2 years
+        FUQ725:      Asian alone >> Female >> 3 years
+        FUQ726:      Asian alone >> Female >> 4 years
+        FUQ727:      Asian alone >> Female >> 5 years
+        FUQ728:      Asian alone >> Female >> 6 years
+        FUQ729:      Asian alone >> Female >> 7 years
+        FUQ730:      Asian alone >> Female >> 8 years
+        FUQ731:      Asian alone >> Female >> 9 years
+        FUQ732:      Asian alone >> Female >> 10 years
+        FUQ733:      Asian alone >> Female >> 11 years
+        FUQ734:      Asian alone >> Female >> 12 years
+        FUQ735:      Asian alone >> Female >> 13 years
+        FUQ736:      Asian alone >> Female >> 14 years
+        FUQ737:      Asian alone >> Female >> 15 years
+        FUQ738:      Asian alone >> Female >> 16 years
+        FUQ739:      Asian alone >> Female >> 17 years
+        FUQ740:      Asian alone >> Female >> 18 years
+        FUQ741:      Asian alone >> Female >> 19 years
+        FUQ742:      Asian alone >> Female >> 20 years
+        FUQ743:      Asian alone >> Female >> 21 years
+        FUQ744:      Asian alone >> Female >> 22 years
+        FUQ745:      Asian alone >> Female >> 23 years
+        FUQ746:      Asian alone >> Female >> 24 years
+        FUQ747:      Asian alone >> Female >> 25 years
+        FUQ748:      Asian alone >> Female >> 26 years
+        FUQ749:      Asian alone >> Female >> 27 years
+        FUQ750:      Asian alone >> Female >> 28 years
+        FUQ751:      Asian alone >> Female >> 29 years
+        FUQ752:      Asian alone >> Female >> 30 years
+        FUQ753:      Asian alone >> Female >> 31 years
+        FUQ754:      Asian alone >> Female >> 32 years
+        FUQ755:      Asian alone >> Female >> 33 years
+        FUQ756:      Asian alone >> Female >> 34 years
+        FUQ757:      Asian alone >> Female >> 35 years
+        FUQ758:      Asian alone >> Female >> 36 years
+        FUQ759:      Asian alone >> Female >> 37 years
+        FUQ760:      Asian alone >> Female >> 38 years
+        FUQ761:      Asian alone >> Female >> 39 years
+        FUQ762:      Asian alone >> Female >> 40 years
+        FUQ763:      Asian alone >> Female >> 41 years
+        FUQ764:      Asian alone >> Female >> 42 years
+        FUQ765:      Asian alone >> Female >> 43 years
+        FUQ766:      Asian alone >> Female >> 44 years
+        FUQ767:      Asian alone >> Female >> 45 years
+        FUQ768:      Asian alone >> Female >> 46 years
+        FUQ769:      Asian alone >> Female >> 47 years
+        FUQ770:      Asian alone >> Female >> 48 years
+        FUQ771:      Asian alone >> Female >> 49 years
+        FUQ772:      Asian alone >> Female >> 50 years
+        FUQ773:      Asian alone >> Female >> 51 years
+        FUQ774:      Asian alone >> Female >> 52 years
+        FUQ775:      Asian alone >> Female >> 53 years
+        FUQ776:      Asian alone >> Female >> 54 years
+        FUQ777:      Asian alone >> Female >> 55 years
+        FUQ778:      Asian alone >> Female >> 56 years
+        FUQ779:      Asian alone >> Female >> 57 years
+        FUQ780:      Asian alone >> Female >> 58 years
+        FUQ781:      Asian alone >> Female >> 59 years
+        FUQ782:      Asian alone >> Female >> 60 years
+        FUQ783:      Asian alone >> Female >> 61 years
+        FUQ784:      Asian alone >> Female >> 62 years
+        FUQ785:      Asian alone >> Female >> 63 years
+        FUQ786:      Asian alone >> Female >> 64 years
+        FUQ787:      Asian alone >> Female >> 65 years
+        FUQ788:      Asian alone >> Female >> 66 years
+        FUQ789:      Asian alone >> Female >> 67 years
+        FUQ790:      Asian alone >> Female >> 68 years
+        FUQ791:      Asian alone >> Female >> 69 years
+        FUQ792:      Asian alone >> Female >> 70 years
+        FUQ793:      Asian alone >> Female >> 71 years
+        FUQ794:      Asian alone >> Female >> 72 years
+        FUQ795:      Asian alone >> Female >> 73 years
+        FUQ796:      Asian alone >> Female >> 74 years
+        FUQ797:      Asian alone >> Female >> 75 years
+        FUQ798:      Asian alone >> Female >> 76 years
+        FUQ799:      Asian alone >> Female >> 77 years
+        FUQ800:      Asian alone >> Female >> 78 years
+        FUQ801:      Asian alone >> Female >> 79 years
+        FUQ802:      Asian alone >> Female >> 80 years
+        FUQ803:      Asian alone >> Female >> 81 years
+        FUQ804:      Asian alone >> Female >> 82 years
+        FUQ805:      Asian alone >> Female >> 83 years
+        FUQ806:      Asian alone >> Female >> 84 years
+        FUQ807:      Asian alone >> Female >> 85 years
+        FUQ808:      Asian alone >> Female >> 86 years
+        FUQ809:      Asian alone >> Female >> 87 years
+        FUQ810:      Asian alone >> Female >> 88 years
+        FUQ811:      Asian alone >> Female >> 89 years
+        FUQ812:      Asian alone >> Female >> 90 years
+        FUQ813:      Asian alone >> Female >> 91 years
+        FUQ814:      Asian alone >> Female >> 92 years
+        FUQ815:      Asian alone >> Female >> 93 years
+        FUQ816:      Asian alone >> Female >> 94 years
+        FUQ817:      Asian alone >> Female >> 95 years
+        FUQ818:      Asian alone >> Female >> 96 years
+        FUQ819:      Asian alone >> Female >> 97 years
+        FUQ820:      Asian alone >> Female >> 98 years
+        FUQ821:      Asian alone >> Female >> 99 years
+        FUQ822:      Asian alone >> Female >> 100 to 104 years
+        FUQ823:      Asian alone >> Female >> 105 to 109 years
+        FUQ824:      Asian alone >> Female >> 110 years and over
+        FUQ825:      Native Hawaiian and Other Pacific Islander alone >> Male >> Under 1 year
+        FUQ826:      Native Hawaiian and Other Pacific Islander alone >> Male >> 1 year
+        FUQ827:      Native Hawaiian and Other Pacific Islander alone >> Male >> 2 years
+        FUQ828:      Native Hawaiian and Other Pacific Islander alone >> Male >> 3 years
+        FUQ829:      Native Hawaiian and Other Pacific Islander alone >> Male >> 4 years
+        FUQ830:      Native Hawaiian and Other Pacific Islander alone >> Male >> 5 years
+        FUQ831:      Native Hawaiian and Other Pacific Islander alone >> Male >> 6 years
+        FUQ832:      Native Hawaiian and Other Pacific Islander alone >> Male >> 7 years
+        FUQ833:      Native Hawaiian and Other Pacific Islander alone >> Male >> 8 years
+        FUQ834:      Native Hawaiian and Other Pacific Islander alone >> Male >> 9 years
+        FUQ835:      Native Hawaiian and Other Pacific Islander alone >> Male >> 10 years
+        FUQ836:      Native Hawaiian and Other Pacific Islander alone >> Male >> 11 years
+        FUQ837:      Native Hawaiian and Other Pacific Islander alone >> Male >> 12 years
+        FUQ838:      Native Hawaiian and Other Pacific Islander alone >> Male >> 13 years
+        FUQ839:      Native Hawaiian and Other Pacific Islander alone >> Male >> 14 years
+        FUQ840:      Native Hawaiian and Other Pacific Islander alone >> Male >> 15 years
+        FUQ841:      Native Hawaiian and Other Pacific Islander alone >> Male >> 16 years
+        FUQ842:      Native Hawaiian and Other Pacific Islander alone >> Male >> 17 years
+        FUQ843:      Native Hawaiian and Other Pacific Islander alone >> Male >> 18 years
+        FUQ844:      Native Hawaiian and Other Pacific Islander alone >> Male >> 19 years
+        FUQ845:      Native Hawaiian and Other Pacific Islander alone >> Male >> 20 years
+        FUQ846:      Native Hawaiian and Other Pacific Islander alone >> Male >> 21 years
+        FUQ847:      Native Hawaiian and Other Pacific Islander alone >> Male >> 22 years
+        FUQ848:      Native Hawaiian and Other Pacific Islander alone >> Male >> 23 years
+        FUQ849:      Native Hawaiian and Other Pacific Islander alone >> Male >> 24 years
+        FUQ850:      Native Hawaiian and Other Pacific Islander alone >> Male >> 25 years
+        FUQ851:      Native Hawaiian and Other Pacific Islander alone >> Male >> 26 years
+        FUQ852:      Native Hawaiian and Other Pacific Islander alone >> Male >> 27 years
+        FUQ853:      Native Hawaiian and Other Pacific Islander alone >> Male >> 28 years
+        FUQ854:      Native Hawaiian and Other Pacific Islander alone >> Male >> 29 years
+        FUQ855:      Native Hawaiian and Other Pacific Islander alone >> Male >> 30 years
+        FUQ856:      Native Hawaiian and Other Pacific Islander alone >> Male >> 31 years
+        FUQ857:      Native Hawaiian and Other Pacific Islander alone >> Male >> 32 years
+        FUQ858:      Native Hawaiian and Other Pacific Islander alone >> Male >> 33 years
+        FUQ859:      Native Hawaiian and Other Pacific Islander alone >> Male >> 34 years
+        FUQ860:      Native Hawaiian and Other Pacific Islander alone >> Male >> 35 years
+        FUQ861:      Native Hawaiian and Other Pacific Islander alone >> Male >> 36 years
+        FUQ862:      Native Hawaiian and Other Pacific Islander alone >> Male >> 37 years
+        FUQ863:      Native Hawaiian and Other Pacific Islander alone >> Male >> 38 years
+        FUQ864:      Native Hawaiian and Other Pacific Islander alone >> Male >> 39 years
+        FUQ865:      Native Hawaiian and Other Pacific Islander alone >> Male >> 40 years
+        FUQ866:      Native Hawaiian and Other Pacific Islander alone >> Male >> 41 years
+        FUQ867:      Native Hawaiian and Other Pacific Islander alone >> Male >> 42 years
+        FUQ868:      Native Hawaiian and Other Pacific Islander alone >> Male >> 43 years
+        FUQ869:      Native Hawaiian and Other Pacific Islander alone >> Male >> 44 years
+        FUQ870:      Native Hawaiian and Other Pacific Islander alone >> Male >> 45 years
+        FUQ871:      Native Hawaiian and Other Pacific Islander alone >> Male >> 46 years
+        FUQ872:      Native Hawaiian and Other Pacific Islander alone >> Male >> 47 years
+        FUQ873:      Native Hawaiian and Other Pacific Islander alone >> Male >> 48 years
+        FUQ874:      Native Hawaiian and Other Pacific Islander alone >> Male >> 49 years
+        FUQ875:      Native Hawaiian and Other Pacific Islander alone >> Male >> 50 years
+        FUQ876:      Native Hawaiian and Other Pacific Islander alone >> Male >> 51 years
+        FUQ877:      Native Hawaiian and Other Pacific Islander alone >> Male >> 52 years
+        FUQ878:      Native Hawaiian and Other Pacific Islander alone >> Male >> 53 years
+        FUQ879:      Native Hawaiian and Other Pacific Islander alone >> Male >> 54 years
+        FUQ880:      Native Hawaiian and Other Pacific Islander alone >> Male >> 55 years
+        FUQ881:      Native Hawaiian and Other Pacific Islander alone >> Male >> 56 years
+        FUQ882:      Native Hawaiian and Other Pacific Islander alone >> Male >> 57 years
+        FUQ883:      Native Hawaiian and Other Pacific Islander alone >> Male >> 58 years
+        FUQ884:      Native Hawaiian and Other Pacific Islander alone >> Male >> 59 years
+        FUQ885:      Native Hawaiian and Other Pacific Islander alone >> Male >> 60 years
+        FUQ886:      Native Hawaiian and Other Pacific Islander alone >> Male >> 61 years
+        FUQ887:      Native Hawaiian and Other Pacific Islander alone >> Male >> 62 years
+        FUQ888:      Native Hawaiian and Other Pacific Islander alone >> Male >> 63 years
+        FUQ889:      Native Hawaiian and Other Pacific Islander alone >> Male >> 64 years
+        FUQ890:      Native Hawaiian and Other Pacific Islander alone >> Male >> 65 years
+        FUQ891:      Native Hawaiian and Other Pacific Islander alone >> Male >> 66 years
+        FUQ892:      Native Hawaiian and Other Pacific Islander alone >> Male >> 67 years
+        FUQ893:      Native Hawaiian and Other Pacific Islander alone >> Male >> 68 years
+        FUQ894:      Native Hawaiian and Other Pacific Islander alone >> Male >> 69 years
+        FUQ895:      Native Hawaiian and Other Pacific Islander alone >> Male >> 70 years
+        FUQ896:      Native Hawaiian and Other Pacific Islander alone >> Male >> 71 years
+        FUQ897:      Native Hawaiian and Other Pacific Islander alone >> Male >> 72 years
+        FUQ898:      Native Hawaiian and Other Pacific Islander alone >> Male >> 73 years
+        FUQ899:      Native Hawaiian and Other Pacific Islander alone >> Male >> 74 years
+        FUQ900:      Native Hawaiian and Other Pacific Islander alone >> Male >> 75 years
+        FUQ901:      Native Hawaiian and Other Pacific Islander alone >> Male >> 76 years
+        FUQ902:      Native Hawaiian and Other Pacific Islander alone >> Male >> 77 years
+        FUQ903:      Native Hawaiian and Other Pacific Islander alone >> Male >> 78 years
+        FUQ904:      Native Hawaiian and Other Pacific Islander alone >> Male >> 79 years
+        FUQ905:      Native Hawaiian and Other Pacific Islander alone >> Male >> 80 years
+        FUQ906:      Native Hawaiian and Other Pacific Islander alone >> Male >> 81 years
+        FUQ907:      Native Hawaiian and Other Pacific Islander alone >> Male >> 82 years
+        FUQ908:      Native Hawaiian and Other Pacific Islander alone >> Male >> 83 years
+        FUQ909:      Native Hawaiian and Other Pacific Islander alone >> Male >> 84 years
+        FUQ910:      Native Hawaiian and Other Pacific Islander alone >> Male >> 85 years
+        FUQ911:      Native Hawaiian and Other Pacific Islander alone >> Male >> 86 years
+        FUQ912:      Native Hawaiian and Other Pacific Islander alone >> Male >> 87 years
+        FUQ913:      Native Hawaiian and Other Pacific Islander alone >> Male >> 88 years
+        FUQ914:      Native Hawaiian and Other Pacific Islander alone >> Male >> 89 years
+        FUQ915:      Native Hawaiian and Other Pacific Islander alone >> Male >> 90 years
+        FUQ916:      Native Hawaiian and Other Pacific Islander alone >> Male >> 91 years
+        FUQ917:      Native Hawaiian and Other Pacific Islander alone >> Male >> 92 years
+        FUQ918:      Native Hawaiian and Other Pacific Islander alone >> Male >> 93 years
+        FUQ919:      Native Hawaiian and Other Pacific Islander alone >> Male >> 94 years
+        FUQ920:      Native Hawaiian and Other Pacific Islander alone >> Male >> 95 years
+        FUQ921:      Native Hawaiian and Other Pacific Islander alone >> Male >> 96 years
+        FUQ922:      Native Hawaiian and Other Pacific Islander alone >> Male >> 97 years
+        FUQ923:      Native Hawaiian and Other Pacific Islander alone >> Male >> 98 years
+        FUQ924:      Native Hawaiian and Other Pacific Islander alone >> Male >> 99 years
+        FUQ925:      Native Hawaiian and Other Pacific Islander alone >> Male >> 100 to 104 years
+        FUQ926:      Native Hawaiian and Other Pacific Islander alone >> Male >> 105 to 109 years
+        FUQ927:      Native Hawaiian and Other Pacific Islander alone >> Male >> 110 years and over
+        FUQ928:      Native Hawaiian and Other Pacific Islander alone >> Female >> Under 1 year
+        FUQ929:      Native Hawaiian and Other Pacific Islander alone >> Female >> 1 year
+        FUQ930:      Native Hawaiian and Other Pacific Islander alone >> Female >> 2 years
+        FUQ931:      Native Hawaiian and Other Pacific Islander alone >> Female >> 3 years
+        FUQ932:      Native Hawaiian and Other Pacific Islander alone >> Female >> 4 years
+        FUQ933:      Native Hawaiian and Other Pacific Islander alone >> Female >> 5 years
+        FUQ934:      Native Hawaiian and Other Pacific Islander alone >> Female >> 6 years
+        FUQ935:      Native Hawaiian and Other Pacific Islander alone >> Female >> 7 years
+        FUQ936:      Native Hawaiian and Other Pacific Islander alone >> Female >> 8 years
+        FUQ937:      Native Hawaiian and Other Pacific Islander alone >> Female >> 9 years
+        FUQ938:      Native Hawaiian and Other Pacific Islander alone >> Female >> 10 years
+        FUQ939:      Native Hawaiian and Other Pacific Islander alone >> Female >> 11 years
+        FUQ940:      Native Hawaiian and Other Pacific Islander alone >> Female >> 12 years
+        FUQ941:      Native Hawaiian and Other Pacific Islander alone >> Female >> 13 years
+        FUQ942:      Native Hawaiian and Other Pacific Islander alone >> Female >> 14 years
+        FUQ943:      Native Hawaiian and Other Pacific Islander alone >> Female >> 15 years
+        FUQ944:      Native Hawaiian and Other Pacific Islander alone >> Female >> 16 years
+        FUQ945:      Native Hawaiian and Other Pacific Islander alone >> Female >> 17 years
+        FUQ946:      Native Hawaiian and Other Pacific Islander alone >> Female >> 18 years
+        FUQ947:      Native Hawaiian and Other Pacific Islander alone >> Female >> 19 years
+        FUQ948:      Native Hawaiian and Other Pacific Islander alone >> Female >> 20 years
+        FUQ949:      Native Hawaiian and Other Pacific Islander alone >> Female >> 21 years
+        FUQ950:      Native Hawaiian and Other Pacific Islander alone >> Female >> 22 years
+        FUQ951:      Native Hawaiian and Other Pacific Islander alone >> Female >> 23 years
+        FUQ952:      Native Hawaiian and Other Pacific Islander alone >> Female >> 24 years
+        FUQ953:      Native Hawaiian and Other Pacific Islander alone >> Female >> 25 years
+        FUQ954:      Native Hawaiian and Other Pacific Islander alone >> Female >> 26 years
+        FUQ955:      Native Hawaiian and Other Pacific Islander alone >> Female >> 27 years
+        FUQ956:      Native Hawaiian and Other Pacific Islander alone >> Female >> 28 years
+        FUQ957:      Native Hawaiian and Other Pacific Islander alone >> Female >> 29 years
+        FUQ958:      Native Hawaiian and Other Pacific Islander alone >> Female >> 30 years
+        FUQ959:      Native Hawaiian and Other Pacific Islander alone >> Female >> 31 years
+        FUQ960:      Native Hawaiian and Other Pacific Islander alone >> Female >> 32 years
+        FUQ961:      Native Hawaiian and Other Pacific Islander alone >> Female >> 33 years
+        FUQ962:      Native Hawaiian and Other Pacific Islander alone >> Female >> 34 years
+        FUQ963:      Native Hawaiian and Other Pacific Islander alone >> Female >> 35 years
+        FUQ964:      Native Hawaiian and Other Pacific Islander alone >> Female >> 36 years
+        FUQ965:      Native Hawaiian and Other Pacific Islander alone >> Female >> 37 years
+        FUQ966:      Native Hawaiian and Other Pacific Islander alone >> Female >> 38 years
+        FUQ967:      Native Hawaiian and Other Pacific Islander alone >> Female >> 39 years
+        FUQ968:      Native Hawaiian and Other Pacific Islander alone >> Female >> 40 years
+        FUQ969:      Native Hawaiian and Other Pacific Islander alone >> Female >> 41 years
+        FUQ970:      Native Hawaiian and Other Pacific Islander alone >> Female >> 42 years
+        FUQ971:      Native Hawaiian and Other Pacific Islander alone >> Female >> 43 years
+        FUQ972:      Native Hawaiian and Other Pacific Islander alone >> Female >> 44 years
+        FUQ973:      Native Hawaiian and Other Pacific Islander alone >> Female >> 45 years
+        FUQ974:      Native Hawaiian and Other Pacific Islander alone >> Female >> 46 years
+        FUQ975:      Native Hawaiian and Other Pacific Islander alone >> Female >> 47 years
+        FUQ976:      Native Hawaiian and Other Pacific Islander alone >> Female >> 48 years
+        FUQ977:      Native Hawaiian and Other Pacific Islander alone >> Female >> 49 years
+        FUQ978:      Native Hawaiian and Other Pacific Islander alone >> Female >> 50 years
+        FUQ979:      Native Hawaiian and Other Pacific Islander alone >> Female >> 51 years
+        FUQ980:      Native Hawaiian and Other Pacific Islander alone >> Female >> 52 years
+        FUQ981:      Native Hawaiian and Other Pacific Islander alone >> Female >> 53 years
+        FUQ982:      Native Hawaiian and Other Pacific Islander alone >> Female >> 54 years
+        FUQ983:      Native Hawaiian and Other Pacific Islander alone >> Female >> 55 years
+        FUQ984:      Native Hawaiian and Other Pacific Islander alone >> Female >> 56 years
+        FUQ985:      Native Hawaiian and Other Pacific Islander alone >> Female >> 57 years
+        FUQ986:      Native Hawaiian and Other Pacific Islander alone >> Female >> 58 years
+        FUQ987:      Native Hawaiian and Other Pacific Islander alone >> Female >> 59 years
+        FUQ988:      Native Hawaiian and Other Pacific Islander alone >> Female >> 60 years
+        FUQ989:      Native Hawaiian and Other Pacific Islander alone >> Female >> 61 years
+        FUQ990:      Native Hawaiian and Other Pacific Islander alone >> Female >> 62 years
+        FUQ991:      Native Hawaiian and Other Pacific Islander alone >> Female >> 63 years
+        FUQ992:      Native Hawaiian and Other Pacific Islander alone >> Female >> 64 years
+        FUQ993:      Native Hawaiian and Other Pacific Islander alone >> Female >> 65 years
+        FUQ994:      Native Hawaiian and Other Pacific Islander alone >> Female >> 66 years
+        FUQ995:      Native Hawaiian and Other Pacific Islander alone >> Female >> 67 years
+        FUQ996:      Native Hawaiian and Other Pacific Islander alone >> Female >> 68 years
+        FUQ997:      Native Hawaiian and Other Pacific Islander alone >> Female >> 69 years
+        FUQ998:      Native Hawaiian and Other Pacific Islander alone >> Female >> 70 years
+        FUQ999:      Native Hawaiian and Other Pacific Islander alone >> Female >> 71 years
+        FUQA00:      Native Hawaiian and Other Pacific Islander alone >> Female >> 72 years
+        FUQA01:      Native Hawaiian and Other Pacific Islander alone >> Female >> 73 years
+        FUQA02:      Native Hawaiian and Other Pacific Islander alone >> Female >> 74 years
+        FUQA03:      Native Hawaiian and Other Pacific Islander alone >> Female >> 75 years
+        FUQA04:      Native Hawaiian and Other Pacific Islander alone >> Female >> 76 years
+        FUQA05:      Native Hawaiian and Other Pacific Islander alone >> Female >> 77 years
+        FUQA06:      Native Hawaiian and Other Pacific Islander alone >> Female >> 78 years
+        FUQA07:      Native Hawaiian and Other Pacific Islander alone >> Female >> 79 years
+        FUQA08:      Native Hawaiian and Other Pacific Islander alone >> Female >> 80 years
+        FUQA09:      Native Hawaiian and Other Pacific Islander alone >> Female >> 81 years
+        FUQA10:      Native Hawaiian and Other Pacific Islander alone >> Female >> 82 years
+        FUQA11:      Native Hawaiian and Other Pacific Islander alone >> Female >> 83 years
+        FUQA12:      Native Hawaiian and Other Pacific Islander alone >> Female >> 84 years
+        FUQA13:      Native Hawaiian and Other Pacific Islander alone >> Female >> 85 years
+        FUQA14:      Native Hawaiian and Other Pacific Islander alone >> Female >> 86 years
+        FUQA15:      Native Hawaiian and Other Pacific Islander alone >> Female >> 87 years
+        FUQA16:      Native Hawaiian and Other Pacific Islander alone >> Female >> 88 years
+        FUQA17:      Native Hawaiian and Other Pacific Islander alone >> Female >> 89 years
+        FUQA18:      Native Hawaiian and Other Pacific Islander alone >> Female >> 90 years
+        FUQA19:      Native Hawaiian and Other Pacific Islander alone >> Female >> 91 years
+        FUQA20:      Native Hawaiian and Other Pacific Islander alone >> Female >> 92 years
+        FUQA21:      Native Hawaiian and Other Pacific Islander alone >> Female >> 93 years
+        FUQA22:      Native Hawaiian and Other Pacific Islander alone >> Female >> 94 years
+        FUQA23:      Native Hawaiian and Other Pacific Islander alone >> Female >> 95 years
+        FUQA24:      Native Hawaiian and Other Pacific Islander alone >> Female >> 96 years
+        FUQA25:      Native Hawaiian and Other Pacific Islander alone >> Female >> 97 years
+        FUQA26:      Native Hawaiian and Other Pacific Islander alone >> Female >> 98 years
+        FUQA27:      Native Hawaiian and Other Pacific Islander alone >> Female >> 99 years
+        FUQA28:      Native Hawaiian and Other Pacific Islander alone >> Female >> 100 to 104 years
+        FUQA29:      Native Hawaiian and Other Pacific Islander alone >> Female >> 105 to 109 years
+        FUQA30:      Native Hawaiian and Other Pacific Islander alone >> Female >> 110 years and over
+        FUQA31:      Some other race alone >> Male >> Under 1 year
+        FUQA32:      Some other race alone >> Male >> 1 year
+        FUQA33:      Some other race alone >> Male >> 2 years
+        FUQA34:      Some other race alone >> Male >> 3 years
+        FUQA35:      Some other race alone >> Male >> 4 years
+        FUQA36:      Some other race alone >> Male >> 5 years
+        FUQA37:      Some other race alone >> Male >> 6 years
+        FUQA38:      Some other race alone >> Male >> 7 years
+        FUQA39:      Some other race alone >> Male >> 8 years
+        FUQA40:      Some other race alone >> Male >> 9 years
+        FUQA41:      Some other race alone >> Male >> 10 years
+        FUQA42:      Some other race alone >> Male >> 11 years
+        FUQA43:      Some other race alone >> Male >> 12 years
+        FUQA44:      Some other race alone >> Male >> 13 years
+        FUQA45:      Some other race alone >> Male >> 14 years
+        FUQA46:      Some other race alone >> Male >> 15 years
+        FUQA47:      Some other race alone >> Male >> 16 years
+        FUQA48:      Some other race alone >> Male >> 17 years
+        FUQA49:      Some other race alone >> Male >> 18 years
+        FUQA50:      Some other race alone >> Male >> 19 years
+        FUQA51:      Some other race alone >> Male >> 20 years
+        FUQA52:      Some other race alone >> Male >> 21 years
+        FUQA53:      Some other race alone >> Male >> 22 years
+        FUQA54:      Some other race alone >> Male >> 23 years
+        FUQA55:      Some other race alone >> Male >> 24 years
+        FUQA56:      Some other race alone >> Male >> 25 years
+        FUQA57:      Some other race alone >> Male >> 26 years
+        FUQA58:      Some other race alone >> Male >> 27 years
+        FUQA59:      Some other race alone >> Male >> 28 years
+        FUQA60:      Some other race alone >> Male >> 29 years
+        FUQA61:      Some other race alone >> Male >> 30 years
+        FUQA62:      Some other race alone >> Male >> 31 years
+        FUQA63:      Some other race alone >> Male >> 32 years
+        FUQA64:      Some other race alone >> Male >> 33 years
+        FUQA65:      Some other race alone >> Male >> 34 years
+        FUQA66:      Some other race alone >> Male >> 35 years
+        FUQA67:      Some other race alone >> Male >> 36 years
+        FUQA68:      Some other race alone >> Male >> 37 years
+        FUQA69:      Some other race alone >> Male >> 38 years
+        FUQA70:      Some other race alone >> Male >> 39 years
+        FUQA71:      Some other race alone >> Male >> 40 years
+        FUQA72:      Some other race alone >> Male >> 41 years
+        FUQA73:      Some other race alone >> Male >> 42 years
+        FUQA74:      Some other race alone >> Male >> 43 years
+        FUQA75:      Some other race alone >> Male >> 44 years
+        FUQA76:      Some other race alone >> Male >> 45 years
+        FUQA77:      Some other race alone >> Male >> 46 years
+        FUQA78:      Some other race alone >> Male >> 47 years
+        FUQA79:      Some other race alone >> Male >> 48 years
+        FUQA80:      Some other race alone >> Male >> 49 years
+        FUQA81:      Some other race alone >> Male >> 50 years
+        FUQA82:      Some other race alone >> Male >> 51 years
+        FUQA83:      Some other race alone >> Male >> 52 years
+        FUQA84:      Some other race alone >> Male >> 53 years
+        FUQA85:      Some other race alone >> Male >> 54 years
+        FUQA86:      Some other race alone >> Male >> 55 years
+        FUQA87:      Some other race alone >> Male >> 56 years
+        FUQA88:      Some other race alone >> Male >> 57 years
+        FUQA89:      Some other race alone >> Male >> 58 years
+        FUQA90:      Some other race alone >> Male >> 59 years
+        FUQA91:      Some other race alone >> Male >> 60 years
+        FUQA92:      Some other race alone >> Male >> 61 years
+        FUQA93:      Some other race alone >> Male >> 62 years
+        FUQA94:      Some other race alone >> Male >> 63 years
+        FUQA95:      Some other race alone >> Male >> 64 years
+        FUQA96:      Some other race alone >> Male >> 65 years
+        FUQA97:      Some other race alone >> Male >> 66 years
+        FUQA98:      Some other race alone >> Male >> 67 years
+        FUQA99:      Some other race alone >> Male >> 68 years
+        FUQB00:      Some other race alone >> Male >> 69 years
+        FUQB01:      Some other race alone >> Male >> 70 years
+        FUQB02:      Some other race alone >> Male >> 71 years
+        FUQB03:      Some other race alone >> Male >> 72 years
+        FUQB04:      Some other race alone >> Male >> 73 years
+        FUQB05:      Some other race alone >> Male >> 74 years
+        FUQB06:      Some other race alone >> Male >> 75 years
+        FUQB07:      Some other race alone >> Male >> 76 years
+        FUQB08:      Some other race alone >> Male >> 77 years
+        FUQB09:      Some other race alone >> Male >> 78 years
+        FUQB10:      Some other race alone >> Male >> 79 years
+        FUQB11:      Some other race alone >> Male >> 80 years
+        FUQB12:      Some other race alone >> Male >> 81 years
+        FUQB13:      Some other race alone >> Male >> 82 years
+        FUQB14:      Some other race alone >> Male >> 83 years
+        FUQB15:      Some other race alone >> Male >> 84 years
+        FUQB16:      Some other race alone >> Male >> 85 years
+        FUQB17:      Some other race alone >> Male >> 86 years
+        FUQB18:      Some other race alone >> Male >> 87 years
+        FUQB19:      Some other race alone >> Male >> 88 years
+        FUQB20:      Some other race alone >> Male >> 89 years
+        FUQB21:      Some other race alone >> Male >> 90 years
+        FUQB22:      Some other race alone >> Male >> 91 years
+        FUQB23:      Some other race alone >> Male >> 92 years
+        FUQB24:      Some other race alone >> Male >> 93 years
+        FUQB25:      Some other race alone >> Male >> 94 years
+        FUQB26:      Some other race alone >> Male >> 95 years
+        FUQB27:      Some other race alone >> Male >> 96 years
+        FUQB28:      Some other race alone >> Male >> 97 years
+        FUQB29:      Some other race alone >> Male >> 98 years
+        FUQB30:      Some other race alone >> Male >> 99 years
+        FUQB31:      Some other race alone >> Male >> 100 to 104 years
+        FUQB32:      Some other race alone >> Male >> 105 to 109 years
+        FUQB33:      Some other race alone >> Male >> 110 years and over
+        FUQB34:      Some other race alone >> Female >> Under 1 year
+        FUQB35:      Some other race alone >> Female >> 1 year
+        FUQB36:      Some other race alone >> Female >> 2 years
+        FUQB37:      Some other race alone >> Female >> 3 years
+        FUQB38:      Some other race alone >> Female >> 4 years
+        FUQB39:      Some other race alone >> Female >> 5 years
+        FUQB40:      Some other race alone >> Female >> 6 years
+        FUQB41:      Some other race alone >> Female >> 7 years
+        FUQB42:      Some other race alone >> Female >> 8 years
+        FUQB43:      Some other race alone >> Female >> 9 years
+        FUQB44:      Some other race alone >> Female >> 10 years
+        FUQB45:      Some other race alone >> Female >> 11 years
+        FUQB46:      Some other race alone >> Female >> 12 years
+        FUQB47:      Some other race alone >> Female >> 13 years
+        FUQB48:      Some other race alone >> Female >> 14 years
+        FUQB49:      Some other race alone >> Female >> 15 years
+        FUQB50:      Some other race alone >> Female >> 16 years
+        FUQB51:      Some other race alone >> Female >> 17 years
+        FUQB52:      Some other race alone >> Female >> 18 years
+        FUQB53:      Some other race alone >> Female >> 19 years
+        FUQB54:      Some other race alone >> Female >> 20 years
+        FUQB55:      Some other race alone >> Female >> 21 years
+        FUQB56:      Some other race alone >> Female >> 22 years
+        FUQB57:      Some other race alone >> Female >> 23 years
+        FUQB58:      Some other race alone >> Female >> 24 years
+        FUQB59:      Some other race alone >> Female >> 25 years
+        FUQB60:      Some other race alone >> Female >> 26 years
+        FUQB61:      Some other race alone >> Female >> 27 years
+        FUQB62:      Some other race alone >> Female >> 28 years
+        FUQB63:      Some other race alone >> Female >> 29 years
+        FUQB64:      Some other race alone >> Female >> 30 years
+        FUQB65:      Some other race alone >> Female >> 31 years
+        FUQB66:      Some other race alone >> Female >> 32 years
+        FUQB67:      Some other race alone >> Female >> 33 years
+        FUQB68:      Some other race alone >> Female >> 34 years
+        FUQB69:      Some other race alone >> Female >> 35 years
+        FUQB70:      Some other race alone >> Female >> 36 years
+        FUQB71:      Some other race alone >> Female >> 37 years
+        FUQB72:      Some other race alone >> Female >> 38 years
+        FUQB73:      Some other race alone >> Female >> 39 years
+        FUQB74:      Some other race alone >> Female >> 40 years
+        FUQB75:      Some other race alone >> Female >> 41 years
+        FUQB76:      Some other race alone >> Female >> 42 years
+        FUQB77:      Some other race alone >> Female >> 43 years
+        FUQB78:      Some other race alone >> Female >> 44 years
+        FUQB79:      Some other race alone >> Female >> 45 years
+        FUQB80:      Some other race alone >> Female >> 46 years
+        FUQB81:      Some other race alone >> Female >> 47 years
+        FUQB82:      Some other race alone >> Female >> 48 years
+        FUQB83:      Some other race alone >> Female >> 49 years
+        FUQB84:      Some other race alone >> Female >> 50 years
+        FUQB85:      Some other race alone >> Female >> 51 years
+        FUQB86:      Some other race alone >> Female >> 52 years
+        FUQB87:      Some other race alone >> Female >> 53 years
+        FUQB88:      Some other race alone >> Female >> 54 years
+        FUQB89:      Some other race alone >> Female >> 55 years
+        FUQB90:      Some other race alone >> Female >> 56 years
+        FUQB91:      Some other race alone >> Female >> 57 years
+        FUQB92:      Some other race alone >> Female >> 58 years
+        FUQB93:      Some other race alone >> Female >> 59 years
+        FUQB94:      Some other race alone >> Female >> 60 years
+        FUQB95:      Some other race alone >> Female >> 61 years
+        FUQB96:      Some other race alone >> Female >> 62 years
+        FUQB97:      Some other race alone >> Female >> 63 years
+        FUQB98:      Some other race alone >> Female >> 64 years
+        FUQB99:      Some other race alone >> Female >> 65 years
+        FUQC00:      Some other race alone >> Female >> 66 years
+        FUQC01:      Some other race alone >> Female >> 67 years
+        FUQC02:      Some other race alone >> Female >> 68 years
+        FUQC03:      Some other race alone >> Female >> 69 years
+        FUQC04:      Some other race alone >> Female >> 70 years
+        FUQC05:      Some other race alone >> Female >> 71 years
+        FUQC06:      Some other race alone >> Female >> 72 years
+        FUQC07:      Some other race alone >> Female >> 73 years
+        FUQC08:      Some other race alone >> Female >> 74 years
+        FUQC09:      Some other race alone >> Female >> 75 years
+        FUQC10:      Some other race alone >> Female >> 76 years
+        FUQC11:      Some other race alone >> Female >> 77 years
+        FUQC12:      Some other race alone >> Female >> 78 years
+        FUQC13:      Some other race alone >> Female >> 79 years
+        FUQC14:      Some other race alone >> Female >> 80 years
+        FUQC15:      Some other race alone >> Female >> 81 years
+        FUQC16:      Some other race alone >> Female >> 82 years
+        FUQC17:      Some other race alone >> Female >> 83 years
+        FUQC18:      Some other race alone >> Female >> 84 years
+        FUQC19:      Some other race alone >> Female >> 85 years
+        FUQC20:      Some other race alone >> Female >> 86 years
+        FUQC21:      Some other race alone >> Female >> 87 years
+        FUQC22:      Some other race alone >> Female >> 88 years
+        FUQC23:      Some other race alone >> Female >> 89 years
+        FUQC24:      Some other race alone >> Female >> 90 years
+        FUQC25:      Some other race alone >> Female >> 91 years
+        FUQC26:      Some other race alone >> Female >> 92 years
+        FUQC27:      Some other race alone >> Female >> 93 years
+        FUQC28:      Some other race alone >> Female >> 94 years
+        FUQC29:      Some other race alone >> Female >> 95 years
+        FUQC30:      Some other race alone >> Female >> 96 years
+        FUQC31:      Some other race alone >> Female >> 97 years
+        FUQC32:      Some other race alone >> Female >> 98 years
+        FUQC33:      Some other race alone >> Female >> 99 years
+        FUQC34:      Some other race alone >> Female >> 100 to 104 years
+        FUQC35:      Some other race alone >> Female >> 105 to 109 years
+        FUQC36:      Some other race alone >> Female >> 110 years and over
+        FUQC37:      Two or more races >> Male >> Under 1 year
+        FUQC38:      Two or more races >> Male >> 1 year
+        FUQC39:      Two or more races >> Male >> 2 years
+        FUQC40:      Two or more races >> Male >> 3 years
+        FUQC41:      Two or more races >> Male >> 4 years
+        FUQC42:      Two or more races >> Male >> 5 years
+        FUQC43:      Two or more races >> Male >> 6 years
+        FUQC44:      Two or more races >> Male >> 7 years
+        FUQC45:      Two or more races >> Male >> 8 years
+        FUQC46:      Two or more races >> Male >> 9 years
+        FUQC47:      Two or more races >> Male >> 10 years
+        FUQC48:      Two or more races >> Male >> 11 years
+        FUQC49:      Two or more races >> Male >> 12 years
+        FUQC50:      Two or more races >> Male >> 13 years
+        FUQC51:      Two or more races >> Male >> 14 years
+        FUQC52:      Two or more races >> Male >> 15 years
+        FUQC53:      Two or more races >> Male >> 16 years
+        FUQC54:      Two or more races >> Male >> 17 years
+        FUQC55:      Two or more races >> Male >> 18 years
+        FUQC56:      Two or more races >> Male >> 19 years
+        FUQC57:      Two or more races >> Male >> 20 years
+        FUQC58:      Two or more races >> Male >> 21 years
+        FUQC59:      Two or more races >> Male >> 22 years
+        FUQC60:      Two or more races >> Male >> 23 years
+        FUQC61:      Two or more races >> Male >> 24 years
+        FUQC62:      Two or more races >> Male >> 25 years
+        FUQC63:      Two or more races >> Male >> 26 years
+        FUQC64:      Two or more races >> Male >> 27 years
+        FUQC65:      Two or more races >> Male >> 28 years
+        FUQC66:      Two or more races >> Male >> 29 years
+        FUQC67:      Two or more races >> Male >> 30 years
+        FUQC68:      Two or more races >> Male >> 31 years
+        FUQC69:      Two or more races >> Male >> 32 years
+        FUQC70:      Two or more races >> Male >> 33 years
+        FUQC71:      Two or more races >> Male >> 34 years
+        FUQC72:      Two or more races >> Male >> 35 years
+        FUQC73:      Two or more races >> Male >> 36 years
+        FUQC74:      Two or more races >> Male >> 37 years
+        FUQC75:      Two or more races >> Male >> 38 years
+        FUQC76:      Two or more races >> Male >> 39 years
+        FUQC77:      Two or more races >> Male >> 40 years
+        FUQC78:      Two or more races >> Male >> 41 years
+        FUQC79:      Two or more races >> Male >> 42 years
+        FUQC80:      Two or more races >> Male >> 43 years
+        FUQC81:      Two or more races >> Male >> 44 years
+        FUQC82:      Two or more races >> Male >> 45 years
+        FUQC83:      Two or more races >> Male >> 46 years
+        FUQC84:      Two or more races >> Male >> 47 years
+        FUQC85:      Two or more races >> Male >> 48 years
+        FUQC86:      Two or more races >> Male >> 49 years
+        FUQC87:      Two or more races >> Male >> 50 years
+        FUQC88:      Two or more races >> Male >> 51 years
+        FUQC89:      Two or more races >> Male >> 52 years
+        FUQC90:      Two or more races >> Male >> 53 years
+        FUQC91:      Two or more races >> Male >> 54 years
+        FUQC92:      Two or more races >> Male >> 55 years
+        FUQC93:      Two or more races >> Male >> 56 years
+        FUQC94:      Two or more races >> Male >> 57 years
+        FUQC95:      Two or more races >> Male >> 58 years
+        FUQC96:      Two or more races >> Male >> 59 years
+        FUQC97:      Two or more races >> Male >> 60 years
+        FUQC98:      Two or more races >> Male >> 61 years
+        FUQC99:      Two or more races >> Male >> 62 years
+        FUQD00:      Two or more races >> Male >> 63 years
+        FUQD01:      Two or more races >> Male >> 64 years
+        FUQD02:      Two or more races >> Male >> 65 years
+        FUQD03:      Two or more races >> Male >> 66 years
+        FUQD04:      Two or more races >> Male >> 67 years
+        FUQD05:      Two or more races >> Male >> 68 years
+        FUQD06:      Two or more races >> Male >> 69 years
+        FUQD07:      Two or more races >> Male >> 70 years
+        FUQD08:      Two or more races >> Male >> 71 years
+        FUQD09:      Two or more races >> Male >> 72 years
+        FUQD10:      Two or more races >> Male >> 73 years
+        FUQD11:      Two or more races >> Male >> 74 years
+        FUQD12:      Two or more races >> Male >> 75 years
+        FUQD13:      Two or more races >> Male >> 76 years
+        FUQD14:      Two or more races >> Male >> 77 years
+        FUQD15:      Two or more races >> Male >> 78 years
+        FUQD16:      Two or more races >> Male >> 79 years
+        FUQD17:      Two or more races >> Male >> 80 years
+        FUQD18:      Two or more races >> Male >> 81 years
+        FUQD19:      Two or more races >> Male >> 82 years
+        FUQD20:      Two or more races >> Male >> 83 years
+        FUQD21:      Two or more races >> Male >> 84 years
+        FUQD22:      Two or more races >> Male >> 85 years
+        FUQD23:      Two or more races >> Male >> 86 years
+        FUQD24:      Two or more races >> Male >> 87 years
+        FUQD25:      Two or more races >> Male >> 88 years
+        FUQD26:      Two or more races >> Male >> 89 years
+        FUQD27:      Two or more races >> Male >> 90 years
+        FUQD28:      Two or more races >> Male >> 91 years
+        FUQD29:      Two or more races >> Male >> 92 years
+        FUQD30:      Two or more races >> Male >> 93 years
+        FUQD31:      Two or more races >> Male >> 94 years
+        FUQD32:      Two or more races >> Male >> 95 years
+        FUQD33:      Two or more races >> Male >> 96 years
+        FUQD34:      Two or more races >> Male >> 97 years
+        FUQD35:      Two or more races >> Male >> 98 years
+        FUQD36:      Two or more races >> Male >> 99 years
+        FUQD37:      Two or more races >> Male >> 100 to 104 years
+        FUQD38:      Two or more races >> Male >> 105 to 109 years
+        FUQD39:      Two or more races >> Male >> 110 years and over
+        FUQD40:      Two or more races >> Female >> Under 1 year
+        FUQD41:      Two or more races >> Female >> 1 year
+        FUQD42:      Two or more races >> Female >> 2 years
+        FUQD43:      Two or more races >> Female >> 3 years
+        FUQD44:      Two or more races >> Female >> 4 years
+        FUQD45:      Two or more races >> Female >> 5 years
+        FUQD46:      Two or more races >> Female >> 6 years
+        FUQD47:      Two or more races >> Female >> 7 years
+        FUQD48:      Two or more races >> Female >> 8 years
+        FUQD49:      Two or more races >> Female >> 9 years
+        FUQD50:      Two or more races >> Female >> 10 years
+        FUQD51:      Two or more races >> Female >> 11 years
+        FUQD52:      Two or more races >> Female >> 12 years
+        FUQD53:      Two or more races >> Female >> 13 years
+        FUQD54:      Two or more races >> Female >> 14 years
+        FUQD55:      Two or more races >> Female >> 15 years
+        FUQD56:      Two or more races >> Female >> 16 years
+        FUQD57:      Two or more races >> Female >> 17 years
+        FUQD58:      Two or more races >> Female >> 18 years
+        FUQD59:      Two or more races >> Female >> 19 years
+        FUQD60:      Two or more races >> Female >> 20 years
+        FUQD61:      Two or more races >> Female >> 21 years
+        FUQD62:      Two or more races >> Female >> 22 years
+        FUQD63:      Two or more races >> Female >> 23 years
+        FUQD64:      Two or more races >> Female >> 24 years
+        FUQD65:      Two or more races >> Female >> 25 years
+        FUQD66:      Two or more races >> Female >> 26 years
+        FUQD67:      Two or more races >> Female >> 27 years
+        FUQD68:      Two or more races >> Female >> 28 years
+        FUQD69:      Two or more races >> Female >> 29 years
+        FUQD70:      Two or more races >> Female >> 30 years
+        FUQD71:      Two or more races >> Female >> 31 years
+        FUQD72:      Two or more races >> Female >> 32 years
+        FUQD73:      Two or more races >> Female >> 33 years
+        FUQD74:      Two or more races >> Female >> 34 years
+        FUQD75:      Two or more races >> Female >> 35 years
+        FUQD76:      Two or more races >> Female >> 36 years
+        FUQD77:      Two or more races >> Female >> 37 years
+        FUQD78:      Two or more races >> Female >> 38 years
+        FUQD79:      Two or more races >> Female >> 39 years
+        FUQD80:      Two or more races >> Female >> 40 years
+        FUQD81:      Two or more races >> Female >> 41 years
+        FUQD82:      Two or more races >> Female >> 42 years
+        FUQD83:      Two or more races >> Female >> 43 years
+        FUQD84:      Two or more races >> Female >> 44 years
+        FUQD85:      Two or more races >> Female >> 45 years
+        FUQD86:      Two or more races >> Female >> 46 years
+        FUQD87:      Two or more races >> Female >> 47 years
+        FUQD88:      Two or more races >> Female >> 48 years
+        FUQD89:      Two or more races >> Female >> 49 years
+        FUQD90:      Two or more races >> Female >> 50 years
+        FUQD91:      Two or more races >> Female >> 51 years
+        FUQD92:      Two or more races >> Female >> 52 years
+        FUQD93:      Two or more races >> Female >> 53 years
+        FUQD94:      Two or more races >> Female >> 54 years
+        FUQD95:      Two or more races >> Female >> 55 years
+        FUQD96:      Two or more races >> Female >> 56 years
+        FUQD97:      Two or more races >> Female >> 57 years
+        FUQD98:      Two or more races >> Female >> 58 years
+        FUQD99:      Two or more races >> Female >> 59 years
+        FUQE00:      Two or more races >> Female >> 60 years
+        FUQE01:      Two or more races >> Female >> 61 years
+        FUQE02:      Two or more races >> Female >> 62 years
+        FUQE03:      Two or more races >> Female >> 63 years
+        FUQE04:      Two or more races >> Female >> 64 years
+        FUQE05:      Two or more races >> Female >> 65 years
+        FUQE06:      Two or more races >> Female >> 66 years
+        FUQE07:      Two or more races >> Female >> 67 years
+        FUQE08:      Two or more races >> Female >> 68 years
+        FUQE09:      Two or more races >> Female >> 69 years
+        FUQE10:      Two or more races >> Female >> 70 years
+        FUQE11:      Two or more races >> Female >> 71 years
+        FUQE12:      Two or more races >> Female >> 72 years
+        FUQE13:      Two or more races >> Female >> 73 years
+        FUQE14:      Two or more races >> Female >> 74 years
+        FUQE15:      Two or more races >> Female >> 75 years
+        FUQE16:      Two or more races >> Female >> 76 years
+        FUQE17:      Two or more races >> Female >> 77 years
+        FUQE18:      Two or more races >> Female >> 78 years
+        FUQE19:      Two or more races >> Female >> 79 years
+        FUQE20:      Two or more races >> Female >> 80 years
+        FUQE21:      Two or more races >> Female >> 81 years
+        FUQE22:      Two or more races >> Female >> 82 years
+        FUQE23:      Two or more races >> Female >> 83 years
+        FUQE24:      Two or more races >> Female >> 84 years
+        FUQE25:      Two or more races >> Female >> 85 years
+        FUQE26:      Two or more races >> Female >> 86 years
+        FUQE27:      Two or more races >> Female >> 87 years
+        FUQE28:      Two or more races >> Female >> 88 years
+        FUQE29:      Two or more races >> Female >> 89 years
+        FUQE30:      Two or more races >> Female >> 90 years
+        FUQE31:      Two or more races >> Female >> 91 years
+        FUQE32:      Two or more races >> Female >> 92 years
+        FUQE33:      Two or more races >> Female >> 93 years
+        FUQE34:      Two or more races >> Female >> 94 years
+        FUQE35:      Two or more races >> Female >> 95 years
+        FUQE36:      Two or more races >> Female >> 96 years
+        FUQE37:      Two or more races >> Female >> 97 years
+        FUQE38:      Two or more races >> Female >> 98 years
+        FUQE39:      Two or more races >> Female >> 99 years
+        FUQE40:      Two or more races >> Female >> 100 to 104 years
+        FUQE41:      Two or more races >> Female >> 105 to 109 years
+        FUQE42:      Two or more races >> Female >> 110 years and over
+ 
+--------------------------------------------------------------------------------
+Citation and Use of NHGIS Data
+--------------------------------------------------------------------------------
+ 
+All persons are granted a limited license to use this documentation and the
+accompanying data, subject to the following conditions:
+
+* REDISTRIBUTION: You will not redistribute the data without permission.
+
+  You may publish a subset of the data to meet journal requirements for accessing 
+  data related to a particular publication. Contact us for permission for any other 
+  redistribution; we will consider requests for free and commercial redistribution.
+
+* CITATION: You will cite NHGIS appropriately.
+
+    * Publications and research reports employing NHGIS data (either tabular or GIS) 
+      should include the following citation:
+
+        Steven Manson, Jonathan Schroeder, David Van Riper, Tracy Kugler, and Steven Ruggles. 
+        IPUMS National Historical Geographic Information System: Version 17.0 
+        [dataset]. Minneapolis, MN: IPUMS. 2022. 
+        http://doi.org/10.18128/D050.V17.0
+
+    * For policy briefs, online resources, or articles in the popular press, we 
+      recommend that you cite the use of NHGIS data as follows:
+
+        IPUMS NHGIS, University of Minnesota, www.nhgis.org.
+
+These terms of use are a legally binding agreement. You can use the data only in 
+accordance with these terms, and any other use is a violation of the agreement. 
+Violations may result in revocation of the agreement and prohibition from using other 
+IPUMS data. If IPUMS or our partners are harmed from your violation, you are 
+responsible for all damages, including reasonable attorney's fees and expenses.
+        
+In addition, we request that users send us a copy of any publications, research
+reports, or educational material making use of the data or documentation.
+
+Send electronic material to: nhgis@umn.edu
+
+Printed matter should be sent to:
+
+    IPUMS NHGIS
+    Institute for Social Research and Data Innovation
+    University of Minnesota
+    50 Willey Hall
+    225 19th Ave S
+    Minneapolis, MN 55455

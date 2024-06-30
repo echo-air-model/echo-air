@@ -1,0 +1,25 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ECHO-AIR MODEL POPULATION CONTROL FILE  		                       ║
+║  last modified: 2024-06-11                                                   ║
+║                                                                              ║
+║  Instructions: Replace the commented out sample inputs with your own inputs. ║
+║  		 Do not change the keywords or anything inside the boxes.      ║
+║  		 Certain fields (noted with *) can be left blank if needed.    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+╓─────────────╖
+║  META DATA  ║
+╙─────────────╜
+- OUTPUT_FILE_NAME: example
+
+╓───────────────────╖
+║    CENSUS DATA    ║
+╙───────────────────╜
+- CODEBOOK_FP: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/nhgis0009_ds146_2000_tract_codebook.txt
+- TRACTDATA_FP: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/nhgis0009_ds146_2000_tract.csv
+- IPUMS_SHP_FP: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/US_tract_2000.shp
+
+╓────────────────────────────────╖
+║ RUN CONTROLS                   ║
+║ These should be set to Y or N  ║
+╙────────────────────────────────╜
+- VERBOSE: #Y (*)
