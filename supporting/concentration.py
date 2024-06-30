@@ -284,19 +284,8 @@ class concentration:
             # Load the output resolution data
             boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
             
-            # Make a copy of the ISRM data
-            tmp = self.total_conc.copy()
-            
-            # Intersect these two dataframes
-            intersect = gpd.overlay(tmp, boundary, keep_geom_type=False, how='intersection')
-
-            # Add the area column for the intersected data
-            intersect['area_km2'] = intersect.geometry.area/(1000.0*1000.0)    
-            total_area = intersect.groupby('NAME').sum()['area_km2'].to_dict()
-            
-            # Add a total area and area fraction to the intersect object
-            intersect['area_total'] = intersect['NAME'].map(total_area)
-            intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
+            # Intersect between input layer and target geography
+            intersect, input_copy = intersect_geometries(self.total_conc, boundary, 'area_km2', 'SUMMARY_CONC')
 
             # Update the concentration to scale by the fraction
             intersect['TOTAL_CONC_UG/M3'] = intersect['area_frac'] * intersect['TOTAL_CONC_UG/M3']  
