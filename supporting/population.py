@@ -4,7 +4,7 @@
 Population Data Object
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2024-06-13
 """
 
 # Import Libraries
@@ -162,6 +162,7 @@ class population:
     
     def allocate_population(self, pop_obj, new_geometry, new_geometry_ID, hia_flag):
         ''' Reallocates the population into the new geometry using a spatial intersect '''
+        # Print to the log file
         if hia_flag:
             verboseprint(self.verbose, '- [HEALTH] Allocating age-stratified population from population input file to ISRM grid cells.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -169,29 +170,13 @@ class population:
             verboseprint(self.verbose, '- [POPULATION] Allocating total population from population input file to ISRM grid cells.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
-        # Confirm that the coordinate reference systems match
-        #assert pop_tmp.crs == new_geometry.crs, 'Coordinate reference system does not match. Population cannot be reallocated'
-        if self.crs == new_geometry.crs:
-            pop_tmp = pop_obj.copy(deep=True)
-        else:
-            pop_tmp = self.project_pop(pop_obj, new_geometry.crs)
-        
-        # Add the land area as a feature of this dataframe
-        pop_tmp['AREA_M2'] = pop_tmp.geometry.area/(1000.*1000.)
-        
-        
-        # Create intersect object
-        intersect = gpd.overlay(pop_tmp, new_geometry, how='intersection')
-        pop_totalarea = intersect.groupby('POP_ID').sum()['AREA_M2'].to_dict()
-    
-        # Add a total area and area fraction to the intersect object
-        intersect['AREA_POP_TOTAL'] = intersect['POP_ID'].map(pop_totalarea)
-        intersect['AREA_FRAC'] = intersect['AREA_M2'] / intersect['AREA_POP_TOTAL']
+        # Use the utility function for intersection and area fraction
+        intersect, pop_tmp = intersect_geometries(pop_obj, new_geometry, 'AREA_M2', 'POP', verbose=self.verbose, debug_mode=self.debug_mode)
 
         # Define the racial/ethnic groups and estimate the intersection population
         cols = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
         for c in cols:
-            intersect[c] = intersect[c] * intersect['AREA_FRAC']
+            intersect[c] = intersect[c] * intersect['area_frac']
         
         # Perform two updates if doing this for hia
         if hia_flag:
@@ -208,11 +193,11 @@ class population:
         new_alloc_pop = new_geometry.merge(new_alloc_pop, how='left',
                                            left_on=new_geometry_ID,
                                            right_on=new_geometry_ID)
-
+        
         # Fill the missing cells with zero population
         new_alloc_pop[cols] = new_alloc_pop[cols].fillna(0)
         
-        # Confirm that the population slipt was close
+        # Confirm that the new population was close to the old one
         old_pop_total = pop_tmp[cols].sum()
         new_pop_total = new_alloc_pop[cols].sum()
         

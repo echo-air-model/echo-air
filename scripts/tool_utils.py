@@ -4,7 +4,7 @@
 Tool Utils
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2024-06-13
 """
 
 #%% Import useful libraries
@@ -195,7 +195,7 @@ def report_version():
 
     logging.info('╔════════════════════════════════╗')
     logging.info('║ ECHO-AIR Model                 ║')
-    logging.info('║ Version 0.9.10                 ║')
+    logging.info('║ Version 0.9.11                 ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return
@@ -355,6 +355,7 @@ def add_north_arrow(ax, angle, x=0.93, y=0.92, arrow_length=0.05):
     OUTPUTS:
         - None
     '''
+
     # Ensure angle is a float
     angle = float(angle)
 
@@ -372,3 +373,41 @@ def add_north_arrow(ax, angle, x=0.93, y=0.92, arrow_length=0.05):
                 fontsize=12, ha='center', va='center', xycoords='axes fraction', transform=t)
     ax.annotate('N', xy=(x, y + arrow_length), fontsize=12, ha='center', va='center', xycoords='axes fraction')
 
+def intersect_geometries(input_layer, target_geography, area_column, id_desc, verbose=False, debug_mode=False):
+    '''
+    Performs geometric intersection between input layer and target geography, calculates area fractions.
+
+    INPUTS:
+        - input_layer: GeoDataFrame containing the source geometries
+        - target_geography: GeoDataFrame containing the target geometries for intersection
+        - area_column: Name of the column to store area calculations
+        - id_desc: Name to give the ID column
+        - verbose: Boolean for verbosity of output
+        - debug_mode: Boolean for debug mode output
+    
+    RETURNS:
+        - intersect: GeoDataFrame with intersections and area fractions
+        - input_copy: input dataframe containing the geometries to be intersecte
+    '''         
+    # Check if CRS match, if not project the input layer to the target geography's CRS
+    if input_layer.crs == target_geography.crs:
+        input_copy = input_layer.copy(deep=True)
+    else:
+        input_copy = input_layer.copy(deep=True).to_crs(target_geography.crs)
+    
+    # Add an ID field
+    id_column = id_desc + '_ID'
+    input_copy[id_column] = '{}_'.format(id_desc) + input_copy.index.astype(str)
+
+    # Get total area of each input geometry cell
+    input_copy[area_column] = input_copy.geometry.area / (1000 * 1000)  # Convert to square kilometers if necessary
+    
+    # Create intersect object between input and target grid
+    intersect = gpd.overlay(input_copy, target_geography, how='intersection')
+    total_area = intersect.groupby(id_column).sum()[area_column].to_dict()
+    
+    # Add a total area and area fraction to the intersect object
+    intersect['total_area'] = intersect[id_column].map(total_area)
+    intersect['area_frac'] = intersect[area_column] / intersect['total_area']
+    
+    return intersect, input_copy

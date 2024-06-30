@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2024-06-11
+last modified: 2024-06-13
 """
 
 # Import Libraries
@@ -56,7 +56,7 @@ class concentration_layer:
           contribution to the total ground-level PM2.5 concentrations
         
     '''
-    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, run_parallel, shp_path, output_region, debug_mode,  run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, run_parallel, shp_path, output_region, debug_mode,  run_calcs=True, verbose=False):  
         ''' Initializes the Concentration object'''        
         # Initialize concentration object by reading in the emissions and isrm 
         self.emissions = emis_obj
@@ -120,7 +120,7 @@ class concentration_layer:
                                                               self.pSO4)
             verboseprint(self.verbose, '   - [CONCENTRATION] Detailed concentrations are estimated from layer {}.'.format(self.layer),
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            
+        
     def __str__(self):
         return 'Concentration layer object created from the emissions from '+self.name + ' and the ISRM grid.'
 
@@ -166,34 +166,6 @@ class concentration_layer:
         assert np.isclose(reallocated_emis['EMISSIONS_UG/S'].sum(), old_total)
         
         return reallocated_emis
-
-    @staticmethod
-    def intersect_geometries(emis_layer, isrm_geography, verbose, debug_mode):
-        ''' 
-        Performs geometric intersection between ISRM and emissions geometries and returns a crosswalk '''
-
-        
-        # Deep copy the emissions layer and add an ID field
-        verboseprint(verbose, '      - [CONCENTRATION] Creating geometry intersection crosswalk.',
-                     debug_mode, frameinfo=getframeinfo(currentframe()))
-        emis = emis_layer.copy(deep=True)
-        emis['EMIS_ID'] = 'EMIS_' + emis.index.astype(str)
-        
-        # Re-project the emissions layer into the ISRM coordinate reference system
-        emis = emis.to_crs(isrm_geography.crs)
-
-        # Get total area of each emissions cell
-        emis['area_km2'] = emis.geometry.area / (1000 * 1000)
-        
-        # Create intersect object between emis and ISRM grid
-        intersect = gpd.overlay(emis, isrm_geography, how='intersection')
-        emis_totalarea = intersect.groupby('EMIS_ID').sum()['area_km2'].to_dict()
-        
-        # Add a total area and area fraction to the intersect object
-        intersect['area_total'] = intersect['EMIS_ID'].map(emis_totalarea)
-        intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
-        
-        return intersect
     
     def process_emissions(self, emis, isrm_obj, verbose, output_dir, output_emis_flag):
         ''' Processes emissions before calculating concentrations '''
@@ -216,7 +188,10 @@ class concentration_layer:
         emis_slice = emis_slice[(emis_slice['HEIGHT_M'] >= height_min) & (emis_slice['HEIGHT_M'] < height_max)]
 
         # Calculate intersected geometries
-        intersect = self.intersect_geometries(emis_slice, isrm_obj.geodata, verbose, self.debug_mode)
+        verboseprint(verbose, '- [CONCENTRATION] Intersecting geometries between emissions geography and ISRM grid cells.',
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
+
+        intersect, input_copy = intersect_geometries(emis_slice, isrm_obj.geodata, 'area_km2', 'EMIS', verbose, self.debug_mode)
 
         # Limit columns
         intersect = intersect[['ISRM_ID','EMIS_ID','area_frac']].copy()
@@ -229,7 +204,7 @@ class concentration_layer:
             with concurrent.futures.ProcessPoolExecutor(max_workers=5) as cl_executor:
                 futures = {}
                 for pollutant in pollutants:
-                    # Grab a pollutant layer (In this case, PM 2.5. The intersected geometries are the same for all pollutants)
+                    # Grab a pollutant layer
                     emis_slice = emis.get_pollutant_layer(pollutant)
 
                     # Cut the pollutant layer based on the height
@@ -250,7 +225,7 @@ class concentration_layer:
         else: # If linear, loop through pollutants
 
             for pollutant in pollutants:
-                # Grab a pollutant layer (In this case, PM 2.5. The intersected geometries are the same for all pollutants)
+                # Grab a pollutant layer 
                 emis_slice = emis.get_pollutant_layer(pollutant)
 
                 # Cut the pollutant layer based on the height
@@ -274,7 +249,7 @@ class concentration_layer:
 
         # Read in CA boundary
         ca_shp = gpd.read_feather(self.shp_path)
-        
+
         # Reproject the shapefile to the desired CRS
         ca_prj = ca_shp.to_crs(self.crs)
         
@@ -350,12 +325,12 @@ class concentration_layer:
         
         # Save the figure as a PNG in output directory
         plt.savefig(path.join(self.output_dir, fname_tmp))
-        
+
         # Close figure
         plt.close()
         
         verboseprint(self.verbose, '   - [CONCENTRATION] Emissions visualizations have been saved as a png',
-                    self.debug_mode, frameinfo=getframeinfo(currentframe()))
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
 
         return
 
