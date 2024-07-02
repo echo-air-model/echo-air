@@ -173,8 +173,13 @@ class population:
         # Find old total
         old_pop_total = pop_obj[cols].sum()
 
-        # Create a deep copy of pop_geo that is just the unique geographies and associated POP_ID (should be n = 8057)
-        pop_geo = pop_obj[['POP_ID', 'geometry']].drop_duplicates().copy(deep=True)
+        # Create a deep copy of pop_geo that is just the unique geographies and POP_ID and project the input layer to the target geography's CRS
+        if pop_obj.crs == new_geometry.crs:
+            pop_geo = pop_obj[['POP_ID', 'geometry']].drop_duplicates().copy(deep=True)
+        else:
+            pop_geo = pop_obj[['POP_ID', 'geometry']].drop_duplicates().copy(deep=True).to_crs(new_geometry.crs)
+        
+        print(f"Unique geographies and associated POP_IDs: {pop_geo.shape[0]} rows")  # Should be 8057 rows
 
         # Perform the intersection between unique_pop_geo and new_geometry
         intersect = gpd.overlay(pop_geo, new_geometry, how='intersection')
@@ -190,7 +195,7 @@ class population:
         # Create the crosswalk with columns: POP_ID, new_geometry_ID, area_frac
         crosswalk = intersect[['POP_ID', new_geometry_ID, 'area_frac']].copy()
 
-        return crosswalk, old_pop_totals
+        return crosswalk, old_pop_total
     
     def allocate_population(self, new_geometry, age_stratified=False):
         """
@@ -214,10 +219,11 @@ class population:
             pop_data = self.pop_exp
 
         # Create a crosswalk and old totals object
-        self.crosswalk, self.old_totals = self.create_crosswalk(self.pop_exp, geodata, 'ISRM_DATA') 
+        self.crosswalk, self.old_totals = self.create_crosswalk(self.pop_exp, new_geometry, 'ISRM_ID') 
 
         # Merge population data with the crosswalk on POP_ID
         merged_pop = pop_data.merge(self.crosswalk, on='POP_ID')
+        print(f"Merged pop_exp with crosswalk: {merged_pop.shape[0]} rows")  # Should be 8057 rows
 
         # Multiply each group's population count by the area fraction
         cols = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']
@@ -226,7 +232,8 @@ class population:
 
         # Sum the populations by ISRM_ID (and age groups if age_stratified)
         if age_stratified:
-            gb_cols = ['ISRM_ID', 'START_AGE', 'END_AGE']
+            gb_cols = ['ISRM_ID', 'START_AGE', 'END_AGE', 'geometry']
+            self.geometry = new_geometry.crs
         else:
             gb_cols = ['ISRM_ID']
 
@@ -236,7 +243,7 @@ class population:
         new_pop_total = new_pop[cols].sum()
 
         for c in cols:
-            assert np.isclose(self.old_totals[c], new_pop_total[c]), f"Population mismatch in column {c}"
+            assert np.isclose(self.old_totals[c], new_pop_total[c])
 
         # Print confirmation
         if age_stratified:
