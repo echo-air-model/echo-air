@@ -97,10 +97,7 @@ class health_data:
                                      ignore_index=False)
         
         population.rename(columns={'ROW':'ISRM_ID'}, inplace=True)
-        
-        # Verify columns after update
-        print(population.columns)
-        
+
         return population
     
     def update_inc(self, incidence):
@@ -248,7 +245,4 @@ class health_data:
         pop_inc = pop_inc[['ISRM_ID', 'NAME', 'RACE', 'POPULATION','ALL CAUSE INC', 
                            'ISCHEMIC HEART DISEASE INC','LUNG CANCER INC','geometry']]
         
-        # Verify columns before returning
-        print(pop_inc.columns)
-
         return pop_inc
