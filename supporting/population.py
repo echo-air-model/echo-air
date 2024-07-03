@@ -224,7 +224,7 @@ class population:
             new_alloc_pop = new_alloc_pop[~new_alloc_pop['START_AGE'].isna()]
             new_alloc_pop['START_AGE'] = new_alloc_pop['START_AGE'].astype(int)
             new_alloc_pop['END_AGE'] = new_alloc_pop['START_AGE'].astype(int)
-        
+
         # Print statement
         if hia_flag:
             verboseprint(self.verbose, '- [HEALTH] Census tract population data successfully re-allocated to the ISRM grid with age stratification.',

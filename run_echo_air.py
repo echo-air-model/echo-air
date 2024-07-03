@@ -274,7 +274,7 @@ if __name__ == "__main__":
             
             # Two inputs are required to estimate excess mortality - get these up front
             trimmed_conc = conc.detailed_conc_clean[['ISRM_ID','TOTAL_CONC_UG/M3','geometry']]
-            pop = hia_inputs.population.groupby('ISRM_ID')[['ASIAN','BLACK','HISLA','INDIG','WHITE','TOTAL', 'OTHER']].sum().reset_index() 
+            pop = hia_inputs.population.groupby('ISRM_ID')[['ASIAN','BLACK','HISLA','INDIG', 'PACIS', 'WHITE','TOTAL', 'OTHER']].sum().reset_index() 
             
             ## Split again
             if run_parallel:
