@@ -4,7 +4,7 @@
 Population Data Object
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2024-06-13
 """
 
 # Import Libraries
@@ -29,6 +29,7 @@ class population:
     
     INPUTS:
         - file_path: the file path of the raw population data
+        - isrm_obj: the ISRM object, as defined by isrm.py
         - load_file: a Boolean indicating whether or not the file should be loaded 
         - verbose: a Boolean indicating whether or not detailed logging statements 
           should be printed
@@ -159,78 +160,97 @@ class population:
         pop_obj_prj = pop_obj.to_crs(new_crs)
     
         return pop_obj_prj
-    
-    def allocate_population(self, pop_obj, new_geometry, new_geometry_ID, hia_flag):
+
+    def create_crosswalk(self, pop_obj, new_geometry, new_geometry_ID):
         ''' Reallocates the population into the new geometry using a spatial intersect '''
-        if hia_flag:
-            verboseprint(self.verbose, '- [HEALTH] Allocating age-stratified population from population input file to ISRM grid cells.',
-                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
-        else:
-            verboseprint(self.verbose, '- [POPULATION] Allocating total population from population input file to ISRM grid cells.',
-                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
-        
-        # Confirm that the coordinate reference systems match
-        #assert pop_tmp.crs == new_geometry.crs, 'Coordinate reference system does not match. Population cannot be reallocated'
-        if self.crs == new_geometry.crs:
-            pop_tmp = pop_obj.copy(deep=True)
-        else:
-            pop_tmp = self.project_pop(pop_obj, new_geometry.crs)
-        
-        # Add the land area as a feature of this dataframe
-        pop_tmp['AREA_M2'] = pop_tmp.geometry.area/(1000.*1000.)
-        
-        
-        # Create intersect object
-        intersect = gpd.overlay(pop_tmp, new_geometry, how='intersection')
-        pop_totalarea = intersect.groupby('POP_ID').sum()['AREA_M2'].to_dict()
-    
-        # Add a total area and area fraction to the intersect object
-        intersect['AREA_POP_TOTAL'] = intersect['POP_ID'].map(pop_totalarea)
-        intersect['AREA_FRAC'] = intersect['AREA_M2'] / intersect['AREA_POP_TOTAL']
+        # Print to the log file
+        verboseprint(self.verbose, '- [POPULATION] Calculating crosswalk between population geography and ISRM geography', 
+            self.debug_mode, frameinfo=getframeinfo(currentframe()))
 
         # Define the racial/ethnic groups and estimate the intersection population
         cols = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
-        for c in cols:
-            intersect[c] = intersect[c] * intersect['AREA_FRAC']
         
-        # Perform two updates if doing this for hia
-        if hia_flag:
-            for c in cols:
-                intersect[c] = intersect[c] * 19.0
-            gb_cols = [new_geometry_ID] + ['START_AGE','END_AGE']
-        else:
-            gb_cols = [new_geometry_ID]
-        
-        # Sum across new geometry grid cells
-        new_alloc_pop = intersect.groupby(gb_cols)[cols].sum().reset_index()
-        
-        # Merge back into the new geometry using the new_geometry_ID
-        new_alloc_pop = new_geometry.merge(new_alloc_pop, how='left',
-                                           left_on=new_geometry_ID,
-                                           right_on=new_geometry_ID)
+        # Find old total
+        old_pop_total = pop_obj[cols].sum()
 
-        # Fill the missing cells with zero population
-        new_alloc_pop[cols] = new_alloc_pop[cols].fillna(0)
+        # Create a deep copy of pop_geo that is just the unique geographies and POP_ID and project the input layer to the target geography's CRS
+        if pop_obj.crs == new_geometry.crs:
+            pop_geo = pop_obj[['POP_ID', 'geometry']].drop_duplicates().copy(deep=True)
+        else:
+            pop_geo = pop_obj[['POP_ID', 'geometry']].drop_duplicates().copy(deep=True).to_crs(new_geometry.crs)
         
-        # Confirm that the population slipt was close
-        old_pop_total = pop_tmp[cols].sum()
-        new_pop_total = new_alloc_pop[cols].sum()
-        
+        print(f"Unique geographies and associated POP_IDs: {pop_geo.shape[0]} rows")  # Should be 8057 rows
+
+        # Perform the intersection between unique_pop_geo and new_geometry
+        intersect = gpd.overlay(pop_geo, new_geometry, how='intersection')
+
+        # Get total area of each input geometry cell
+        intersect['AREA_M2'] = intersect.geometry.area / (1000 * 1000)
+        total_area = intersect.groupby('POP_ID').sum()['AREA_M2'].to_dict()
+
+        # Add a total area and area fraction to the intersect object
+        intersect['total_area'] = intersect['POP_ID'].map(total_area)
+        intersect['area_frac'] = intersect['AREA_M2'] / intersect['total_area']
+
+        # Create the crosswalk with columns: POP_ID, new_geometry_ID, area_frac
+        crosswalk = intersect[['POP_ID', new_geometry_ID, 'area_frac']].copy()
+
+        return crosswalk, old_pop_total
+    
+    def allocate_population(self, new_geometry, age_stratified=False):
+        """
+        Allocates population from population input file to ISRM grid cells using the crosswalk.
+
+        Parameters:
+        - age_stratified: Boolean indicating if the population data is age-stratified.
+        - new_geometry: isrm geodata
+
+        Returns:
+        - new_pop: DataFrame with allocated population data by ISRM_ID (and age groups if age_stratified).
+        """
+        # Logging print statements
+        if age_stratified:
+            verboseprint(self.verbose, '- [HEALTH] Allocating age-stratified population from population input file to ISRM grid cells.',
+                        self.debug_mode, frameinfo=getframeinfo(currentframe()))
+            pop_data = self.pop_hia
+        else:
+            verboseprint(self.verbose, '- [POPULATION] Allocating total population from population input file to ISRM grid cells.',
+                        self.debug_mode, frameinfo=getframeinfo(currentframe()))
+            pop_data = self.pop_exp
+
+        # Create a crosswalk and old totals object
+        self.crosswalk, self.old_totals = self.create_crosswalk(self.pop_exp, new_geometry, 'ISRM_ID') 
+
+        # Merge population data with the crosswalk on POP_ID
+        merged_pop = pop_data.merge(self.crosswalk, on='POP_ID')
+        print(f"Merged pop_exp with crosswalk: {merged_pop.shape[0]} rows")  # Should be 8057 rows
+
+        # Multiply each group's population count by the area fraction
+        cols = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']
         for c in cols:
-            assert np.isclose(old_pop_total[c], new_pop_total[c])
-            
-        # For the hia population, do one last step:
-        if hia_flag:
-            new_alloc_pop = new_alloc_pop[~new_alloc_pop['START_AGE'].isna()]
-            new_alloc_pop['START_AGE'] = new_alloc_pop['START_AGE'].astype(int)
-            new_alloc_pop['END_AGE'] = new_alloc_pop['START_AGE'].astype(int)
-        
-        # Print statement
-        if hia_flag:
-            verboseprint(self.verbose, '- [HEALTH] Census tract population data successfully re-allocated to the ISRM grid with age stratification.',
-                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
+            merged_pop[c] = merged_pop[c] * merged_pop['area_frac']
+
+        # Sum the populations by ISRM_ID (and age groups if age_stratified)
+        if age_stratified:
+            gb_cols = ['ISRM_ID', 'START_AGE', 'END_AGE', 'geometry']
+            self.geometry = new_geometry.crs
+        else:
+            gb_cols = ['ISRM_ID']
+
+        new_pop = merged_pop.groupby(gb_cols)[cols].sum().reset_index()
+
+        # Confirm new total populations match
+        new_pop_total = new_pop[cols].sum()
+
+        for c in cols:
+            assert np.isclose(self.old_totals[c], new_pop_total[c])
+
+        # Print confirmation
+        if age_stratified:
+            verboseprint(self.verbose, '- [HEALTH] Census tract population data successfully re-allocated to the ISRM grid.',
+                        self.debug_mode, frameinfo=getframeinfo(currentframe()))
         else:
             verboseprint(self.verbose, '- [POPULATION] Census tract population data successfully re-allocated to the ISRM grid.',
-                         self.debug_mode, frameinfo=getframeinfo(currentframe()))
-        
-        return new_alloc_pop
+                        self.debug_mode, frameinfo=getframeinfo(currentframe()))
+
+        return new_pop
