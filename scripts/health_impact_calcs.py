@@ -523,6 +523,9 @@ def export_health_impacts_csv(hia_df, endpoint, output_resolution, output_dir, f
     hia_df.rename(columns=hia_rename_dict, inplace=True)
     hia_df.rename(columns={'TOTAL_CONC_UG/M3':'PM2.5 Concentration (ug/m3)'}, inplace=True)
     
+    # # Get rid of geometry column
+    # hia_df.drop(['geometry'], axis=1)
+
     # Export
     hia_df.to_csv(fpath, index=False)
     logging.info('- {} Excess {} mortality from PM2.5 exposure output as a CSV as {}'.format(logging_code, endpoint.lower(), fname))
