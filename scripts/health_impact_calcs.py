@@ -176,7 +176,7 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     return pop_inc_conc
 
 #%% Formatting and Exporting Functions
-def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, verbose, debug_mode):
+def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode):
     ''' 
     Plots mortality maps and exports as a png. 
     
@@ -187,6 +187,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, 
         - group: the racial/ethnic group name
         - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
           'LUNG CANCER'
+        - output_resolution: a string indicating the output_resolution
         - output_dir: a filepath string of the location of the output directory
         - f_out: the name of the file output category (will append additional information) 
         - verbose: a Boolean indicating whether or not detailed logging statements should 
@@ -241,7 +242,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, 
 
     # Initialize the figure as three panes
     fig, (ax0,ax1,ax2,ax3) = plt.subplots(1,4, figsize=(22,6))
-    
+
     ## Pane 0: PM2.5 Exposure Concentration
     hia_df.plot(column='POP_AREA_NORM', legend=True,
                 legend_kwds={'label':r'Population Density (population/km$^2$)'},
@@ -305,6 +306,78 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, 
     fig.savefig(fpath, dpi=200)
     logging.info('- {} Plot of excess {} mortality from PM2.5 exposure output as {}'.format(logging_code, endpoint.lower(), fname))
     
+    # If output_resolution is True, create a second figure with aggregated data
+    if output_resolution:
+        # Aggregate data to lower resolution
+        aggregated = hia_df.dissolve()
+        aggregated['POP_AREA_NORM'] = aggregated[group] / aggregated.area * 1000.0 * 1000.0
+        aggregated['MORT_AREA_NORM'] = aggregated[mortality_col] / aggregated.area * 1000.0 * 1000.0
+        aggregated['MORT_OVER_POP'] = aggregated[mortality_col] / aggregated[group] * 100000.0
+
+        fig2, (ax0_agg, ax1_agg, ax2_agg, ax3_agg) = plt.subplots(1, 4, figsize=(22, 6))
+
+        ## Pane 0: Sum Population / Sum Area
+        aggregated.plot(column='POP_AREA_NORM', legend=True,
+                        legend_kwds={'label': r'Sum Population / Sum Area (population/km$^2$)'},
+                        edgecolor='none', cmap='mako_r',
+                        norm=matplotlib.colors.LogNorm(vmin=aggregated['POP_AREA_NORM'].min(),
+                                                       vmax=aggregated['POP_AREA_NORM'].max()),
+                        antialiased=False,
+                        ax=ax0_agg)
+        
+        ## Pane 1: Population-weighted PM2.5 Exposure
+        aggregated['POP_WEIGHTED_EXPOSURE'] = (hia_df['TOTAL_CONC_UG/M3'] * hia_df[group]).sum() / hia_df[group].sum()
+        aggregated.plot(column='POP_WEIGHTED_EXPOSURE', legend=True,
+                        legend_kwds={'label': r'Population-weighted PM$_{2.5}$ Exposure ($\mu$g/m$^3$)'},
+                        edgecolor='none', cmap='mako_r',
+                        norm=matplotlib.colors.LogNorm(vmin=aggregated['POP_WEIGHTED_EXPOSURE'].min(),
+                                                       vmax=aggregated['POP_WEIGHTED_EXPOSURE'].max()),
+                        antialiased=False,
+                        ax=ax1_agg)
+        
+        ## Pane 2: Sum Excess Mortality / Sum Area
+        aggregated.plot(column='MORT_AREA_NORM', legend=True,
+                        legend_kwds={'label': r'Sum Excess Mortality / Sum Area (mortality/km$^2$)'},
+                        edgecolor='none', cmap='mako_r',
+                        norm=matplotlib.colors.LogNorm(vmin=aggregated['MORT_AREA_NORM'].min(),
+                                                       vmax=aggregated['MORT_AREA_NORM'].max()),
+                        antialiased=False,
+                        ax=ax2_agg)
+        
+        ## Pane 3: Sum Excess Mortality / (Sum Population * 100K)
+        aggregated.plot(column='MORT_OVER_POP', legend=True,
+                        legend_kwds={'label': r'Sum Excess Mortality / (Sum Population * 100K)'},
+                        edgecolor='none', cmap='mako_r',
+                        norm=matplotlib.colors.LogNorm(vmin=aggregated['MORT_OVER_POP'].min(),
+                                                       vmax=aggregated['MORT_OVER_POP'].max()),
+                        antialiased=False,
+                        ax=ax3_agg)
+
+        # Figure Formatting for second figure
+        for ax in [ax0_agg, ax1_agg, ax2_agg, ax3_agg]:
+            ca_shp.dissolve().plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
+            ax.xaxis.set_visible(False)
+            ax.yaxis.set_visible(False)
+            ax.set_xlim([minx, maxx])
+            ax.set_ylim([miny, maxy])
+
+        # Set titles for second figure
+        ax0_agg.set_title('Total Population Density')
+        ax1_agg.set_title('Population-Weighted Exposure')
+        ax2_agg.set_title('Total All Cause Excess Mortality')
+        ax3_agg.set_title('Total All Cause Mortality Per 100K')
+
+        # Final cleanup for second figure
+        fig2.tight_layout()
+        
+        # Export second figure
+        fname2 = f_out + '_' + group + '_' + endpoint + '_excess_mortality_aggregated.png'
+        fname2 = str.lower(fname2)
+        fpath2 = os.path.join(output_dir, fname2)
+        fig2.savefig(fpath2, dpi=200)
+        logging.info('- {} Aggregated plot of excess {} mortality from PM2.5 exposure output as {}'.format(logging_code, endpoint.lower(), fname2))
+        
+        return fname, fname2
     return fname
 
 def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, debug_mode):
@@ -367,7 +440,7 @@ def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, d
     
     return fname
 
-def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debug_mode):
+def export_health_impacts_csv(hia_df, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode):
     ''' 
     Exports total mortality as a csv file. 
     
@@ -416,9 +489,6 @@ def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debu
     hia_df.rename(columns=pop_rename_dict, inplace=True)
     hia_df.rename(columns=hia_rename_dict, inplace=True)
     hia_df.rename(columns={'TOTAL_CONC_UG/M3':'PM2.5 Concentration (ug/m3)'}, inplace=True)
-    
-    # Get rid of geometry column
-    hia_df.drop(['geometry'], axis=1)
     
     # Export
     hia_df.to_csv(fpath, index=False)
@@ -480,7 +550,7 @@ def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
     
     return hia_summary
 
-def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, shape_out, verbose, debug_mode):
+def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_resolution, output_dir, f_out, shape_out, verbose, debug_mode):
     ''' 
     Automates this process a bit.
     
@@ -491,6 +561,7 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_o
         - group: the racial/ethnic group name
         - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
           'LUNG CANCER'
+        - output_resolution: a string indicating the output_resolution
         - output_dir: a filepath string of the location of the output directory
         - f_out: the name of the file output category (will append additional information) 
         - shape_out: a filepath string for shapefiles
@@ -506,13 +577,23 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_o
     logging_code = create_logging_code()[endpoint]
     logging.info('- {} Visualizing and exporting excess {} mortality.'.format(logging_code, endpoint.lower()))
     
-    # Plot the map of mortality
-    fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, verbose, debug_mode)
+    # Plot the map of mortality 
+    if output_resolution:
+      fname, fname2 = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode)
+
+      # Export the shapefile
+      fname = export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)
+      fname2 =  export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)
+      hia_summary = export_health_impacts_csv(hia_df, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode)
+
+    else: 
+      fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode)
+      
+      # Export the shapefile
+      fname = export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)
+      hia_summary = export_health_impacts_csv(hia_df, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode)
+          
     
-    # Export the shapefile
-    fname = export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)
-    hia_summary = export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debug_mode)
-        
     return hia_summary
 
 def combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose):
