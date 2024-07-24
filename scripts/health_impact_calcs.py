@@ -25,6 +25,8 @@ sys.path.append('./scripts')
 from tool_utils import *
 sys.path.append('./supporting')
 from health_data import health_data
+from fiona.errors import DriverError
+from concentration import concentration
 
 #%% Health Calculation Helper Functions
 def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
@@ -176,32 +178,10 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     return pop_inc_conc
 
 #%% Formatting and Exporting Functions
-def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode, output_geometry_fps):
-    ''' 
-    Plots mortality maps and exports as a png. 
+def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode):
+    logging_code = create_logging_code()[endpoint]
+    verboseprint(verbose, '- {} Drawing plot of excess {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
     
-    INPUTS:
-        - hia_df: a dataframe containing excess mortality for the `endpoint` using the `function`
-          provided
-        - ca_shp_fp: a filepath string of the California state boundary shapefile
-        - group: the racial/ethnic group name
-        - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-          'LUNG CANCER'
-        - output_resolution: a string indicating the output_resolution
-        - output_dir: a filepath string of the location of the output directory
-        - f_out: the name of the file output category (will append additional information) 
-        - verbose: a Boolean indicating whether or not detailed logging statements should 
-          be printed
-        - debug_mode: a Boolean indicating whether or not to output debug statements
-        - output_geometry_fps: a dictionary mapping output resolutions to file paths for geometries
-        
-    OUTPUTS:
-        - fname: a string filename made by combining the `f_out` with the `group`
-          and `endpoint`.
-          
-    '''
-    # Load CA boundary shapefile
-    ca_shp = gpd.read_file(ca_shp_fp)
     
     sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
     plt.rcParams['patch.linewidth'] = 0
@@ -214,6 +194,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
     fpath = os.path.join(output_dir, fname)
     
     # Read in CA boundary and project hia_df to same coordinates (meters)
+    ca_shp = gpd.read_feather(ca_shp_fp)
     hia_df = hia_df.to_crs(ca_shp.crs)
     
     # Clip dataframe to California
@@ -308,109 +289,114 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
     # Check if the output resolution requires a second plot
     if output_resolution in ['AB', 'AD', 'C']:
-        # Load the output resolution data
-        boundary = gpd.read_feather(output_geometry_fps[output_resolution]).to_crs(hia_df.crs)
-        
-        # Intersect the hia_df with the boundary
-        intersect = gpd.overlay(hia_df, boundary, keep_geom_type=False, how='intersection')
+      
+      hia_df_old = hia_df.copy()
+      
+      # Ensure CRS match
+      if boundary.crs != hia_df.crs:
+          boundary = boundary.to_crs(hia_df.crs)
 
-        # Add the area column for the intersected data
-        intersect['area_km2'] = intersect.geometry.area / (1000.0 * 1000.0)
-        total_area = intersect.groupby('NAME').sum()['area_km2'].to_dict()
+      # Perform intersection
+      intersect = gpd.overlay(hia_df, boundary, keep_geom_type=False, how='intersection')
 
-        # Add a total area and area fraction to the intersect object
-        intersect['area_total'] = intersect['NAME'].map(total_area)
-        intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
+      # Check columns after intersection
+      print("Columns after intersection:", intersect.columns)
 
-        # Update the concentration to scale by the fraction
-        intersect['TOTAL_CONC_UG/M3'] = intersect['area_frac'] * intersect['TOTAL_CONC_UG/M3']
-        
-        # Remove any null variables
-        intersect['TOTAL_CONC_UG/M3'] = intersect['TOTAL_CONC_UG/M3'].fillna(0)
-        
-        # Sum up for each larger shape
-        summary_conc = intersect.groupby(['NAME'])[['TOTAL_CONC_UG/M3']].sum().reset_index()
-        
-        # Clean up
-        summary_conc = summary_conc[['NAME', 'TOTAL_CONC_UG/M3']].copy()
-        summary_conc = summary_conc.reset_index(drop=True)
-        
-        # Merge with boundary data
-        summary_conc = pd.merge(boundary, summary_conc, on='NAME')
-        
-        # Update hia_df with aggregated data
-        aggregated_hia_df = summary_conc
+      # Calculate area and fractions
+      intersect['area_km2'] = intersect.geometry.area / 1e6
+      total_area = intersect.groupby('NAME').sum()['area_km2'].to_dict()
+      intersect['area_total'] = intersect['NAME'].map(total_area)
+      intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
 
-        # Plot the aggregated data
-        fig, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, figsize=(22, 6))
+      # Aggregate data based on area fractions
+      intersect['POP_AREA_NORM'] = intersect['area_frac'] * intersect[group]
+      intersect['MORT_AREA_NORM'] = intersect['area_frac'] * intersect[endpoint + '_' + group]
+      intersect['MORT_OVER_POP'] = (intersect['MORT_AREA_NORM'] / intersect['POP_AREA_NORM']) * 1e5
 
-        ## Pane 0: Population Density
-        aggregated_hia_df.plot(column='POP_AREA_NORM', legend=True,
-                               legend_kwds={'label': r'Population Density (population/km$^2$)'},
-                               edgecolor='none', cmap='mako_r',
-                               norm=matplotlib.colors.LogNorm(vmin=hia_pop_area_min,
-                                                               vmax=hia_df['POP_AREA_NORM'].max()),
-                               antialiased=False,
-                               ax=ax0)
+      # Aggregate by region
+      hia_df = intersect.groupby(['NAME'])[['POP_AREA_NORM', 'MORT_AREA_NORM', 'MORT_OVER_POP']].sum().reset_index()
 
-        ## Pane 1: PM2.5 Exposure Concentration
-        aggregated_hia_df.plot(column='TOTAL_CONC_UG/M3', legend=True,
-                               legend_kwds={'label': r'PM$_{2.5}$ Concentration ($\mu$g/m$^3$)'},
-                               edgecolor='none', cmap='mako_r',
-                               norm=matplotlib.colors.LogNorm(vmin=hia_df['TOTAL_CONC_UG/M3'].min(),
-                                                               vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
-                               antialiased=False,
-                               ax=ax1)
+      # Merge with boundary to get full geometry
+      hia_df = pd.merge(boundary, hia_df, on='NAME', how='left')
 
-        ## Pane 2: Excess Mortality per Area
-        aggregated_hia_df.plot(column='MORT_AREA_NORM', legend=True,
-                               legend_kwds={'label': r'Excess Mortality (mortality/km$^2$)'},
-                               edgecolor='none', cmap='mako_r',
-                               norm=matplotlib.colors.LogNorm(vmin=hia_mort_area_min,
-                                                               vmax=hia_df['MORT_AREA_NORM'].max()),
-                               antialiased=False,
-                               ax=ax2)
+      # Check columns after merge
+      print("Columns after merge:", hia_df.columns)
 
-        ## Pane 3: Excess Mortality per Population
-        aggregated_hia_df.plot(column='MORT_OVER_POP', legend=True,
-                               legend_kwds={'label': r'Mortality per Population (mortality/100 K people)'},
-                               edgecolor='none', cmap='mako_r',
-                               norm=matplotlib.colors.LogNorm(vmin=hia_df['MORT_OVER_POP'].min(),
-                                                               vmax=hia_df['MORT_OVER_POP'].max()),
-                               antialiased=False,
-                               ax=ax3)
+      # Set true zeros to avoid divide by zero issues
+      if group in hia_df.columns:
+          hia_df.loc[hia_df[group] == 0, group] = 1e-9
+      if endpoint + '_' + group in hia_df.columns:
+          hia_df.loc[hia_df[endpoint + '_' + group] == 0, endpoint + '_' + group] = 1e-9
 
-        # Figure Formatting
-        minx, miny, maxx, maxy = aggregated_hia_df.geometry.total_bounds
-        minx = minx - (maxx - minx) * 0.025
-        miny = miny - (maxy - miny) * 0.025
-        maxx = maxx + (maxx - minx) * 0.025
-        maxy = maxy + (maxy - miny) * 0.025
+      # Plotting
+      fig, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, figsize=(22, 6))
 
-        for ax in [ax0, ax1, ax2, ax3]:
-            ca_shp.dissolve().plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
-            ax.xaxis.set_visible(False)
-            ax.yaxis.set_visible(False)
-            ax.set_xlim([minx, maxx])
-            ax.set_ylim([miny, maxy])
+      ## Pane 0: Population Density
+      hia_df.plot(column='POP_AREA_NORM', legend=True,
+                  legend_kwds={'label': r'Population Density (population/km$^2$)'},
+                  edgecolor='none', cmap='mako_r',
+                  norm=matplotlib.colors.LogNorm(vmin=hia_df['POP_AREA_NORM'].min(), 
+                                                  vmax=hia_df['POP_AREA_NORM'].max()),
+                  antialiased=False,
+                  ax=ax0)
 
-        # Set titles
-        ax0.set_title((group_label + ' Population Density').title())
-        ax1.set_title((group_label + ' Exposure').title())
-        ax2.set_title((group_label + ' ' + endpoint + ' Excess Mortality').title())
-        ax3.set_title((group_label + ' ' + endpoint + ' Mortality per 100K').title())
+      ## Pane 1: PM2.5 Exposure Concentration (Population-Weighted)
+      hia_df_old.plot(column='TOTAL_CONC_UG/M3', legend=True,
+                  legend_kwds={'label': r'Population-Weighted PM$_{2.5}$ Concentration ($\mu$g/m$^3$)'},
+                  edgecolor='none', cmap='mako_r',
+                  norm=matplotlib.colors.LogNorm(vmin=hia_df_old['TOTAL_CONC_UG/M3'].min(), 
+                                                  vmax=hia_df_old['TOTAL_CONC_UG/M3'].max()),
+                  antialiased=False,
+                  ax=ax1)
 
-        # Final cleanup
-        fig.tight_layout()
-        
-        # Export the aggregated plot
-        fname_aggregated = f_out + '_' + group + '_' + endpoint + '_aggregated_excess_mortality.png'
-        fname_aggregated = str.lower(fname_aggregated)
-        fpath_aggregated = os.path.join(output_dir, fname_aggregated)
-        fig.savefig(fpath_aggregated, dpi=200)
-        logging.info('- {} Aggregated plot of excess {} mortality from PM2.5 exposure output as {}'.format(logging_code, endpoint.lower(), fname_aggregated))
-        return fname_aggregated, fname
-    return fname
+      ## Pane 2: Excess Mortality per Area
+      hia_df.plot(column='MORT_AREA_NORM', legend=True,
+                  legend_kwds={'label': r'Excess Mortality (mortality/km$^2$)'},
+                  edgecolor='none', cmap='mako_r',
+                  norm=matplotlib.colors.LogNorm(vmin=hia_df['MORT_AREA_NORM'].min(),
+                                                  vmax=hia_df['MORT_AREA_NORM'].max()),
+                  antialiased=False,
+                  ax=ax2)
+
+      ## Pane 3: Excess Mortality per Population
+      hia_df.plot(column='MORT_OVER_POP', legend=True,
+                  legend_kwds={'label': r'Mortality per Population (mortality/100 K people)'},
+                  edgecolor='none', cmap='mako_r',
+                  norm=matplotlib.colors.LogNorm(vmin=hia_df['MORT_OVER_POP'].min(),
+                                                  vmax=hia_df['MORT_OVER_POP'].max()),
+                  antialiased=False,
+                  ax=ax3)
+
+      # Figure Formatting
+      minx, miny, maxx, maxy = hia_df.geometry.total_bounds
+      minx = minx - (maxx - minx) * 0.025
+      miny = miny - (maxy - miny) * 0.025
+      maxx = maxx + (maxx - minx) * 0.025
+      maxy = maxy + (maxy - miny) * 0.025
+
+      for ax in [ax0, ax1, ax2, ax3]:
+          boundary.plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
+          ax.xaxis.set_visible(False)
+          ax.yaxis.set_visible(False)
+          ax.set_xlim([minx, maxx])
+          ax.set_ylim([miny, maxy])
+
+      # Set titles
+      ax0.set_title((group + ' Population Density').title())
+      ax1.set_title((group + ' Population-Weighted Exposure').title())
+      ax2.set_title((group + ' ' + endpoint + ' Excess Mortality').title())
+      ax3.set_title((group + ' ' + endpoint + ' Mortality per 100K').title())
+
+      # Final cleanup
+      fig.tight_layout()
+
+      # Export the aggregated plot
+      fname_aggregated = f_out + '_' + group + '_' + endpoint + '_excess_mortality_aggregated.png'
+      fname_aggregated = str.lower(fname_aggregated)
+      fpath_aggregated = os.path.join(output_dir, fname_aggregated)
+      fig.savefig(fpath_aggregated, dpi=200)
+      logging.info('- {} Plot of excess {} mortality from PM2.5 exposure at aggregated resolution output as {}'.format(logging_code, endpoint.lower(), fname_aggregated))
+    return fname, fname_aggregated if output_resolution in ['AB', 'AD', 'C'] else fname
 
 def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, debug_mode):
     ''' 
@@ -523,8 +509,8 @@ def export_health_impacts_csv(hia_df, endpoint, output_resolution, output_dir, f
     hia_df.rename(columns=hia_rename_dict, inplace=True)
     hia_df.rename(columns={'TOTAL_CONC_UG/M3':'PM2.5 Concentration (ug/m3)'}, inplace=True)
     
-    # # Get rid of geometry column
-    # hia_df.drop(['geometry'], axis=1)
+   # Get rid of geometry column
+    #hia_df.drop(['geometry'], axis=1)  # Commenting this out because I think we want the geometry column? 
 
     # Export
     hia_df.to_csv(fpath, index=False)
@@ -586,7 +572,7 @@ def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
     
     return hia_summary
 
-def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_resolution, output_dir, f_out, shape_out, verbose, debug_mode):
+def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, shape_out, verbose, debug_mode):
     ''' 
     Automates this process a bit.
     
@@ -598,6 +584,7 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_resoluti
         - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
           'LUNG CANCER'
         - output_resolution: a string indicating the output_resolution
+        - boundary: 
         - output_dir: a filepath string of the location of the output directory
         - f_out: the name of the file output category (will append additional information) 
         - shape_out: a filepath string for shapefiles
@@ -615,15 +602,14 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_resoluti
     
     # Plot the map of mortality 
     if output_resolution in ['AB','AD','C']:
-      fname, fname2 = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode)
-
+      fname, fname2 = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution,boundary, output_dir, f_out, verbose, debug_mode)
       # Export the shapefile
       fname = export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)
       
       hia_summary = export_health_impacts_csv(hia_df, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode)
 
     else: 
-      fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode)
+      fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode)
       
       # Export the shapefile
       fname = export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)
