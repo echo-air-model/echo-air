@@ -392,6 +392,45 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
       logging.info('- {} Plot of excess {} mortality from PM2.5 exposure at aggregated resolution output as {}'.format(logging_code, endpoint.lower(), fname_aggregated))
     return fname, fname_aggregated if output_resolution in ['AB', 'AD', 'C'] else fname
 
+
+#%% Creates a summary file 
+def create_summary_file(hia_df, output_dir, f_out):
+    # Define racial groups and health endpoints
+    racial_groups = ['ASIAN', 'BLACK', 'HISLA', 'INDIG', 'WHITE', 'TOTAL', 'OTHER']
+    health_endpoints = ['ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER']
+    
+    # Initialize an empty list to store summary data
+    summary_data = []
+
+    # Loop through each health endpoint and racial group to sum the data
+    for endpoint in health_endpoints:
+        for group in racial_groups:
+            endpoint_col = f"{endpoint}_{group}"
+            if endpoint_col in hia_df.columns:
+                population_col = group
+                total_population = hia_df[population_col].sum()
+                total_excess_mortality = hia_df[endpoint_col].sum()
+                mortality_rate_per_100k = (total_excess_mortality / total_population) * 100000 if total_population > 0 else 0
+
+                # Append the summary data
+                summary_data.append({
+                    'Health Endpoint': endpoint,
+                    'Racial Group': group,
+                    'Total Population': total_population,
+                    'Total Excess Mortality': total_excess_mortality,
+                    'Mortality Rate per 100K': mortality_rate_per_100k
+                })
+
+    # Create a summary DataFrame
+    summary_df = pd.DataFrame(summary_data)
+
+    # Export the summary DataFrame to a CSV file
+    fname = f_out + '_health_summary_file'
+    fpath = os.path.join(output_dir, fname)
+    summary_df.to_csv(fpath, index=False)
+    logging.info('- Finished exporting summary file')
+
+
 def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, debug_mode):
     ''' 
     Plots mortality as a shapefile. 
@@ -594,21 +633,25 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_resoluti
     logging_code = create_logging_code()[endpoint]
     logging.info('- {} Visualizing and exporting excess {} mortality.'.format(logging_code, endpoint.lower()))
     
+    # Creates a summary file
+    create_summary_file(hia_df, output_dir, f_out)
+    print("CREATED SUMMARY FILE")
+
     # Plot the map of mortality 
     if output_resolution in ['AB','AD','C']:
+      
+
       fname, fname2 = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution,boundary, output_dir, f_out, verbose, debug_mode)
       # Export the shapefile
       fname = export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)
-      
       hia_summary = export_health_impacts_csv(hia_df, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode)
-
+     
     else: 
       fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode)
-      
       # Export the shapefile
       fname = export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)
       hia_summary = export_health_impacts_csv(hia_df, endpoint, output_resolution, output_dir, f_out, verbose, debug_mode)
-          
+      
     
     return hia_summary
 
