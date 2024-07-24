@@ -182,7 +182,6 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
     logging_code = create_logging_code()[endpoint]
     verboseprint(verbose, '- {} Drawing plot of excess {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
     
-    
     sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
     plt.rcParams['patch.linewidth'] = 0
     plt.rcParams['patch.edgecolor'] = 'none'
@@ -289,18 +288,16 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
     # Check if the output resolution requires a second plot
     if output_resolution in ['AB', 'AD', 'C']:
-      
+
+      # Creating a copy of the previous hia_df 
       hia_df_old = hia_df.copy()
-      
+    
       # Ensure CRS match
       if boundary.crs != hia_df.crs:
           boundary = boundary.to_crs(hia_df.crs)
 
       # Perform intersection
       intersect = gpd.overlay(hia_df, boundary, keep_geom_type=False, how='intersection')
-
-      # Check columns after intersection
-      print("Columns after intersection:", intersect.columns)
 
       # Calculate area and fractions
       intersect['area_km2'] = intersect.geometry.area / 1e6
@@ -310,7 +307,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
       # Aggregate data based on area fractions
       intersect['POP_AREA_NORM'] = intersect['area_frac'] * intersect[group]
-      intersect['MORT_AREA_NORM'] = intersect['area_frac'] * intersect[endpoint + '_' + group]
+      intersect['MORT_AREA_NORM'] = intersect['area_frac'] * intersect[mortality_col]
       intersect['MORT_OVER_POP'] = (intersect['MORT_AREA_NORM'] / intersect['POP_AREA_NORM']) * 1e5
 
       # Aggregate by region
@@ -318,9 +315,6 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
       # Merge with boundary to get full geometry
       hia_df = pd.merge(boundary, hia_df, on='NAME', how='left')
-
-      # Check columns after merge
-      print("Columns after merge:", hia_df.columns)
 
       # Set true zeros to avoid divide by zero issues
       if group in hia_df.columns:
@@ -374,8 +368,8 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
       maxx = maxx + (maxx - minx) * 0.025
       maxy = maxy + (maxy - miny) * 0.025
 
-      for ax in [ax0, ax1, ax2, ax3]:
-          boundary.plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
+      for ax in [ax0, ax1, ax2, ax3]: 
+          boundary.dissolve().plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
           ax.xaxis.set_visible(False)
           ax.yaxis.set_visible(False)
           ax.set_xlim([minx, maxx])
