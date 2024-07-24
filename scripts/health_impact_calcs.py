@@ -151,6 +151,7 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
                         'BLACK':endpoint+'_BLACK',
                         'HISLA':endpoint+'_HISLA',
                         'INDIG':endpoint+'_INDIG',
+                        'PACIS':endpoint+'_PACIS',
                         'TOTAL':endpoint+'_TOTAL',
                         'WHITE':endpoint+'_WHITE',
                         'OTHER':endpoint+'_OTHER'}
@@ -166,9 +167,9 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     verboseprint(verbose, '- {} Performing final clean up.'.format(logging_code), debug_mode, frameinfo=getframeinfo(currentframe()))
         
     pop_inc_conc = pop_inc_conc[['ISRM_ID', 'TOTAL_CONC_UG/M3', 'ASIAN', 'BLACK', 'HISLA',
-                                 'INDIG', 'WHITE', 'TOTAL', 'OTHER', endpoint+'_ASIAN', endpoint+'_BLACK', 
+                                 'INDIG', 'PACIS', 'WHITE', 'TOTAL', 'OTHER', endpoint+'_ASIAN', endpoint+'_BLACK', 
                                  endpoint+'_HISLA', endpoint+'_INDIG',endpoint+'_TOTAL', 
-                                 endpoint+'_WHITE', endpoint+'_OTHER', 'geometry']]
+                                 endpoint+'_WHITE', endpoint+'_PACIS', endpoint+'_OTHER', 'geometry']]
     
     # Print statement
     logging.info('- {} {} health impacts calculated.'.format(logging_code, endpoint.title()))
@@ -349,6 +350,7 @@ def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, d
                      'BLACK':'POP_BLACK',
                      'HISLA':'POP_HISLA',
                      'INDIG':'POP_INDIG',
+                     'PACIS':'POP_PACIS',
                      'WHITE':'POP_WHITE',
                      'TOTAL':'POP_TOTAL',
                      'OTHER':'POP_OTHER',
@@ -356,6 +358,7 @@ def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, d
                      endpoint+'_BLACK':l+'BLACK',
                      endpoint+'_HISLA':l+'HISLA',
                      endpoint+'_INDIG':l+'INDIG',
+                     endpoint+'_PACIS':l+'PACIS',
                      endpoint+'_TOTAL':l+'TOTAL',
                      endpoint+'_WHITE':l+'WHITE',
                      endpoint+'_OTHER':l+'OTHER'}
@@ -451,7 +454,7 @@ def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
     verboseprint(verbose, '- {} Creating a summary table of {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
 
     # Set up a few useful variables
-    groups = ['ASIAN', 'BLACK', 'HISLA', 'INDIG', 'WHITE', 'TOTAL', 'OTHER']
+    groups = ['ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'TOTAL', 'OTHER']
     pop_cols = ['POP_'+grp for grp in groups]
     hia_cols = [l+grp for grp in groups]
         

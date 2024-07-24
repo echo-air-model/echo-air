@@ -91,13 +91,13 @@ class health_data:
         ''' Performs a few population dataset updates before combining '''
         # Un-pivot the population data to have separate columns for RACE and POPULATION
         population = population.melt(id_vars=['ISRM_ID','START_AGE', 'END_AGE','geometry'], 
-                                     value_vars=['ASIAN','BLACK','HISLA','INDIG',
+                                     value_vars=['ASIAN','BLACK','HISLA','INDIG', 'PACIS',
                                                  'WHITE','TOTAL', 'OTHER'], 
                                      var_name='RACE', value_name='POPULATION', 
                                      ignore_index=False)
         
         population.rename(columns={'ROW':'ISRM_ID'}, inplace=True)
-        
+
         return population
     
     def update_inc(self, incidence):
