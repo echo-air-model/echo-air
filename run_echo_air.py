@@ -313,13 +313,16 @@ if __name__ == "__main__":
                     ihd_ve_future = health_executor.submit(visualize_and_export_hia, ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_resolution, conc.boundary, output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
                     lungcancer_ve_future = health_executor.submit(visualize_and_export_hia, lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_resolution, conc.boundary, output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
                     logging.info('- [HEALTH] Waiting for visualizations and exports to complete...')
-                    
+
                     # We don't actually need anything stored, we just need the program to wait until
                     # all three are done before exiting
                     acm_summary = allcause_ve_future.result()
                     ihd_summary = ihd_ve_future.result()
                     lcm_summary = lungcancer_ve_future.result()
-                    
+
+                    # Create and export the health summary file
+                    # create_health_summary_file(allcause, ihd, lungcancer, output_dir, f_out, verbose=verbose)
+                
                     # Get summary table and export
                     combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose)
                     
@@ -343,6 +346,9 @@ if __name__ == "__main__":
                 visualize_and_export_hia(allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_resolution, conc.boundary, output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
                 visualize_and_export_hia(ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_resolution, conc.boundary, output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
                 visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_resolution, conc.boundary, output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                
+                # Create and export the health summary file
+                # create_health_summary_file(allcause, ihd, lungcancer, output_dir, f_out, verbose=verbose)
             
             # Return that everything is done
             logging.info('- [HEALTH] All outputs have been exported!')
