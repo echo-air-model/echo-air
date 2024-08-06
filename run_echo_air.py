@@ -91,6 +91,7 @@ if __name__ == "__main__":
         output_exposure = cf.output_exposure
         detailed_conc_flag = cf.detailed_conc
         output_emis_flag = cf.output_emis
+        filter_options = cf.filter_options
 
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)

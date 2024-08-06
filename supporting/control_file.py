@@ -63,12 +63,12 @@ class control_file:
                          'EMISSIONS_UNITS', 'POPULATION_FILENAME', 'RUN_HEALTH', 
                          'RACE_STRATIFIED_INCIDENCE', 'CHECK_INPUTS','VERBOSE',
                          'REGION_OF_INTEREST','REGION_CATEGORY','OUTPUT_RESOLUTION',
-                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS']
+                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS', 'FILTER_OPTIONS']
         self.blanks_okay = [True, True, False, 
                             False, False, True, 
                             True, True, True,
                             True, True, True,
-                            True, True, True]
+                            True, True, True, True]
         
         # Run basic checks on control file
         if self.valid_file:
@@ -207,6 +207,7 @@ class control_file:
         output_exposure = self.get_input_value('OUTPUT_EXPOSURE', upper=True)
         detailed_conc = self.get_input_value('DETAILED_CONC', upper=True)
         output_emis = self.get_input_value('OUTPUT_EMIS', upper=True)
+        filter_options = self.get_input_value('FILTER_OPTIONS', upper=True)
         
         # For ISRM folder, assume CA ISRM if no value is given
         if isrm_path == '':
@@ -269,8 +270,12 @@ class control_file:
             output_emis = False
         else:
             output_emis = mapper[output_emis]
-        
-        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis
+        if filter_options = '':
+            logging.info('* No value provided for the FILTER_OPTIONS field. The tool will not filter the emissions data and leave it as is.')
+            filter_options = False
+        else: 
+            filter_options = mapper[filter_options]
+        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, filter_options
     
     def get_region_dict(self):
         ''' Hard-coded dictionary of acceptable values for regions '''
