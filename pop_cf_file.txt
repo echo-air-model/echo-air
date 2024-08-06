@@ -9,7 +9,7 @@
 ╓─────────────╖
 ║  META DATA  ║
 ╙─────────────╜
-- OUTPUT_FILE_NAME: example
+- OUTPUT_FILE_NAME: hello
 
 ╓───────────────────╖
 ║    CENSUS DATA    ║

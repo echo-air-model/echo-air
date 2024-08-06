@@ -168,9 +168,9 @@ class census:
         verboseprint(self.verbose, '- [CENSUS] Codebook processed successfully', self.debug_mode, frameinfo=getframeinfo(currentframe()))
         return combined_codebook
 
-
-    # Function to split based on ':', and if ':' is not found, split based on '>>'  
+    # Depending on the year, the description is split using >> or : 
     def split_description(self, description):
+        '''Function to split based on ':', and if ':' is not found, split based on '>>' '''
         if isinstance(description, str):
             if '>>' in description:
                 return description.split('>>')
@@ -180,13 +180,16 @@ class census:
                 return [description]
         else:
             return [str(description)]
-            
+
+    
     def preprocess_data(self):
         '''
         Preprocesses the census data by filtering, melting, mapping age bins, and merging with geographic data.
         Saves the processed data to the specified output file.
         '''
         verboseprint(self.verbose, '- [CENSUS] Processing data', self.debug_mode, frameinfo=getframeinfo(currentframe()))
+        
+        # Processes the loaded codebook to create a combined codebook with race codes
         combined_codebook = self.process_codebook()
         
         # Define a list of columns to drop
@@ -215,7 +218,6 @@ class census:
         ca_tract_melt['GROUP DESC'] = ca_tract_melt['GROUP CODE'].map(combined_codebook)
         
         # Add a dummy column to filter out the rows with totals
-        #ca_tract_melt['DUMMY'] = ca_tract_melt['GROUP DESC'].str.split('>>').str.len()
         ca_tract_melt['DUMMY'] = ca_tract_melt['GROUP DESC'].apply(lambda x: len(self.split_description(x)))
         
         # Filter out any rows where DUMMY is not 3

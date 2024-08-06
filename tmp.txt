@@ -134,3 +134,232 @@
 ╙────────────────────────────────╜
 
 << ECHO-AIR has created and exported all control files indicated. >>
+<< Reading Control File >>
+<< Reading Control File >>
+<< Reading Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+<< Reading Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+<< Reading Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+<< Reading Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+<< Reading Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_example >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+- [CENSUS] Processing data
+- [CENSUS] Processing the codebook
+- [CENSUS] Codebook processed successfully
+- [CENSUS] Data filtered for California.
+<< Reading Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_e32f >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+<< Reading Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_234323 >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+<< Reading Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_234323_01 >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+<< Reading Population Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_234323_02 >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+<< Reading Population Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_234323_03 >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+- [CENSUS] Processing data
+- [CENSUS] Processing the codebook
+- [CENSUS] Codebook processed successfully
+- [CENSUS] Data filtered for California.
+- [CENSUS] Data melted and columns created for RACE/ETHNICITY and AGE
+- [CENSUS] Summarized data and merged with geographic data.
+<< Reading Population Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_234   323 >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+- [CENSUS] Processing data
+- [CENSUS] Processing the codebook
+- [CENSUS] Codebook processed successfully
+- [CENSUS] Data filtered for California.
+<< Reading Population Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_234   323_01 >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+<< Reading Population Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_234   323_02 >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+<< Reading Population Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_234   323_03 >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+<< Reading Population Control File >>
+* The output file name provided is not valid (must be string). 
+
+ << ERROR: Control file was successfully imported but inputs are not correct >>
+<< Reading Population Control File >>
+* The output file name provided is not valid (must be string). 
+
+ << ERROR: Control file was successfully imported but inputs are not correct >>
+<< Reading Population Control File >>
+* The output file name provided is not valid (must be string). 
+
+ << ERROR: Control file was successfully imported but inputs are not correct >>
+<< Reading Population Control File >>
+* The output file name provided is not valid (must be string). 
+
+ << ERROR: Control file was successfully imported but inputs are not correct >>
+<< Reading Population Control File >>
+* The output file name provided is not valid (must be string). 
+
+ << ERROR: Control file was successfully imported but inputs are not correct >>
+<< Reading Population Control File >>
+* The output file name provided is not valid (must be string). 
+
+ << ERROR: Control file was successfully imported but inputs are not correct >>
+<< Reading Population Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_hello >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
+<< Reading Population Control File >>
+* The output file name provided is not valid (must be string). 
+
+ << ERROR: Control file was successfully imported but inputs are not correct >>
+<< Reading Population Control File >>
+* The codebook path provided is not valid.
+
+ << ERROR: Control file was successfully imported but inputs are not correct >>
+
+ << Reading Population Control File >>
+
+ << Control file was successfully imported and inputs are correct >>
+
+ << Output files created will be saved in the following directory: /Users/amyyao/Desktop/echoair/echo-air/outputs/out_pop_hello_01 >>
+
+
+╔═══════════════════════════════════════════╗
+║ ECHO-AIR Population Pre-Processing Script ║
+║ Version 0.0.1                             ║
+╚═══════════════════════════════════════════╝
+
+
+- [CENSUS] Codebook loaded successfully
