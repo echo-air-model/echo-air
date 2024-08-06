@@ -3,8 +3,8 @@
 """
 Census Object
 
-@author: libbykoolik
-last modified: 2024-06-19
+@author: amyryao
+last modified: 2024-06-26
 """
 
 # Import libraries
@@ -367,7 +367,11 @@ class census:
         fpath = os.path.join(self.output_dir, fname)
 
         # Logging statement for exporting
+<<<<<<< HEAD
         logging.info('- [CENSUS] Stored at: {}'.format(fpath))
+=======
+        logging.info('- Stored at: {}'.format([fpath]))
+>>>>>>> 7d01407988657b95c939c655463607e7b5e13b76
         
         # Save to file
         ca_tracts_to_export.to_feather(fpath)
