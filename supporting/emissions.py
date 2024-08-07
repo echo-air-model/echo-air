@@ -65,7 +65,8 @@ class emissions:
         self.details_to_keep = details_to_keep
         self.filter_dict = filter_dict
         self.filter = bool(self.filter_dict) # returns False if empty, True if not empty
-        self.reduction_percentage = reduction_percentage
+        self.reduction_dict = reduction_percentage
+        self.reduce = bool(self.reduction_dict)  # returns False if empty, True if not empty
         self.debug_mode = debug_mode
         self.verbose = verbose
         self.output_dir = output_dir
@@ -579,6 +580,20 @@ class emissions:
         
         # Confirm pol_name is valid
         assert pol_name in pollutant_dict.keys()
+
+        # If pollutant is to be reduced, apply reduction factor 
+        if pol_name in self.reduction_dict.keys(): 
+            return reduce_percentages(pol_name, pollutant_dict[pol_name]) 
         
         # Return pollutant layer
         return pollutant_dict[pol_name]
+    
+    def reduce_percentages(self, pol_name, pol_layer):
+        ''' 'Reduces' emissions by x% for the given pollutant '''    
+        # Calculate the reduction factor
+        reduction_factor = (100 - self.reduction_dict[pol_name]) / 100
+
+        # Apply the reduction to the 'EMISSIONS_UG/S' column
+        pol_layer['EMISSIONS_UG/S'] *= reduction_factor
+
+        return pol_layer
