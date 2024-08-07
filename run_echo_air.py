@@ -91,6 +91,7 @@ if __name__ == "__main__":
         output_exposure = cf.output_exposure
         detailed_conc_flag = cf.detailed_conc
         output_emis_flag = cf.output_emis
+        reduction_percentage = cf.reduction_percentage
 
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
@@ -118,7 +119,7 @@ if __name__ == "__main__":
         try:
             # Default to verbose since this mode is just for checking files
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=False, verbose=True)
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
+            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, reduction_percentage=reduction_percentage, verbose=True)
             pop = population(population_path, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
 
@@ -196,8 +197,8 @@ if __name__ == "__main__":
             
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
-        
+            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, reduction_percentage=reduction_percentage, verbose=verbose)
+            
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)

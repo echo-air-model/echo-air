@@ -63,12 +63,12 @@ class control_file:
                          'EMISSIONS_UNITS', 'POPULATION_FILENAME', 'RUN_HEALTH', 
                          'RACE_STRATIFIED_INCIDENCE', 'CHECK_INPUTS','VERBOSE',
                          'REGION_OF_INTEREST','REGION_CATEGORY','OUTPUT_RESOLUTION',
-                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS']
+                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS', 'REDUCTION_PERCENTAGE']
         self.blanks_okay = [True, True, False, 
                             False, False, True, 
                             True, True, True,
                             True, True, True,
-                            True, True, True]
+                            True, True, True, True]
         
         # Run basic checks on control file
         if self.valid_file:
@@ -207,7 +207,8 @@ class control_file:
         output_exposure = self.get_input_value('OUTPUT_EXPOSURE', upper=True)
         detailed_conc = self.get_input_value('DETAILED_CONC', upper=True)
         output_emis = self.get_input_value('OUTPUT_EMIS', upper=True)
-        
+        reduction_percentage = self.get_input_value('REDUCTION_PERCENTAGE', upper=True)
+
         # For ISRM folder, assume CA ISRM if no value is given
         if isrm_path == '':
             logging.info('* No value provided for the ISRM path. Assuming the California ISRM as default.')
@@ -269,8 +270,11 @@ class control_file:
             output_emis = False
         else:
             output_emis = mapper[output_emis]
+        if reduction_percentage = '':
+            logging.info('* No value provided for the REDUCTION_PERCENTAGE field. Assuming a 100%% reduction.')
+            reduction_percentage = False
         
-        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis
+        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, reduction_percentage
     
     def get_region_dict(self):
         ''' Hard-coded dictionary of acceptable values for regions '''

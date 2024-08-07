@@ -52,7 +52,7 @@ class emissions:
           pollutant
 
     '''
-    def __init__(self, file_path, output_dir, f_out, debug_mode, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
+    def __init__(self, file_path, output_dir, f_out, debug_mode, units='ug/s', name='', details_to_keep=[], filter_dict={}, reduction_percentage=100, load_file=True, verbose=False):
         ''' Initializes the emissions object'''     
         
         # Initialize path and check that it is valid
@@ -65,6 +65,7 @@ class emissions:
         self.details_to_keep = details_to_keep
         self.filter_dict = filter_dict
         self.filter = bool(self.filter_dict) # returns False if empty, True if not empty
+        self.reduction_percentage = reduction_percentage
         self.debug_mode = debug_mode
         self.verbose = verbose
         self.output_dir = output_dir
