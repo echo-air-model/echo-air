@@ -187,6 +187,26 @@ class control_file:
 
         return valid_structure, no_incorrect_blanks
     
+    def create_reduction_dict(self, reduction_percentage):
+        ''' Filters through reduction_percentage and creates a dictionary '''
+        # Defining an empty dict 
+        reduction_dict = {}
+
+        # Split the string by commas to get each pollutant-reduction pair
+        pairs = reduction_percentage.split(',')
+
+        for pair in pairs:
+            # Split each pair by colon to separate the pollutant name and reduction percentage
+            pollutant, percentage = pair.split(':')
+            
+            # Strip whitespace and percentage signs, and convert the percentage to an integer
+            pollutant = pollutant.strip().replace('.', '')
+            percentage = int(percentage.strip().replace('%', ''))
+            
+            # Add the cleaned data to the dictionary
+            reduction_dict[pollutant] = percentage  
+
+        return reduction_dict
     
     def get_all_inputs(self):
         ''' Once it passes the basic control file checks, import the values '''
@@ -270,11 +290,11 @@ class control_file:
             output_emis = False
         else:
             output_emis = mapper[output_emis]
-        if reduction_percentage = '':
+        if reduction_percentage == '':
             logging.info('* No value provided for the REDUCTION_PERCENTAGE field. Assuming a 100%% reduction.')
             reduction_percentage = False
         else: 
-            reduction_percentage = create_reduction_dict(reduction_percentage)
+            reduction_percentage = self.create_reduction_dict(reduction_percentage)
         
         return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, reduction_percentage
     
@@ -407,28 +427,7 @@ class control_file:
         # Define valid_output_resolution
         valid_output_resolution = valid_input and valid_resolution
         
-        return valid_output_resolution, valid_output_resolutions
-    
-    def create_reduction_dict(reduction_percentage):
-        ''' Filters through reduction_percentage and creates a dictionary '''
-        # Defining an empty dict 
-        reduction_dict = {}
-
-        # Split the string by commas to get each pollutant-reduction pair
-        pairs = self.reduction_percentage.split(',')
-
-        for pair in pairs:
-            # Split each pair by colon to separate the pollutant name and reduction percentage
-            pollutant, percentage = pair.split(':')
-            
-            # Strip whitespace and percentage signs, and convert the percentage to an integer
-            pollutant = pollutant.strip().replace('.', '')
-            percentage = int(percentage.strip().replace('%', ''))
-            
-            # Add the cleaned data to the dictionary
-            reduction_dict[pollutant] = percentage  
-
-        return reduction_dict      
+        return valid_output_resolution, valid_output_resolutions      
     
     def check_inputs(self):
         ''' Once the inputs are imported, check them '''
