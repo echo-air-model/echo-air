@@ -11,6 +11,7 @@ last modified: 2024-02-15
 import sys
 import pandas as pd
 import geopandas as gpd
+import re
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -413,8 +414,12 @@ class emissions:
         
     def filter_emissions(self, emissions):
         ''' Filters emissions based on inputted dictionary filter_dict '''
-        filter_dict = self.filter_dict
-        
+        # Extracting key-value pairs using regex
+        matches = re.findall(r"(\w+(?: \w+)*): \[(.*?)\]", input_string)
+
+        # Creating the dictionary
+        filter_dict = {match[0].title(): [item.strip().upper() for item in match[1].split(',')] for match in matches}
+
         for key in filter_dict.keys():
             emissions = emissions.loc[emissions[key].isin(filter_dict[key]),:]
         

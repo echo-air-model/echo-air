@@ -119,7 +119,7 @@ if __name__ == "__main__":
         try:
             # Default to verbose since this mode is just for checking files
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=False, verbose=True)
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
+            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, filter_dict=filter_options, debug_mode=debug_mode, load_file=False, verbose=True)
             pop = population(population_path, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
 
