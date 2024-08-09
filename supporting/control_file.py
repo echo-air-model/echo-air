@@ -63,12 +63,12 @@ class control_file:
                          'EMISSIONS_UNITS', 'POPULATION_FILENAME', 'RUN_HEALTH', 
                          'RACE_STRATIFIED_INCIDENCE', 'CHECK_INPUTS','VERBOSE',
                          'REGION_OF_INTEREST','REGION_CATEGORY','OUTPUT_RESOLUTION',
-                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS']
+                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS', 'REDUCTION_PERCENTAGE']
         self.blanks_okay = [True, True, False, 
                             False, False, True, 
                             True, True, True,
                             True, True, True,
-                            True, True, True]
+                            True, True, True, True]
         
         # Run basic checks on control file
         if self.valid_file:
@@ -78,7 +78,7 @@ class control_file:
             
         # If checks are good, import values
         if self.valid_structure and self.no_incorrect_blanks and self.valid_file:
-            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis = self.get_all_inputs()
+            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis, self.reduction_percentage = self.get_all_inputs()
             self.valid_inputs = self.check_inputs()
             if self.valid_inputs:
                 logging.info('\n << Control file was successfully imported and inputs are correct >>')
@@ -127,21 +127,29 @@ class control_file:
                         logging.info('* Issue finding {} in the provided ISRM directory'.format(f))
                 file_exists = len(missing) == 0
         return path_exists and file_exists
-    
+  
     def get_input_value(self, keyword, upper=False):
-        ''' Gets the input for the given keyword '''
+        '''Gets the input for the given keyword from a file'''
         
-        # Iterate through each line of the file to find the keyword
-        for line in open(self.file_path):
-            re_k = '- '+keyword+':' # Grabs exact formatting
-            if re_k in line:
-                line_val = line.split(':')[1].strip('\n').strip(' ')
-            
-        if upper: # Should be uppercased
-            line_val = line_val.upper()
-            
-        return line_val
-    
+        # Open the file and read through it line by line
+        with open(self.file_path, 'r') as file:
+            for line in file:
+                # Create the exact format of the keyword you're searching for
+                re_k = f'- {keyword}:'
+                
+                # Check if the line contains the keyword
+                if re_k in line:
+                    # Extract the value following the keyword
+                    line_val = line.split(':', 1)[1].strip()
+                    
+                    # If upper is True, convert the value to uppercase
+                    if upper:
+                        line_val = line_val.upper()
+                        
+                    return line_val  # Return the found value immediately
+        
+        # Return None or raise an error if the keyword is not found
+        return None
     
     def check_control_file(self):
         ''' Runs a number of checks to make sure that control file is valid  '''
@@ -187,6 +195,26 @@ class control_file:
 
         return valid_structure, no_incorrect_blanks
     
+    def create_reduction_dict(self, reduction_percentage):
+        ''' Filters through reduction_percentage and creates a dictionary '''
+        # Defining an empty dict 
+        reduction_dict = {}
+
+        # Split the string by commas to get each pollutant-reduction pair
+        pairs = reduction_percentage.split(',')
+
+        for pair in pairs:
+            # Split each pair by colon to separate the pollutant name and reduction percentage
+            pollutant, percentage = pair.split(':')
+            
+            # Strip whitespace and percentage signs, and convert the percentage to an integer
+            pollutant = pollutant.strip().replace('.', '')
+            percentage = int(percentage.strip().replace('%', ''))
+            
+            # Add the cleaned data to the dictionary
+            reduction_dict[pollutant] = percentage  
+
+        return reduction_dict
     
     def get_all_inputs(self):
         ''' Once it passes the basic control file checks, import the values '''
@@ -207,7 +235,8 @@ class control_file:
         output_exposure = self.get_input_value('OUTPUT_EXPOSURE', upper=True)
         detailed_conc = self.get_input_value('DETAILED_CONC', upper=True)
         output_emis = self.get_input_value('OUTPUT_EMIS', upper=True)
-        
+        reduction_percentage = self.get_input_value('REDUCTION_PERCENTAGE', upper=True)
+
         # For ISRM folder, assume CA ISRM if no value is given
         if isrm_path == '':
             logging.info('* No value provided for the ISRM path. Assuming the California ISRM as default.')
@@ -269,8 +298,13 @@ class control_file:
             output_emis = False
         else:
             output_emis = mapper[output_emis]
+        if reduction_percentage == '':
+            logging.info('* No value provided for the REDUCTION_PERCENTAGE field. Assuming a 100%% reduction.') #wait what does this mean?
+            reduction_percentage = False
+        else: 
+            reduction_percentage = self.create_reduction_dict(reduction_percentage)
         
-        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis
+        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, reduction_percentage
     
     def get_region_dict(self):
         ''' Hard-coded dictionary of acceptable values for regions '''
@@ -401,7 +435,7 @@ class control_file:
         # Define valid_output_resolution
         valid_output_resolution = valid_input and valid_resolution
         
-        return valid_output_resolution, valid_output_resolutions
+        return valid_output_resolution, valid_output_resolutions      
     
     def check_inputs(self):
         ''' Once the inputs are imported, check them '''
