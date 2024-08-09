@@ -153,7 +153,7 @@ if __name__ == "__main__":
             file_reader_pool = concurrent.futures.ThreadPoolExecutor()
             
             # Start reading in files in parallel
-            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, units=units, name=name, load_file=True, verbose=verbose)
+            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, filter_options=filter_options debug_mode=debug_mode, units=units, name=name, load_file=True, verbose=verbose)
             isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
             pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
       
@@ -197,7 +197,7 @@ if __name__ == "__main__":
             
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, filter_options=filter_options, debug_mode=debug_mode, load_file=True, verbose=verbose)
         
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
