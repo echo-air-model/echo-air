@@ -52,7 +52,7 @@ class emissions:
           pollutant
 
     '''
-    def __init__(self, file_path, output_dir, f_out, debug_mode, units='ug/s', name='', details_to_keep=[], filter_dict={}, reduction_percentage=100, load_file=True, verbose=False):
+    def __init__(self, file_path, output_dir, f_out, debug_mode, reduction_percentage, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
         ''' Initializes the emissions object'''     
         
         # Initialize path and check that it is valid
@@ -581,6 +581,7 @@ class emissions:
         # Confirm pol_name is valid
         assert pol_name in pollutant_dict.keys()
 
+        print(self.reduction_dict)
         # If pollutant is to be reduced, apply reduction factor 
         if pol_name in self.reduction_dict.keys(): 
             return reduce_percentages(pol_name, pollutant_dict[pol_name]) 

@@ -127,21 +127,29 @@ class control_file:
                         logging.info('* Issue finding {} in the provided ISRM directory'.format(f))
                 file_exists = len(missing) == 0
         return path_exists and file_exists
-    
+  
     def get_input_value(self, keyword, upper=False):
-        ''' Gets the input for the given keyword '''
+        '''Gets the input for the given keyword from a file'''
         
-        # Iterate through each line of the file to find the keyword
-        for line in open(self.file_path):
-            re_k = '- '+keyword+':' # Grabs exact formatting
-            if re_k in line:
-                line_val = line.split(':')[1].strip('\n').strip(' ')
-            
-        if upper: # Should be uppercased
-            line_val = line_val.upper()
-            
-        return line_val
-    
+        # Open the file and read through it line by line
+        with open(self.file_path, 'r') as file:
+            for line in file:
+                # Create the exact format of the keyword you're searching for
+                re_k = f'- {keyword}:'
+                
+                # Check if the line contains the keyword
+                if re_k in line:
+                    # Extract the value following the keyword
+                    line_val = line.split(':', 1)[1].strip()
+                    
+                    # If upper is True, convert the value to uppercase
+                    if upper:
+                        line_val = line_val.upper()
+                        
+                    return line_val  # Return the found value immediately
+        
+        # Return None or raise an error if the keyword is not found
+        return None
     
     def check_control_file(self):
         ''' Runs a number of checks to make sure that control file is valid  '''
@@ -291,7 +299,7 @@ class control_file:
         else:
             output_emis = mapper[output_emis]
         if reduction_percentage == '':
-            logging.info('* No value provided for the REDUCTION_PERCENTAGE field. Assuming a 100%% reduction.')
+            logging.info('* No value provided for the REDUCTION_PERCENTAGE field. Assuming a 100%% reduction.') #wait what does this mean?
             reduction_percentage = False
         else: 
             reduction_percentage = self.create_reduction_dict(reduction_percentage)
