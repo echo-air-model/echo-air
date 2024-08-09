@@ -68,7 +68,8 @@ class control_file:
                             False, False, True, 
                             True, True, True,
                             True, True, True,
-                            True, True, True, True]
+                            True, True, True, 
+                            True]
         
         # Run basic checks on control file
         if self.valid_file:
@@ -78,7 +79,7 @@ class control_file:
             
         # If checks are good, import values
         if self.valid_structure and self.no_incorrect_blanks and self.valid_file:
-            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis = self.get_all_inputs()
+            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis, self.filter_options = self.get_all_inputs()
             self.valid_inputs = self.check_inputs()
             if self.valid_inputs:
                 logging.info('\n << Control file was successfully imported and inputs are correct >>')
@@ -129,18 +130,27 @@ class control_file:
         return path_exists and file_exists
     
     def get_input_value(self, keyword, upper=False):
-        ''' Gets the input for the given keyword '''
+        '''Gets the input for the given keyword from a file'''
         
-        # Iterate through each line of the file to find the keyword
-        for line in open(self.file_path):
-            re_k = '- '+keyword+':' # Grabs exact formatting
-            if re_k in line:
-                line_val = line.split(':')[1].strip('\n').strip(' ')
-            
-        if upper: # Should be uppercased
-            line_val = line_val.upper()
-            
-        return line_val
+        # Open the file and read through it line by line
+        with open(self.file_path, 'r') as file:
+            for line in file:
+                # Create the exact format of the keyword you're searching for
+                re_k = f'- {keyword}:'
+                
+                # Check if the line contains the keyword
+                if re_k in line:
+                    # Extract the value following the keyword
+                    line_val = line.split(':', 1)[1].strip()
+                    
+                    # If upper is True, convert the value to uppercase
+                    if upper:
+                        line_val = line_val.upper()
+                        
+                    return line_val  # Return the found value immediately
+        
+        # Return None or raise an error if the keyword is not found
+        return None
     
     
     def check_control_file(self):
@@ -270,11 +280,9 @@ class control_file:
             output_emis = False
         else:
             output_emis = mapper[output_emis]
-        if filter_options = '':
+        if filter_options == '':
             logging.info('* No value provided for the FILTER_OPTIONS field. The tool will not filter the emissions data and leave it as is.')
             filter_options = False
-        else: 
-            filter_options = mapper[filter_options]
         return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, filter_options
     
     def get_region_dict(self):
