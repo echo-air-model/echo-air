@@ -197,6 +197,29 @@ class control_file:
 
         return valid_structure, no_incorrect_blanks
     
+    def create_filter_dict(self, filter_options):
+        ''' Creates a dictionary from the string filter_options'''
+        # Defining an empty dict 
+        filter_dict = {}
+
+        # Regular expression to split on commas that are outside brackets
+        pairs = re.split(r',\s*(?=[^]]*(?:\[|$))', filter_options)
+
+        for pair in pairs:
+            # Split each pair by colon to separate the column name with the filter options
+            col_name, options  = pair.split(':')
+
+            # Strip whitespace and brackets from column name and options
+            col_name = col_name.strip()
+            options = options.strip().strip('[]')
+
+            # Split the options into a list of values
+            option_list = [opt.strip() for opt in options.split(',')]
+            
+            # Add the cleaned data to the dictionary
+            filter_dict[col_name] = option_list
+
+        return filter_dict
     
     def get_all_inputs(self):
         ''' Once it passes the basic control file checks, import the values '''
@@ -283,6 +306,8 @@ class control_file:
         if filter_options == '':
             logging.info('* No value provided for the FILTER_OPTIONS field. The tool will not filter the emissions data and leave it as is.')
             filter_options = False
+        else: 
+            filter_options = self.create_filter_dict(filter_options)
         return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, filter_options
     
     def get_region_dict(self):
