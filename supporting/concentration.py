@@ -87,7 +87,8 @@ class concentration:
         self.run_calcs = run_calcs
         self.output_dir = output_dir
         self.output_emis_flag = output_emis_flag
-        
+        self.boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
+    
         #verboseprint = logging.info if self.verbose else lambda *a, **k:None # for logging
         verboseprint(self.verbose, '- [CONCENTRATION] Creating a new concentration object',
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -271,7 +272,7 @@ class concentration:
         if self.output_resolution in ['AB','AD','C']:
             
             # Load the output resolution data
-            boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
+            boundary = self.boundary
             
             # Make a copy of the ISRM data
             tmp = self.total_conc.copy()
