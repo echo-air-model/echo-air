@@ -179,7 +179,7 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     
     return pop_inc_conc
 
-#%% Formatting and Exporting Functions
+
 #%% Formatting and Exporting Functions
 def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode):
     logging_code = create_logging_code()[endpoint]
@@ -309,6 +309,9 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
       if boundary.crs != hia_df.crs:
           boundary = boundary.to_crs(hia_df.crs)
 
+      #Create a hia_df copy? 
+      hia_df2 = hia_df.copy()
+
       # Perform intersection
       intersect = gpd.overlay(hia_df, boundary, keep_geom_type=False, how='intersection')
 
@@ -337,8 +340,6 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
       # Merge with boundary to get full geometry
       hia_df = pd.merge(boundary, region_data, on='NAME', how='left')
 
-      
-
       # Set true zeros to avoid divide by zero issues
       if group in hia_df.columns:
           hia_df.loc[hia_df[group] == 0, group] = 1e-9
@@ -347,6 +348,9 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
       # Plotting
       fig, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, figsize=(22, 6))
+
+      # Clip the
+      hia_df = gpd.clip(hia_df, hia_df2)
 
       ## Pane 0: Population Density
       hia_df.plot(column='POP_AREA_NORM', legend=True,
@@ -384,17 +388,14 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
                   antialiased=False,
                   ax=ax3)
 
-      # Figure Formatting
-      minx, miny, maxx, maxy = hia_df.geometry.total_bounds
-      minx = minx - (maxx - minx) * 0.025
-      miny = miny - (maxy - miny) * 0.025
-      maxx = maxx + (maxx - minx) * 0.025
-      maxy = maxy + (maxy - miny) * 0.025
 
+      # Plotting each map
       for ax in [ax0, ax1, ax2, ax3]: 
           boundary.dissolve().plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
           ax.xaxis.set_visible(False)
           ax.yaxis.set_visible(False)
+
+          # Can use the same bounds stated previously
           ax.set_xlim([minx, maxx])
           ax.set_ylim([miny, maxy])
 

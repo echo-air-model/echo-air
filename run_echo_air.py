@@ -342,7 +342,7 @@ if __name__ == "__main__":
                 logging.info('<< Exporting Health Impact Outputs >>')
                 visualize_and_export_hia(allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
                 visualize_and_export_hia(ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, conc.boundary,  verbose=verbose, debug_mode=debug_mode)
             
             # Return that everything is done
             logging.info('- [HEALTH] All outputs have been exported!')
