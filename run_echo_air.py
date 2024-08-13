@@ -29,6 +29,7 @@ from emissions import emissions
 from health_data import health_data
 from isrm import isrm
 from population import population
+from census import census
 
 # Import supporting scripts
 sys.path.insert(0,'./scripts')
@@ -81,6 +82,9 @@ if __name__ == "__main__":
         units = cf.emissions_units
         isrm_path = cf.isrm_path
         population_path = cf.population_path
+        codebook_fp = cf.codebook_fp
+        tractdata_fp = cf.tractdata_fp
+        ipums_shp_fp = cf.ipums_shp_fp
         run_health = cf.run_health
         race_stratified = cf.race_stratified
         check = cf.check
@@ -274,7 +278,7 @@ if __name__ == "__main__":
             
             # Two inputs are required to estimate excess mortality - get these up front
             trimmed_conc = conc.detailed_conc_clean[['ISRM_ID','TOTAL_CONC_UG/M3','geometry']]
-            pop = hia_inputs.population.groupby('ISRM_ID')[['ASIAN','BLACK','HISLA','INDIG', 'PACIS', 'WHITE','TOTAL', 'OTHER']].sum().reset_index() 
+            pop = hia_inputs.population.groupby('ISRM_ID')[['ASIAN','BLACK','HISLA','INDIG','WHITE','TOTAL', 'OTHER']].sum().reset_index() 
             
             ## Split again
             if run_parallel:
@@ -309,9 +313,9 @@ if __name__ == "__main__":
                     logging.info('<< Exporting Health Impact Outputs >>')
                     
                     # Start exporting files as futures
-                    allcause_ve_future = health_executor.submit(visualize_and_export_hia, allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
-                    ihd_ve_future = health_executor.submit(visualize_and_export_hia, ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
-                    lungcancer_ve_future = health_executor.submit(visualize_and_export_hia, lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                    allcause_ve_future = health_executor.submit(visualize_and_export_hia, allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                    ihd_ve_future = health_executor.submit(visualize_and_export_hia, ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                    lungcancer_ve_future = health_executor.submit(visualize_and_export_hia, lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
                     logging.info('- [HEALTH] Waiting for visualizations and exports to complete...')
                     
                     # We don't actually need anything stored, we just need the program to wait until
@@ -340,9 +344,9 @@ if __name__ == "__main__":
                 
                 # Plot and export
                 logging.info('<< Exporting Health Impact Outputs >>')
-                visualize_and_export_hia(allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
-                visualize_and_export_hia(ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
-                visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                visualize_and_export_hia(allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                visualize_and_export_hia(ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, conc.boundary,  verbose=verbose, debug_mode=debug_mode)
             
             # Return that everything is done
             logging.info('- [HEALTH] All outputs have been exported!')
