@@ -486,6 +486,7 @@ def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, d
                      'BLACK':'POP_BLACK',
                      'HISLA':'POP_HISLA',
                      'INDIG':'POP_INDIG',
+                     'PACIS':'POP_PACIS',
                      'WHITE':'POP_WHITE',
                      'TOTAL':'POP_TOTAL',
                      'OTHER':'POP_OTHER',
