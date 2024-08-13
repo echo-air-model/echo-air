@@ -342,7 +342,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
       # Set true zeros to avoid divide by zero issues
       if group in hia_df.columns:
           hia_df.loc[hia_df[group] == 0, group] = 1e-9
-      if endpoint + '_' + group in hia_df2.columns:
+      if endpoint + '_' + group in hia_df.columns:
           hia_df.loc[hia_df[endpoint + '_' + group] == 0, endpoint + '_' + group] = 1e-9
 
       # Plotting

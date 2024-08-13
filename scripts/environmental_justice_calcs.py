@@ -434,8 +434,13 @@ def region_pwm_helper(name, group, full_dataset):
     # Slice relevant parts of the dataframe
     tmp = full_dataset[full_dataset['NAME']==name][['TOTAL_CONC_UG/M3',group]].copy()
 
-    # Estimate the PWM
-    pwm = (tmp[group]*tmp['TOTAL_CONC_UG/M3']).sum()/(tmp[group].sum())
+    # Estimate the PWM ensuring no division by zero
+    group_sum = tmp[group].sum()
+    if group_sum != 0:
+        pwm = (tmp[group] * tmp['TOTAL_CONC_UG/M3']).sum() / group_sum
+    else:
+        pwm = 0  # Or another appropriate default value
+
 
     return pwm
 
