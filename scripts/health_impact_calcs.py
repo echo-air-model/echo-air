@@ -14,7 +14,8 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors
-from matplotlib.ticker import MaxNLocator
+import matplotlib.ticker as ticker
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
 import pyarrow
 from scipy.io import netcdf_file as nf
@@ -27,6 +28,7 @@ sys.path.append('./scripts')
 from tool_utils import *
 sys.path.append('./supporting')
 from health_data import health_data
+from matplotlib_scalebar.scalebar import ScaleBar
 
 #%% Health Calculation Helper Functions
 def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
@@ -177,91 +179,7 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     
     return pop_inc_conc
 
-def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode):
-    sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
-    plt.rcParams['patch.linewidth'] = 0
-    plt.rcParams['patch.edgecolor'] = 'none'
-    plt.rcParams["patch.force_edgecolor"] = False
-    
-    fname = f_out + '_' + group + '_' + endpoint + '_excess_mortality.png'
-    fname = str.lower(fname)
-    fpath = os.path.join(output_dir, fname)
-    
-    ca_shp = gpd.read_feather(ca_shp_fp)
-    hia_df = hia_df.to_crs(ca_shp.crs)
-    hia_df = gpd.clip(hia_df, ca_shp)
-
-    group = group.upper()
-    mortality_col = endpoint + '_' + group
-    group_label = group.title()
-    
-    hia_df.loc[hia_df[group]==0, group] = 10.0**-9.0
-    hia_df.loc[hia_df[mortality_col]==0, mortality_col] = 10.0**-9.0
-
-    hia_df['POP_AREA_NORM'] = hia_df[group] / hia_df.area * 1000.0 * 1000.0
-    hia_df['MORT_AREA_NORM'] = hia_df[mortality_col] / hia_df.area * 1000.0 * 1000.0
-    hia_df['MORT_OVER_POP'] = hia_df[mortality_col] / hia_df[group] * 100000.0    
-    
-    hia_pop_area_min = hia_df.loc[hia_df[group] > 10.0**-9.0, 'POP_AREA_NORM'].min()
-    hia_mort_area_min = hia_df.loc[hia_df[mortality_col] > 10.0**-9.0, 'MORT_AREA_NORM'].min()
-    
-    hia_df.loc[hia_df[group] == hia_df[mortality_col], 'MORT_OVER_POP'] = hia_df['MORT_OVER_POP'].min() * 0.0001
-
-    fig, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, figsize=(22, 6))
-
-    hia_df.plot(column='POP_AREA_NORM', legend=True,
-                legend_kwds={'label': r'Population Density (population/km$^2$)'},
-                edgecolor='none', cmap='mako_r',
-                norm=mcolors.LogNorm(vmin=hia_pop_area_min, vmax=hia_df['POP_AREA_NORM'].max()),
-                antialiased=False,
-                ax=ax0)
-    
-    hia_df.plot(column='TOTAL_CONC_UG/M3', legend=True,
-                legend_kwds={'label': r'PM$_{2.5}$ Concentration ($\mu$g/m$^3$)'},
-                edgecolor='none', cmap='mako_r',
-                norm=mcolors.LogNorm(vmin=hia_df['TOTAL_CONC_UG/M3'].min(), vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
-                antialiased=False,
-                ax=ax1)
-    
-    hia_df.plot(column='MORT_AREA_NORM', legend=True,
-                legend_kwds={'label': r'Excess Mortality (mortality/km$^2$)'},
-                edgecolor='none', cmap='mako_r',
-                norm=mcolors.LogNorm(vmin=hia_mort_area_min, vmax=hia_df['MORT_AREA_NORM'].max()),
-                antialiased=False,
-                ax=ax2)
-    
-    hia_df.plot(column='MORT_OVER_POP', legend=True,
-                legend_kwds={'label': r'Mortality per Population (mortality/100 K people)'},
-                edgecolor='none', cmap='mako_r',
-                norm=mcolors.LogNorm(vmin=hia_df['MORT_OVER_POP'].min(), vmax=hia_df['MORT_OVER_POP'].max()),
-                antialiased=False,
-                ax=ax3)
-
-    minx, miny, maxx, maxy = hia_df.geometry.total_bounds
-    minx = minx - (maxx - minx) * 0.025
-    miny = miny - (maxy - miny) * 0.025
-    maxx = maxx + (maxx - minx) * 0.025
-    maxy = maxy + (maxy - miny) * 0.025
-    
-    for ax in [ax0, ax1, ax2, ax3]:
-        ca_shp.dissolve().plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
-        ax.xaxis.set_visible(False)
-        ax.yaxis.set_visible(False)
-        ax.set_xlim([minx, maxx])
-        ax.set_ylim([miny, maxy])
-        
-        colorbar = ax.get_figure().axes[-1].collections[0].colorbar
-        colorbar.set_ticks(MaxNLocator(nbins=5).tick_values(colorbar.vmin, colorbar.vmax))
-        colorbar.ax.yaxis.set_label_position('left')
-
-    ax0.set_title((group_label + ' Population Density').title())
-    ax1.set_title((group_label + ' Exposure').title())
-    ax2.set_title((group_label + ' ' + endpoint + ' Excess Mortality').title())
-    ax3.set_title((group_label + ' ' + endpoint + ' Mortality per 100K').title())
-
-    fig.tight_layout()
-    fig.savefig(fpath, dpi=200)
-    
+#%% Formatting and Exporting Functions
 #%% Formatting and Exporting Functions
 def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode):
     logging_code = create_logging_code()[endpoint]
@@ -350,6 +268,12 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
     miny = miny - (maxy - miny) * 0.025
     maxx = maxx + (maxx - minx) * 0.025
     maxy = maxy + (maxy - miny) * 0.025
+
+    # Calculates the longitude and latitude of the center
+    center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
+
+    # Calculate the north arrow angle 
+    angle_to_north = calculate_true_north_angle(center_lon, center_lat, hia_df.crs)
     
     for ax in [ax0, ax1, ax2, ax3]:
         ca_shp.dissolve().plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
@@ -357,6 +281,13 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         ax.yaxis.set_visible(False)
         ax.set_xlim([minx, maxx])
         ax.set_ylim([miny, maxy])
+
+        # Add north arrow
+        add_north_arrow(ax, float(angle_to_north))
+          
+        # Add scale bar
+        scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+        ax.add_artist(scalebar)
 
     # Set titles
     ax0.set_title((group_label + ' Population Density').title())
@@ -466,6 +397,13 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
           ax.yaxis.set_visible(False)
           ax.set_xlim([minx, maxx])
           ax.set_ylim([miny, maxy])
+
+          # Add north arrow
+          add_north_arrow(ax, float(angle_to_north))
+            
+          # Add scale bar
+          scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+          ax.add_artist(scalebar)
 
       # Set titles
       ax0.set_title((group + ' Population Density').title())

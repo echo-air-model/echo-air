@@ -301,7 +301,7 @@ class concentration_layer:
         center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
 
         # Calculate the north arrow angle 
-        #angle_to_north = calculate_true_north_angle(center_lon, center_lat, self.crs)
+        angle_to_north = calculate_true_north_angle(center_lon, center_lat, self.crs)
 
         # Loop through each subplot and each corresponding pollutant
         for ax, pol in zip(axes, pollutants):
@@ -326,12 +326,12 @@ class concentration_layer:
             ax.xaxis.set_visible(False)
             ax.yaxis.set_visible(False)
             
-            # Add north arrow
-            #add_north_arrow(ax, float(angle_to_north))
+            #Add north arrow
+            add_north_arrow(ax, float(angle_to_north))
         
-            # Add scale bar
-            #scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
-            #ax.add_artist(scalebar)
+            #Add scale bar
+            scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+            ax.add_artist(scalebar)
             
             # Set title of the plot to pollutant name
             ax.set_title(f'{pol} Emissions')
