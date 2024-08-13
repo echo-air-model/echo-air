@@ -181,7 +181,7 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
 
 
 #%% Formatting and Exporting Functions
-def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode):
+def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary,. output_dir, f_out, verbose, debug_mode):
     logging_code = create_logging_code()[endpoint]
     verboseprint(verbose, '- {} Drawing plot of excess {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
     
