@@ -195,7 +195,7 @@ def report_version():
 
     logging.info('╔════════════════════════════════╗')
     logging.info('║ ECHO-AIR Model                 ║')
-    logging.info('║ Version 0.9.11                 ║')
+    logging.info('║ Version 0.9.10                 ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return
@@ -340,7 +340,6 @@ def calculate_true_north_angle(center_lon, center_lat, crs):
     
     return angle
 
-
 def add_north_arrow(ax, angle, x=0.93, y=0.92, arrow_length=0.05):
     ''' 
     Add a simple north arrow to the plot with a specified rotation angle.
@@ -371,4 +370,3 @@ def add_north_arrow(ax, angle, x=0.93, y=0.92, arrow_length=0.05):
                 arrowprops=dict(facecolor='black', shrink=0.4),
                 fontsize=12, ha='center', va='center', xycoords='axes fraction', transform=t)
     ax.annotate('N', xy=(x, y + arrow_length), fontsize=12, ha='center', va='center', xycoords='axes fraction')
-
