@@ -420,7 +420,8 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
       fpath_aggregated = os.path.join(output_dir, fname_aggregated)
       fig.savefig(fpath_aggregated, dpi=200)
       logging.info('- {} Plot of excess {} mortality from PM2.5 exposure at aggregated resolution output as {}'.format(logging_code, endpoint.lower(), fname_aggregated))
-  return fname, fname_aggregated if output_resolution in ['AB', 'AD', 'C'] else fname
+    
+    return fname, fname_aggregated if output_resolution in ['AB', 'AD', 'C'] else fname
 
 def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, debug_mode):
     ''' 
