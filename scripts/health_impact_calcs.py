@@ -13,9 +13,6 @@ import geopandas as gpd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.colors
-import matplotlib.ticker as ticker
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
 import pyarrow
 from scipy.io import netcdf_file as nf
@@ -168,11 +165,11 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     
     # Final Clean Up
     verboseprint(verbose, '- {} Performing final clean up.'.format(logging_code), debug_mode, frameinfo=getframeinfo(currentframe()))
-        
+
     pop_inc_conc = pop_inc_conc[['ISRM_ID', 'TOTAL_CONC_UG/M3', 'ASIAN', 'BLACK', 'HISLA',
-                                 'INDIG', 'WHITE', 'TOTAL', 'OTHER', endpoint+'_ASIAN', endpoint+'_BLACK', 
+                                 'INDIG', 'PACIS', 'WHITE', 'TOTAL', 'OTHER', endpoint+'_ASIAN', endpoint+'_BLACK', 
                                  endpoint+'_HISLA', endpoint+'_INDIG',endpoint+'_TOTAL', 
-                                 endpoint+'_WHITE', endpoint+'_OTHER', 'geometry']]
+                                 endpoint+'_WHITE', endpoint+'_PACIS', endpoint+'_OTHER', 'geometry']]
     
     # Print statement
     logging.info('- {} {} health impacts calculated.'.format(logging_code, endpoint.title()))
@@ -181,7 +178,30 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
 
 
 #%% Formatting and Exporting Functions
-def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary,. output_dir, f_out, verbose, debug_mode):
+def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode):
+    ''' 
+    Plots mortality maps and exports as a png. 
+    
+    INPUTS:
+        - hia_df: a dataframe containing excess mortality for the `endpoint` using the `function`
+          provided
+        - ca_shp_fp: a filepath string of the California state boundary shapefile
+        - group: the racial/ethnic group name
+        - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
+          'LUNG CANCER'
+        - output_resolution: a String that represents the output resoluotion 
+        - boundary: a GeoDataFrame that represents the output resolution data
+        - output_dir: a filepath string of the location of the output directory
+        - f_out: the name of the file output category (will append additional information) 
+        - verbose: a Boolean indicating whether or not detailed logging statements should 
+          be printed
+        - debug_mode: a Boolean indicating whether or not to output debug statements
+        
+    OUTPUTS:
+        - fname: a string filename made by combining the `f_out` with the `group`
+          and `endpoint`.
+          
+    '''
     logging_code = create_logging_code()[endpoint]
     verboseprint(verbose, '- {} Drawing plot of excess {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
     
@@ -568,7 +588,7 @@ def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
     verboseprint(verbose, '- {} Creating a summary table of {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
 
     # Set up a few useful variables
-    groups = ['ASIAN', 'BLACK', 'HISLA', 'INDIG', 'WHITE', 'TOTAL', 'OTHER']
+    groups = ['ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'TOTAL', 'OTHER']
     pop_cols = ['POP_'+grp for grp in groups]
     hia_cols = [l+grp for grp in groups]
         
@@ -611,6 +631,8 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_o
         - output_dir: a filepath string of the location of the output directory
         - f_out: the name of the file output category (will append additional information) 
         - shape_out: a filepath string for shapefiles
+        - output_resolution: a String that represents the output resoluotion 
+        - boundary: a GeoDataFrame that represents the output resolution data
         - verbose: a Boolean indicating whether or not detailed logging statements should 
           be printed      
         - debug_mode: a Boolean indicating whether or not to output debug statements
