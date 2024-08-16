@@ -4,7 +4,7 @@
 Census Object
 
 @author: amyryao
-last modified: 2024-06-26
+last modified: 2024-08-16
 """
 
 # Import libraries
@@ -187,6 +187,7 @@ class census:
         Preprocesses the census data by filtering, melting, mapping age bins, and merging with geographic data.
         Saves the processed data to the specified output file.
         '''
+        # Return print statement to indicate the preprocessing has begun
         verboseprint(self.verbose, '- [CENSUS] Processing data', self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Processes the loaded codebook to create a combined codebook with race codes
@@ -367,7 +368,9 @@ class census:
         ca_tracts_to_export.to_feather(fpath)
 
         verboseprint(self.verbose, '- [CENSUS] Data preprocessing complete and saved to {}.'.format(fpath), self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            
+        
+        return
+        
     # Define helper functions for adding the start and end ages
     def get_start_age(self, age_bin):
         ''' Gets the start age from the age_bin '''
