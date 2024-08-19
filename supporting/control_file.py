@@ -78,7 +78,7 @@ class control_file:
             
         # If checks are good, import values
         if self.valid_structure and self.no_incorrect_blanks and self.valid_file:
-            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis, self.reduction_percentage = self.get_all_inputs()
+            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis, self.emis_delta = self.get_all_inputs()
             self.valid_inputs = self.check_inputs()
             if self.valid_inputs:
                 logging.info('\n << Control file was successfully imported and inputs are correct >>')
@@ -195,16 +195,16 @@ class control_file:
 
         return valid_structure, no_incorrect_blanks
     
-    def create_reduction_dict(self, reduction_percentage):
-        ''' Filters through reduction_percentage and creates a dictionary '''
+    def create_emis_delta_dict(self, emis_delta):
+        ''' Filters through emis_delta and creates a dictionary '''
         # Defining an empty dict 
-        reduction_dict = {}
+        emis_delta_dict = {}
 
-        # Split the string by commas to get each pollutant-reduction pair
-        pairs = reduction_percentage.split(',')
+        # Split the string by commas to get each pollutant-percentage change pair
+        pairs = emis_delta.split(',')
 
         for pair in pairs:
-            # Split each pair by colon to separate the pollutant name and reduction percentage
+            # Split each pair by colon to separate the pollutant name and percentage change
             pollutant, percentage = pair.split(':')
             
             # Strip whitespace and percentage signs, and convert the percentage to an integer
@@ -212,9 +212,9 @@ class control_file:
             percentage = int(percentage.strip().replace('%', ''))
             
             # Add the cleaned data to the dictionary
-            reduction_dict[pollutant] = percentage  
+            emis_delta_dict[pollutant] = percentage  
 
-        return reduction_dict
+        return emis_delta_dict
     
     def get_all_inputs(self):
         ''' Once it passes the basic control file checks, import the values '''
@@ -235,7 +235,7 @@ class control_file:
         output_exposure = self.get_input_value('OUTPUT_EXPOSURE', upper=True)
         detailed_conc = self.get_input_value('DETAILED_CONC', upper=True)
         output_emis = self.get_input_value('OUTPUT_EMIS', upper=True)
-        reduction_percentage = self.get_input_value('REDUCTION_PERCENTAGE', upper=True)
+        emis_delta = self.get_input_value('EMISSIONS_CHANGE', upper=True)
 
         # For ISRM folder, assume CA ISRM if no value is given
         if isrm_path == '':
@@ -298,13 +298,13 @@ class control_file:
             output_emis = False
         else:
             output_emis = mapper[output_emis]
-        if reduction_percentage == '':
-            logging.info('* No value provided for the REDUCTION_PERCENTAGE field. Assuming a 100%% reduction.') #wait what does this mean?
-            reduction_percentage = False
+        if emis_delta == '':
+            logging.info('* No value provided for the REDUCTION_PERCENTAGE field. Assuming same emissions.') 
+            emis_delta = False
         else: 
-            reduction_percentage = self.create_reduction_dict(reduction_percentage)
+            emis_delta = self.create_emis_delta_dict(emis_delta)
         
-        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, reduction_percentage
+        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, emis_delta
     
     def get_region_dict(self):
         ''' Hard-coded dictionary of acceptable values for regions '''

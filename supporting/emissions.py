@@ -52,7 +52,7 @@ class emissions:
           pollutant
 
     '''
-    def __init__(self, file_path, output_dir, f_out, debug_mode, reduction_percentage, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
+    def __init__(self, file_path, output_dir, f_out, debug_mode, emis_delta, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
         ''' Initializes the emissions object'''     
         
         # Initialize path and check that it is valid
@@ -65,8 +65,8 @@ class emissions:
         self.details_to_keep = details_to_keep
         self.filter_dict = filter_dict
         self.filter = bool(self.filter_dict) # returns False if empty, True if not empty
-        self.reduction_dict = reduction_percentage
-        self.reduce = bool(self.reduction_dict)  # returns False if empty, True if not empty
+        self.emis_delta_dict = emis_delta
+        self.emis_delta_change = bool(self.emis_delta_dict)  # returns False if empty, True if not empty
         self.debug_mode = debug_mode
         self.verbose = verbose
         self.output_dir = output_dir
@@ -569,13 +569,13 @@ class emissions:
         fig.tight_layout()
         return fig
     
-    def reduce_percentages(self, pol_name, pol_layer):
+    def change_percentages(self, pol_name, pol_layer):
         ''' 'Reduces' emissions by x% for the given pollutant '''    
-        # Calculate the reduction factor
-        reduction_factor = (100 - self.reduction_dict[pol_name]) / 100
+        # Calculate the change factor
+        percentage_factor = (100 - self.emis_delta_dict[pol_name]) / 100
 
-        # Apply the reduction to the 'EMISSIONS_UG/S' column
-        pol_layer['EMISSIONS_UG/S'] *= reduction_factor
+        # Apply the change to the 'EMISSIONS_UG/S' column
+        pol_layer['EMISSIONS_UG/S'] *= percentage_factor
 
         return pol_layer
 
@@ -591,9 +591,9 @@ class emissions:
         # Confirm pol_name is valid
         assert pol_name in pollutant_dict.keys()
         
-        if self.reduce:
-            # If pollutant is to be reduced, apply reduction factor 
-            if pol_name in self.reduction_dict.keys(): 
+        if self.emis_delta_change: 
+            # If pollutant is to be changed, apply reduction factor 
+            if pol_name in self.emis_delta_dict.keys(): 
                 return self.reduce_percentages(pol_name, pollutant_dict[pol_name]) 
         
         # Return pollutant layer
