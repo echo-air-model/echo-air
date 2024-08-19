@@ -507,12 +507,19 @@ class control_file:
         valid_output_emis = type(self.output_emis) == bool
         logging.info('* The DETAILED_CONC provided is not valid. Use Y or N or leave blank.') if not valid_output_emis else ''
         
-        
+        ## Check the emis_delta variable
+        valid_emis_delta = True
+
+        for pol in emis_delta_dict:
+            if not isinstance(emis_delta_dict[pol], numbers.Number):
+                logging.info(f"* The EMISSIONS_CHANGE provided is not valid. Use a number for {pol}")
+                valid_emis_delta = False
+
         ## Output only one time
         valid_inputs = valid_batch_name and valid_run_name and valid_emissions_path and \
             valid_emissions_units and valid_isrm_path and valid_population_path and valid_run_health and \
                 valid_inc_choice and valid_check and valid_verbose and valid_region_category and \
                     valid_region_of_interest and valid_output_resolution and valid_output_exp and valid_detailed_conc and \
-                        valid_output_emis
+                        valid_output_emis and valid_emis_delta
 
         return valid_inputs
