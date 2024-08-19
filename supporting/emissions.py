@@ -570,7 +570,7 @@ class emissions:
         return fig
     
     def change_percentages(self, pol_name, pol_layer):
-        ''' 'Reduces' emissions by x% for the given pollutant '''    
+        ''' Changes emissions by x% for the given pollutant '''    
         # Calculate the change factor
         percentage_factor = (100 - self.emis_delta_dict[pol_name]) / 100
 
@@ -594,7 +594,7 @@ class emissions:
         if self.emis_delta_change: 
             # If pollutant is to be changed, apply reduction factor 
             if pol_name in self.emis_delta_dict.keys(): 
-                return self.reduce_percentages(pol_name, pollutant_dict[pol_name]) 
+                return self.change_percentages(pol_name, pollutant_dict[pol_name]) 
         
         # Return pollutant layer
         return pollutant_dict[pol_name]
