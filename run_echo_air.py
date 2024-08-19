@@ -92,9 +92,7 @@ if __name__ == "__main__":
         detailed_conc_flag = cf.detailed_conc
         output_emis_flag = cf.output_emis
         reduction_percentage = cf.reduction_percentage
-        print ("run echo air has reduction percentage")
-        print(reduction_percentage)
-
+    
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
 
