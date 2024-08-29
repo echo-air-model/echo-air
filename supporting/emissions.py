@@ -571,14 +571,25 @@ class emissions:
     
     def change_percentages(self, pol_name, pol_layer):
         ''' Changes emissions by x% for the given pollutant '''    
-        # Calculate the change factor
-        percentage_factor = (100 - self.emis_delta_dict[pol_name]) / 100
+        emission_change = self.emis_delta_dict[pol_name]
+
+        # Ensure the value is treated as a string for the startswith check
+        emission_change_str = str(emission_change)
+
+        if emission_change_str.startswith('-'):
+            # Extract the number and convert it to a factor (e.g., '-30' -> 0.7)
+            percentage_factor = 1 - int(emission_change_str[1:]) / 100
+        elif emission_change_str == '0':
+            # No change
+            return pol_layer
+        else:
+            percentage_factor = 1 + int(emission_change_str) / 100
 
         # Apply the change to the 'EMISSIONS_UG/S' column
         pol_layer['EMISSIONS_UG/S'] *= percentage_factor
 
         return pol_layer
-
+    
     def get_pollutant_layer(self, pol_name):
         ''' Returns pollutant layer '''        
         # Define a pollutant dictionary for convenience
@@ -598,5 +609,3 @@ class emissions:
         
         # Return pollutant layer
         return pollutant_dict[pol_name]
-    
-    

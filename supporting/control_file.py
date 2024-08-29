@@ -63,7 +63,7 @@ class control_file:
                          'EMISSIONS_UNITS', 'POPULATION_FILENAME', 'RUN_HEALTH', 
                          'RACE_STRATIFIED_INCIDENCE', 'CHECK_INPUTS','VERBOSE',
                          'REGION_OF_INTEREST','REGION_CATEGORY','OUTPUT_RESOLUTION',
-                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS', 'REDUCTION_PERCENTAGE']
+                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS', 'EMISSIONS_CHANGE']
         self.blanks_okay = [True, True, False, 
                             False, False, True, 
                             True, True, True,
@@ -200,19 +200,14 @@ class control_file:
         # Defining an empty dict 
         emis_delta_dict = {}
 
-        # Split the string by commas to get each pollutant-percentage change pair
-        pairs = emis_delta.split(',')
-
-        for pair in pairs:
-            # Split each pair by colon to separate the pollutant name and percentage change
-            pollutant, percentage = pair.split(':')
-            
-            # Strip whitespace and percentage signs, and convert the percentage to an integer
-            pollutant = pollutant.strip().replace('.', '')
-            percentage = int(percentage.strip().replace('%', ''))
-            
-            # Add the cleaned data to the dictionary
-            emis_delta_dict[pollutant] = percentage  
+        # Use regular expressions to find all pollutant-value pairs
+        matches = re.findall(r'([A-Z0-9]+):\s*([+-]?\d+)', emis_delta)
+       
+        # Iterate over the matches and add them to the dictionary
+        for match in matches:
+            pollutant = match[0]  # The pollutant name (e.g., 'PM25')
+            value = int(match[1])  # The value (e.g., +30 or -20)
+            emis_delta_dict[pollutant] = value
 
         return emis_delta_dict
     
@@ -299,10 +294,10 @@ class control_file:
         else:
             output_emis = mapper[output_emis]
         if emis_delta == '':
-            logging.info('* No value provided for the REDUCTION_PERCENTAGE field. Assuming same emissions.') 
+            logging.info('* No value provided EMISSIONS_CHANGE field. Assuming same emissions.') 
             emis_delta = False
         else: 
-            emis_delta = self.create_emis_delta_dict(emis_delta)
+            self.emis_delta_dict = self.create_emis_delta_dict(emis_delta)
         
         return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, emis_delta
     
@@ -510,11 +505,28 @@ class control_file:
         ## Check the emis_delta variable
         valid_emis_delta = True
 
-        for pol in emis_delta_dict:
-            if not isinstance(emis_delta_dict[pol], numbers.Number):
-                logging.info(f"* The EMISSIONS_CHANGE provided is not valid. Use a number for {pol}")
-                valid_emis_delta = False
+        # Regex patterns for - numbers
+        pattern = re.compile(r'^-?\d+$|^0$')
 
+        if self.emis_delta:
+            for pol, value in self.emis_delta_dict.items():
+                if value is None:
+                    logging.info(f"* The EMISSIONS_CHANGE value for {pol} is None and not valid.")
+                    valid_emis_delta = False
+                    continue  
+                
+                # Ensure the value is a string for regex matching
+                value_str = str(value)
+
+                # Check if the string value matches the regex pattern
+                if not pattern.match(value_str):
+                    logging.info(f"* The EMISSIONS_CHANGE provided is not valid for {pol}. Use a number with a '-' or a standalone '0'.")
+                    valid_emis_delta = False
+        
+        # Assign the change in emissions as the newly created dictionary
+        if valid_emis_delta: 
+            self.emis_delta = self.emis_delta_dict
+            
         ## Output only one time
         valid_inputs = valid_batch_name and valid_run_name and valid_emissions_path and \
             valid_emissions_units and valid_isrm_path and valid_population_path and valid_run_health and \
