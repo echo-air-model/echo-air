@@ -92,6 +92,7 @@ if __name__ == "__main__":
         detailed_conc_flag = cf.detailed_conc
         output_emis_flag = cf.output_emis
         emis_delta = cf.emis_delta
+        boundary_change = cf.boundary_change
     
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
@@ -124,7 +125,8 @@ if __name__ == "__main__":
             # Default to verbose since this mode is just for checking files
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=False, verbose=True)
             emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, load_file=False, verbose=True)
-            emis_change = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True,load_file=False, verbose=True)
+            if emis_delta: 
+                emis_change = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True,load_file=False, verbose=True)
             pop = population(population_path, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
 

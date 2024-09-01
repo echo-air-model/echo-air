@@ -573,7 +573,8 @@ class emissions:
         return fig
     
     def change_percentages(self, pol_name, pol_layer):
-        ''' Changes emissions by x% for the given pollutant '''    
+        ''' Changes emissions by x% for the given pollutant ''' 
+      
         emission_change = self.emis_delta_dict[pol_name]
 
         # Ensure the value is treated as a string for the startswith check
@@ -603,7 +604,7 @@ class emissions:
 
         return pol_layer
     
-    def get_pollutant_layer(self, pol_name):
+    def get_pollutant_layer(self, pol_name, crs):
         ''' Returns pollutant layer '''        
         # Define a pollutant dictionary for convenience
         pollutant_dict = {'PM25':self.PM25,
@@ -615,10 +616,29 @@ class emissions:
         # Confirm pol_name is valid
         assert pol_name in pollutant_dict.keys()
         
+        # Fetch the pollutant layer
+        pol_layer = pollutant_dict[pol_name] 
+
+        # If pollutant is to be changed, apply reduction factor 
         if self.emis_delta_change: 
-            # If pollutant is to be changed, apply reduction factor 
-            if pol_name in self.emis_delta_dict.keys(): 
-                return self.change_percentages(pol_name, pollutant_dict[pol_name]) 
+            
+            # If there is a boundary for emissions change, update the pollutant layer 
+            if self.boundary_change: 
+            
+                # Load boundary shapefile
+                boundary_gdf = gpd.read_file(self.boundary_change).to_crs(self.crs)
+
+                # Intersect the pollutant layer with the boundary
+                pol_layer = gpd.overlay(pol_layer, boundary_gdf, how='intersection')
+            
+            # Apply the percentage change within the intersected area
+            adjusted_intersected_layer = self.change_percentages(pol_name, pol_layer)
+            
+            # Removes the intersected area from the original layer to avoid duplication (area outside boundary)
+            unchanged_layer = gpd.overlay(pollutant_layer, boundary_gdf, how='difference')
+
+            # Combine the unchanged and adjusted layers
+            pol_layer = pd.concat([unchanged_layer, adjusted_intersected_layer], ignore_index=True)
         
-        # Return pollutant layer
-        return pollutant_dict[pol_name]
+        # Return pollutant laye
+        return pol_layer

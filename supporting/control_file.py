@@ -63,12 +63,14 @@ class control_file:
                          'EMISSIONS_UNITS', 'POPULATION_FILENAME', 'RUN_HEALTH', 
                          'RACE_STRATIFIED_INCIDENCE', 'CHECK_INPUTS','VERBOSE',
                          'REGION_OF_INTEREST','REGION_CATEGORY','OUTPUT_RESOLUTION',
-                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS', 'EMISSIONS_CHANGE']
+                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS',
+                          'EMISSIONS_CHANGE', 'BOUNDARY']
         self.blanks_okay = [True, True, False, 
                             False, False, True, 
                             True, True, True,
                             True, True, True,
-                            True, True, True, True]
+                            True, True, True, 
+                            True, True]
         
         # Run basic checks on control file
         if self.valid_file:
@@ -78,7 +80,7 @@ class control_file:
             
         # If checks are good, import values
         if self.valid_structure and self.no_incorrect_blanks and self.valid_file:
-            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis, self.emis_delta = self.get_all_inputs()
+            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis, self.emis_delta, self.boundary_change = self.get_all_inputs()
             self.valid_inputs = self.check_inputs()
             if self.valid_inputs:
                 logging.info('\n << Control file was successfully imported and inputs are correct >>')
@@ -231,6 +233,7 @@ class control_file:
         detailed_conc = self.get_input_value('DETAILED_CONC', upper=True)
         output_emis = self.get_input_value('OUTPUT_EMIS', upper=True)
         emis_delta = self.get_input_value('EMISSIONS_CHANGE', upper=True)
+        boundary_change = self.get_input_value('BOUNDARY', upper=True)
 
         # For ISRM folder, assume CA ISRM if no value is given
         if isrm_path == '':
@@ -293,13 +296,20 @@ class control_file:
             output_emis = False
         else:
             output_emis = mapper[output_emis]
+        
+        # Boundary requires change in emissions. Assume no boundary if nothing specified 
         if emis_delta == '':
-            logging.info('* No value provided EMISSIONS_CHANGE field. Assuming same emissions.') 
+            if boundary == '': 
+                logging.info('* No value provided EMISSIONS_CHANGE field. Assuming same emissions.') 
+            else: 
+                logging.info('* Was given a boundary but no emissions change. Assuming same emissions.') 
             emis_delta = False
         else: 
             self.emis_delta_dict = self.create_emis_delta_dict(emis_delta)
-        
-        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, emis_delta
+            if boundary == '': 
+                logging.info('* No value was provided for BOUNDARY field. Assuming emissions change for entire region.')
+    
+        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, emis_delta, boundary_change
     
     def get_region_dict(self):
         ''' Hard-coded dictionary of acceptable values for regions '''
@@ -526,12 +536,16 @@ class control_file:
         # Assign the change in emissions as the newly created dictionary
         if valid_emis_delta: 
             self.emis_delta = self.emis_delta_dict
+        
+        ## Check the boundary path 
+        valid_boundary_path = self.check_path(file=self.boundary_change)
+        logging.info('* The boundary path for emissions change provided is not valid.') if not valid_boundary_path else ''
             
         ## Output only one time
         valid_inputs = valid_batch_name and valid_run_name and valid_emissions_path and \
             valid_emissions_units and valid_isrm_path and valid_population_path and valid_run_health and \
                 valid_inc_choice and valid_check and valid_verbose and valid_region_category and \
                     valid_region_of_interest and valid_output_resolution and valid_output_exp and valid_detailed_conc and \
-                        valid_output_emis and valid_emis_delta
+                        valid_output_emis and valid_emis_delta and valid_boundary_path
 
         return valid_inputs
