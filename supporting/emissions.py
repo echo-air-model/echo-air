@@ -36,6 +36,8 @@ class emissions:
         - load_file: set to True to import emissions, otherwise will just run checks
         - verbose: enable for more detailed outputs
         - debug_mode: a Boolean indicating whether or not to output debug statements
+        - emis_delta: the dictionary containing emissions change
+        - emis_change_only: a Boolean indicating whehter or not the emissions object is solely the emissions change
         
     CALCULATES:
         - PM25: primary PM2.5 emissions in each grid cell
@@ -576,7 +578,8 @@ class emissions:
 
         # Ensure the value is treated as a string for the startswith check
         emission_change_str = str(emission_change)
-        if emis_change_only: 
+
+        if self.emis_change_only: 
             if emission_change_str.startswith('-'):
                 # Extract the number and convert it to a factor (e.g., '-30' -> 0.7)
                 percentage_factor = int(emission_change_str[1:]) / 100

@@ -95,6 +95,10 @@ if __name__ == "__main__":
     
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
+    
+    # Create new path out name for second set of emissions with just the change
+    if emis_delta: 
+        f_out_change = 'emis_change_only_' + f_out
 
     # Move the log file into the output directory
     new_logger = os.path.join(output_dir, 'log_'+f_out+'.txt')
@@ -155,8 +159,10 @@ if __name__ == "__main__":
             
             # Start reading in files in parallel
             emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, units=units, name=name, load_file=True, verbose=verbose)
+            
+            # If an emissions change is toggled, a second emissions object will be created with solely the emissions change
             if emis_delta: 
-                emis_change_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, units=units, name=name, load_file=True, verbose=verbose)
+                emis_change_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out_change, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, units=units, name=name, load_file=True, verbose=verbose)
             isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
             pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
       
@@ -193,6 +199,8 @@ if __name__ == "__main__":
             
             ## Prepare to concentrations
             emis = emis_future.result() # At this point, we cannot proceed without emissions loaded
+            
+            # If emissions change is toggled, the second emissions object is loaded
             if emis_delta: 
                 emis_change = emis_change_future.result()
         
@@ -203,8 +211,10 @@ if __name__ == "__main__":
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
             emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, load_file=False, verbose=True)
+            
+            # If emiss
             if emis_delta: 
-                emis_change = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True,load_file=False, verbose=True)
+                emis_change = emissions(emissions_path, output_dir, f_out_change, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True,load_file=False, verbose=True)
             
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -221,9 +231,11 @@ if __name__ == "__main__":
         logging.info('\n<< Estimating concentrations. >>')        
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
-        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
+        emis_change_only = False
+        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, emis_change_only, output_resolution,  run_calcs=True, verbose=verbose)
         if emis_delta: 
-            conc_change = concentration(emis_change, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
+            emis_change_only = True 
+            conc_change = concentration(emis_change, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, emis_change_only, output_resolution,  run_calcs=True, verbose=verbose)
        
         ## Create plots and export results
         # Parallelizing this process resulted in errors. This is an area for improvement in
@@ -235,7 +247,7 @@ if __name__ == "__main__":
         # Create the map of concentrations
         conc.output_concentrations(output_region, output_dir, f_out, ca_shp_path, shape_out)
         if emis_delta: 
-            conc_change.output_concentrations(output_region, output_dir, f_out, ca_shp_path, shape_out)
+            conc_change.output_concentrations(output_region, output_dir, f_out_change, ca_shp_path, shape_out)
         logging.info("- [CONCENTRATION] Concentration files output into: {}.".format(output_dir))
 
         ## Perform concentration-related EJ analyses
@@ -255,18 +267,19 @@ if __name__ == "__main__":
         if output_exposure: # Perform all exports in parallel
             export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode=debug_mode)
             if emis_delta:
-                export_exposure(exposure_gdf_change, exposure_disparity_change, exposure_pctl_change, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode=debug_mode)
+                export_exposure(exposure_gdf_change, exposure_disparity_change, exposure_pctl_change, shape_out, output_dir, f_out_change, verbose, run_parallel, debug_mode=debug_mode)
             
         else: # Just export the EJ figure
             plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode=debug_mode)
             if emis_delta:
-                plot_percentile_exposure(output_dir, f_out, exposure_pctl_change, verbose, debug_mode=debug_mode)
+                plot_percentile_exposure(output_dir, f_out_change, exposure_pctl_change, verbose, debug_mode=debug_mode)
             
         # Finally, if larger output resolution, export population-weighted map that matches the area-weighted map
         if output_resolution != 'ISRM':
             export_pwm_map(pop.pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out)
+            
             if emis_delta: 
-                export_pwm_map(pop.pop_exp, conc_change, output_dir, output_region, f_out, ca_shp_path, shape_out)
+                export_pwm_map(pop.pop_exp, conc_change, output_dir, output_region, f_out_change, ca_shp_path, shape_out)
         
         ### HEALTH MODULE
         if run_health:
