@@ -36,6 +36,9 @@ class emissions:
         - load_file: set to True to import emissions, otherwise will just run checks
         - verbose: enable for more detailed outputs
         - debug_mode: a Boolean indicating whether or not to output debug statements
+        - emis_delta: the dictionary containing emissions change
+        - emis_change_only: a Boolean indicating whehter or not the emissions object is solely the emissions change
+        - boundary_change: a shapefile containing the boundary for where emissions would be adjusted
         
     CALCULATES:
         - PM25: primary PM2.5 emissions in each grid cell
@@ -52,7 +55,7 @@ class emissions:
           pollutant
 
     '''
-    def __init__(self, file_path, output_dir, f_out, debug_mode, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
+    def __init__(self, file_path, output_dir, f_out, debug_mode, emis_delta, emis_change_only, boundary_change, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
         ''' Initializes the emissions object'''     
         
         # Initialize path and check that it is valid
@@ -65,6 +68,10 @@ class emissions:
         self.details_to_keep = details_to_keep
         self.filter_dict = filter_dict
         self.filter = bool(self.filter_dict) # returns False if empty, True if not empty
+        self.emis_delta_dict = emis_delta
+        self.emis_delta_change = bool(self.emis_delta_dict)  # returns False if empty, True if not empty
+        self.emis_change_only = emis_change_only
+        self.boundary_change = boundary_change
         self.debug_mode = debug_mode
         self.verbose = verbose
         self.output_dir = output_dir
@@ -567,6 +574,37 @@ class emissions:
         fig.tight_layout()
         return fig
     
+    def change_percentages(self, pol_name, pol_layer):
+        ''' Changes emissions by x% for the given pollutant ''' 
+        emission_change = self.emis_delta_dict[pol_name]
+
+        # Ensure the value is treated as a string for the startswith check
+        emission_change_str = str(emission_change)
+
+        if self.emis_change_only: 
+            if emission_change_str.startswith('-'):
+                # Extract the number and convert it to a factor (e.g., '-30' -> 0.7)
+                percentage_factor = int(emission_change_str[1:]) / 100
+            elif emission_change_str == '0':
+                # No change
+                return pol_layer
+            else:
+                percentage_factor = int(emission_change_str) / 100
+        else: 
+            if emission_change_str.startswith('-'):
+                # Extract the number and convert it to a factor (e.g., '-30' -> 0.7)
+                percentage_factor = 1 - int(emission_change_str[1:]) / 100
+            elif emission_change_str == '0':
+                # No change
+                return pol_layer
+            else:
+                percentage_factor = 1 + int(emission_change_str) / 100
+
+        # Apply the change to the 'EMISSIONS_UG/S' column
+        pol_layer['EMISSIONS_UG/S'] *= percentage_factor
+
+        return pol_layer
+    
     def get_pollutant_layer(self, pol_name):
         ''' Returns pollutant layer '''        
         # Define a pollutant dictionary for convenience
@@ -576,8 +614,35 @@ class emissions:
                          'NOX':self.NOX,
                          'SOX':self.SOX}
         
-        # Confirm pol_name is valid
-        assert pol_name in pollutant_dict.keys()
+        # Fetch the pollutant layer
+        pol_layer = pollutant_dict[pol_name]
+
+        # Create a copy of pollutant layer
+        tmp_layer = pol_layer.copy()
+
+        # If pollutant is to be changed, apply reduction factor 
+        if self.emis_delta_change: 
+            
+            # If there is a boundary for emissions change, update the pollutant layer 
+            if self.boundary_change: 
+            
+                # Load boundary shapefile
+                boundary_gdf = gpd.read_file(self.boundary_change).to_crs(self.crs)
+
+                # Intersect the pollutant layer with the boundary
+                intersected_layer = gpd.overlay(tmp_layer, boundary_gdf, how='intersection')
+            
+                # Apply the percentage change within the intersected area
+                adjusted_intersected_layer = self.change_percentages(pol_name, intersected_layer)
+                
+                # Removes the intersected area from the original layer to avoid duplication (area outside boundary)
+                unchanged_layer = gpd.overlay(pol_layer, boundary_gdf, how='difference', keep_geom_type=False)
+
+                # Combine the unchanged and adjusted layers
+                tmp_layer = pd.concat([unchanged_layer, adjusted_intersected_layer], ignore_index=True)
+            
+            else: 
+                tmp_layer = self.change_percentages(pol_name, tmp_layer)
         
-        # Return pollutant layer
-        return pollutant_dict[pol_name]
+        # Return pollutant laye
+        return tmp_layer

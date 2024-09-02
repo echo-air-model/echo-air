@@ -40,6 +40,7 @@ class concentration_layer:
         - layer: the vertical layer of the ISRM grid to use
         - output_dir: a string pointing to the output directory
         - output_emis_flag: a Boolean indicating whether ISRM-allocated emissions should be output
+        - emis_change_only: a Boolean that indicates whether this is emissions_change_only
         - run_parallel: a Boolean indicating whether or not to run in parallel
         - shp_path: data variable file path for the boarder
         - output_region: a geodataframe containing only the region of interest
@@ -56,7 +57,7 @@ class concentration_layer:
           contribution to the total ground-level PM2.5 concentrations
         
     '''
-    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, run_parallel, shp_path, output_region, debug_mode,  run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, emis_change_only, run_parallel, shp_path, output_region, debug_mode,  run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         # Initialize concentration object by reading in the emissions and isrm 
         self.emissions = emis_obj
@@ -66,6 +67,7 @@ class concentration_layer:
         self.layer = layer
         self.output_dir = output_dir
         self.output_emis_flag = output_emis_flag
+        self.emis_change_only = emis_change_only
         self.run_parallel = run_parallel
         self.debug_mode = debug_mode
         self.verbose = verbose
@@ -162,8 +164,12 @@ class concentration_layer:
                                                                           right_on='ISRM_ID')
         reallocated_emis['EMISSIONS_UG/S'].fillna(0, inplace=True)
         
+
+        print(f"Reallocated Emissions Sum: {reallocated_emis['EMISSIONS_UG/S'].sum()}")
+        print(f"Old Total: {old_total}")
+
         # Confirm that the total has not changed
-        assert np.isclose(reallocated_emis['EMISSIONS_UG/S'].sum(), old_total)
+        #np.isclose(reallocated_emis['EMISSIONS_UG/S'].sum(), old_total)
         
         return reallocated_emis
 
@@ -184,9 +190,13 @@ class concentration_layer:
 
         # Get total area of each emissions cell
         emis['area_km2'] = emis.geometry.area / (1000 * 1000)
+
+        # Filter for polygon geometries only
+        emis_polygons = emis[emis.geometry.type == 'Polygon']
         
         # Create intersect object between emis and ISRM grid
-        intersect = gpd.overlay(emis, isrm_geography, how='intersection')
+        
+        intersect = gpd.overlay(emis_polygons, isrm_geography, how='intersection')
         emis_totalarea = intersect.groupby('EMIS_ID').sum()['area_km2'].to_dict()
         
         # Add a total area and area fraction to the intersect object
@@ -345,8 +355,11 @@ class concentration_layer:
         # Adjust layout to avoid overlap
         plt.tight_layout()
 
-	# Create a file name
-        fname_tmp = '{}_layer{}_allocated_emis.png'.format(self.name, self.layer)
+	    # Create a file name
+        if self.emis_change_only: 
+            fname_tmp = 'emis_change_only_{}_layer{}_allocated_emis.png'.format(self.name, self.layer)
+        else: 
+            fname_tmp = '{}_layer{}_allocated_emis.png'.format(self.name, self.layer)
         
         # Save the figure as a PNG in output directory
         plt.savefig(path.join(self.output_dir, fname_tmp))

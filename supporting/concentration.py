@@ -46,6 +46,7 @@ class concentration:
         - debug_mode: a Boolean indicating whether or not to output debug statements
         - shp_path: data variable file path for the boarder
         - output_region: a geodataframe containing only the region of interest
+        - emis_change_only: a Boolean indicating whether this is only emissions change
         
     CALCULATES:
         - detailed_conc: geodataframe of the detailed concentrations at ground-level 
@@ -62,8 +63,8 @@ class concentration:
           directory of choice
 
     '''
-    
-    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution='ISRM', run_calcs=True, verbose=False):
+        
+    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, emis_change_only, output_resolution='ISRM', run_calcs=True, verbose=False):
 
         ''' Initializes the Concentration object'''        
         
@@ -81,6 +82,7 @@ class concentration:
         self.output_resolution = output_resolution
         self.debug_mode = debug_mode
         self.shp_path = ca_shp_path
+        self.emis_change_only = emis_change_only
         self.output_region = output_region
         self.output_geometry_fps = output_geometry_fps
         self.verbose = verbose
@@ -110,7 +112,7 @@ class concentration:
     def run_layer(self, layer):
         ''' Estimates concentratiton for a single layer '''
         # Creates a concentration_layer object for the given layer
-        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.output_dir, self.output_emis_flag, self.run_parallel, self.shp_path, self.output_region, run_calcs=True, debug_mode = self.debug_mode, verbose=self.verbose)
+        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.output_dir, self.output_emis_flag, self.emis_change_only, self.run_parallel, self.shp_path, self.output_region, debug_mode = self.debug_mode, run_calcs=True, verbose=self.verbose)
         
         # Copies out just the detailed_conc object and adds the LAYER column
         detailed_conc_layer = conc_layer.detailed_conc.copy()
@@ -172,14 +174,14 @@ class concentration:
             pol = 'Emissions of '+var.split('_')[-1]
         else:
             pol = 'All Emissions'
-        
+                
         # A few things vary on the output resolution
         if self.output_resolution in ['AB','AD','C']:
             st_str = '* Area-Weighted Average'
             fname = f_out + '_' + pol + '_area_wtd_concentrations.png'
             t_str = r'PM$_{2.5}$ Concentrations* '+'from {}'.format(pol)
             c_to_plot = self.summary_conc[['NAME', 'geometry', var]].copy()
-            
+           
         else:
             t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(pol)
             fname = f_out + '_' + pol + '_concentrations.png'
@@ -245,7 +247,10 @@ class concentration:
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
         # If detailed flag is True, export detailed shapefile
         if self.detailed_conc_flag:
-            fname = f_out + '_detailed_concentration.shp' # File Name
+            if self.emis_change_only: 
+                fname = f_out + '_change_detailed_concentration.shp' # File Name
+            else: 
+                fname = f_out + '_detailed_concentration.shp' # File Name
             fpath = os.path.join(output_dir, fname)
             
             # Make a copy and change column names to meet shapefile requirements
@@ -261,7 +266,10 @@ class concentration:
             
         # If detailed flag is False, export only total concentration shapefile
         else:
-            fname = str.lower(f_out + '_total_concentration.shp') # File Name
+            if self.emis_delta:
+                fname = str.lower(f_out + '_change_total_concentration.shp') # File Name
+            else:
+                fname = str.lower(f_out + '_total_concentration.shp') # File Name
             fpath = os.path.join(output_dir, fname)
             
             # Make a copy and change column names to meet shapefile requirements
@@ -346,3 +354,5 @@ class concentration:
         self.export_concentrations(shape_out, f_out)
         
         return
+
+    

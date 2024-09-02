@@ -46,9 +46,15 @@
 ╓──────────────────╖
 ║  OUTPUT OPTIONS  ║
 ╙──────────────────╜
-- REGION_OF_INTEREST: #San Francisco Bay Area (*)
+- REGION_OF_INTEREST: #San Francisco Bay(*)
 - REGION_CATEGORY: #AD (*)
 - OUTPUT_RESOLUTION: #ISRM, C, AB, AD, or DACS (*)
 - OUTPUT_EXPOSURE: #Y (*)
 - DETAILED_CONC: #Y (*)
 - OUTPUT_EMIS: #N (*)
+
+╓──────────────────╖
+║  EDIT EMISSIONS  ║
+╙──────────────────╜
+- EMISSIONS_CHANGE: #PM25: +30, NH3: -20, VOC: 10, NOX: 0, SOX: 20 (*)
+- BOUNDARY: #boundary.shp (*)

@@ -91,9 +91,15 @@ if __name__ == "__main__":
         output_exposure = cf.output_exposure
         detailed_conc_flag = cf.detailed_conc
         output_emis_flag = cf.output_emis
-
+        emis_delta = cf.emis_delta
+        boundary_change = cf.boundary_change
+    
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
+    
+    # Create new path out name for second set of emissions with just the change
+    if emis_delta: 
+        f_out_change = 'emis_change_only_' + f_out
 
     # Move the log file into the output directory
     new_logger = os.path.join(output_dir, 'log_'+f_out+'.txt')
@@ -118,7 +124,9 @@ if __name__ == "__main__":
         try:
             # Default to verbose since this mode is just for checking files
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=False, verbose=True)
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
+            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, boundary_change=boundary_change, load_file=False, verbose=True)
+            if emis_delta: 
+                emis_change = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, boundary_change=boundary_change, load_file=False, verbose=True)
             pop = population(population_path, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
 
@@ -152,9 +160,13 @@ if __name__ == "__main__":
             file_reader_pool = concurrent.futures.ThreadPoolExecutor()
             
             # Start reading in files in parallel
-            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, units=units, name=name, load_file=True, verbose=verbose)
+            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, boundary_change=boundary_change, units=units, name=name, load_file=True, verbose=verbose)
             isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
             pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
+
+            # If an emissions change is toggled, a second emissions object will be created with solely the emissions change
+            if emis_delta: 
+                emis_change_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out_change, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, boundary_change=boundary_change, units=units, name=name, load_file=True, verbose=verbose)
       
             # To run multiple computations at once, we need to create multiple
             # processes instead of threads. Processes take longer to create, but
@@ -189,6 +201,10 @@ if __name__ == "__main__":
             
             ## Prepare to concentrations
             emis = emis_future.result() # At this point, we cannot proceed without emissions loaded
+            
+            # If emissions change is toggled, the second emissions object is loaded
+            if emis_delta: 
+                emis_change = emis_change_future.result()
         
         else: # Import all three files linearly, even though population won't be used for a while
             # Return a few print statements
@@ -196,8 +212,12 @@ if __name__ == "__main__":
             
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
-        
+            
+            emis = emissions(emissions_path, output_dir, f_out, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, boundary_change=boundary_change, units=units,   name=name, load_file=True, verbose=verbose)
+            # If emiss
+            if emis_delta: 
+                emis_change = emissions(emissions_path, output_dir, f_out_change,  debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, boundary_change=boundary_change, units=units, name=name, load_file=True, verbose=verbose)
+            
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
@@ -213,8 +233,12 @@ if __name__ == "__main__":
         logging.info('\n<< Estimating concentrations. >>')        
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
-        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
-
+        emis_change_only = False
+        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, emis_change_only, output_resolution, run_calcs=True, verbose=verbose)
+        if emis_delta: 
+            emis_change_only = True 
+            conc_change = concentration(emis_change, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, emis_change_only, output_resolution,  run_calcs=True, verbose=verbose)
+       
         ## Create plots and export results
         # Parallelizing this process resulted in errors. This is an area for improvement in
         # future versions
@@ -224,6 +248,8 @@ if __name__ == "__main__":
         
         # Create the map of concentrations
         conc.output_concentrations(output_region, output_dir, f_out, ca_shp_path, shape_out)
+        if emis_delta: 
+            conc_change.output_concentrations(output_region, output_dir, f_out_change, ca_shp_path, shape_out)
         logging.info("- [CONCENTRATION] Concentration files output into: {}.".format(output_dir))
 
         ## Perform concentration-related EJ analyses
@@ -236,17 +262,26 @@ if __name__ == "__main__":
         logging.info('\n')
         
         # Estimate exposures and output them
-        exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, verbose, debug_mode=debug_mode)    
-        
+        exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, verbose, debug_mode=debug_mode)  
+        if emis_delta:   
+            exposure_gdf_change, exposure_pctl_change, exposure_disparity_change = run_exposure_calcs(conc_change, exp_pop_alloc, verbose, debug_mode=debug_mode)  
+
         if output_exposure: # Perform all exports in parallel
             export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode=debug_mode)
+            if emis_delta:
+                export_exposure(exposure_gdf_change, exposure_disparity_change, exposure_pctl_change, shape_out, output_dir, f_out_change, verbose, run_parallel, debug_mode=debug_mode)
             
         else: # Just export the EJ figure
             plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode=debug_mode)
+            if emis_delta:
+                plot_percentile_exposure(output_dir, f_out_change, exposure_pctl_change, verbose, debug_mode=debug_mode)
             
         # Finally, if larger output resolution, export population-weighted map that matches the area-weighted map
         if output_resolution != 'ISRM':
             export_pwm_map(pop.pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out)
+            
+            if emis_delta: 
+                export_pwm_map(pop.pop_exp, conc_change, output_dir, output_region, f_out_change, ca_shp_path, shape_out)
         
         ### HEALTH MODULE
         if run_health:
@@ -274,6 +309,8 @@ if __name__ == "__main__":
             
             # Two inputs are required to estimate excess mortality - get these up front
             trimmed_conc = conc.detailed_conc_clean[['ISRM_ID','TOTAL_CONC_UG/M3','geometry']]
+            if emis_delta: 
+                trimmed_conc_change = conc_change.detailed_conc_clean[['ISRM_ID','TOTAL_CONC_UG/M3','geometry']]
             pop = hia_inputs.population.groupby('ISRM_ID')[['ASIAN','BLACK','HISLA','INDIG', 'PACIS', 'WHITE','TOTAL', 'OTHER']].sum().reset_index() 
             
             ## Split again
@@ -299,11 +336,28 @@ if __name__ == "__main__":
                                                              hia_inputs.pop_inc, pop, 'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                     lungcancer_future = health_executor.submit(calculate_excess_mortality, trimmed_conc,
                                                              hia_inputs.pop_inc, pop, 'LUNG CANCER', krewski, verbose, debug_mode)
-                                    
+                    
+                    # If an emissions change is specified, the change only results are also outputted 
+                    if emis_delta: 
+                        # Submit each endpoint as its own process to the health_executor
+                        allcause_future_change = health_executor.submit(calculate_excess_mortality, trimmed_conc_change,
+                                                                hia_inputs.pop_inc, pop, 'ALL CAUSE', krewski, verbose, debug_mode)
+                        ihd_future_change = health_executor.submit(calculate_excess_mortality, trimmed_conc_change,
+                                                                hia_inputs.pop_inc, pop, 'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
+                        lungcancer_future_change = health_executor.submit(calculate_excess_mortality, trimmed_conc_change,
+                                                                hia_inputs.pop_inc, pop, 'LUNG CANCER', krewski, verbose, debug_mode)
+                                   
                     # Collect all three results
                     allcause = allcause_future.result()
                     ihd = ihd_future.result()
                     lungcancer = lungcancer_future.result()
+
+                    # If an emissions change is specified, the change only results are also outputted 
+                    if emis_delta:
+                        # Collect all three results
+                        allcause_change = allcause_future.result()
+                        ihd_change = ihd_future.result()
+                        lungcancer_change = lungcancer_future.result()
                     
                     # Begin exporting the results in parallel
                     logging.info('<< Exporting Health Impact Outputs >>')
@@ -312,6 +366,12 @@ if __name__ == "__main__":
                     allcause_ve_future = health_executor.submit(visualize_and_export_hia, allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
                     ihd_ve_future = health_executor.submit(visualize_and_export_hia, ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
                     lungcancer_ve_future = health_executor.submit(visualize_and_export_hia, lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+
+                    if emis_delta:
+                        allcause_ve_future_change = health_executor.submit(visualize_and_export_hia, allcause_change, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                        ihd_ve_future_change = health_executor.submit(visualize_and_export_hia, ihd_change, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                        lungcancer_ve_future_change = health_executor.submit(visualize_and_export_hia, lungcancer_change, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                        
                     logging.info('- [HEALTH] Waiting for visualizations and exports to complete...')
                     
                     # We don't actually need anything stored, we just need the program to wait until
@@ -319,9 +379,17 @@ if __name__ == "__main__":
                     acm_summary = allcause_ve_future.result()
                     ihd_summary = ihd_ve_future.result()
                     lcm_summary = lungcancer_ve_future.result()
+
+                    if emis_delta:
+                        acm_change_summary = allcause_ve_future_change.result()
+                        ihd_change_summary = ihd_ve_future_change.result()
+                        lcm_change_summary = lungcancer_ve_future_change.result()
                     
                     # Get summary table and export
                     combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose)
+                    
+                    if emis_delta: 
+                        combine_hia_summaries(acm_change_summary, ihd_change_summary, lcm_change_summary, output_dir, f_out, verbose)
                     
             else:
                 # Start with a few print statements to kick things off
@@ -337,13 +405,25 @@ if __name__ == "__main__":
                                                  'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                 lungcancer = calculate_excess_mortality(trimmed_conc, hia_inputs.pop_inc, 
                                                         pop, 'LUNG CANCER', krewski, verbose, debug_mode)            
-                
+                if emis_delta:
+                    allcause_change = calculate_excess_mortality(trimmed_conc_change, hia_inputs.pop_inc, pop, 
+                                                      'ALL CAUSE', krewski, verbose, debug_mode)
+                    ihd_change = calculate_excess_mortality(trimmed_conc_change, hia_inputs.pop_inc, pop, 
+                                                    'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
+                    lungcancer_change = calculate_excess_mortality(trimmed_conc_change, hia_inputs.pop_inc, 
+                                                            pop, 'LUNG CANCER', krewski, verbose, debug_mode)   
+               
                 # Plot and export
                 logging.info('<< Exporting Health Impact Outputs >>')
                 visualize_and_export_hia(allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
                 visualize_and_export_hia(ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
                 visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
-            
+
+                if emis_delta: 
+                    visualize_and_export_hia(allcause_change, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                    visualize_and_export_hia(ihd_change, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+                    visualize_and_export_hia(lungcancer_change, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, verbose=verbose, debug_mode=debug_mode)
+
             # Return that everything is done
             logging.info('- [HEALTH] All outputs have been exported!')
                 
