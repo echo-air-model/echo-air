@@ -54,6 +54,6 @@
 - OUTPUT_EMIS: #N (*)
 
 ╓────────────────────╖
-║  EMISSIONS FILTER  ║
+║   EDIT EMISSIONS   ║
 ╙────────────────────╜
 - FILTER_OPTIONS: # Vehicle Type: [CAR, TRUCK], Regulated:[Y] (*)
