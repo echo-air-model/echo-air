@@ -53,7 +53,7 @@ class census:
         self.ipums_shp_fp = ipums_shp_fp
         self.output_dir = output_dir
         self.f_out = f_out
-        self.verbose = verbose
+        self.verbzose = verbose
         self.debug_mode = debug_mode
         self.codebook = self.load_codebook()
         self.tract_data = pd.read_csv(tractdata_fp, encoding="ISO-8859-1")
@@ -367,11 +367,7 @@ class census:
         fpath = os.path.join(self.output_dir, fname)
 
         # Logging statement for exporting
-<<<<<<< HEAD
         logging.info('- [CENSUS] Stored at: {}'.format(fpath))
-=======
-        logging.info('- Stored at: {}'.format([fpath]))
->>>>>>> 7d01407988657b95c939c655463607e7b5e13b76
         
         # Save to file
         ca_tracts_to_export.to_feather(fpath)

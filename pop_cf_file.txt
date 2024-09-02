@@ -14,9 +14,9 @@
 ╓───────────────────╖
 ║    CENSUS DATA    ║
 ╙───────────────────╜
-- CODEBOOK_FP: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/nhgis0009_ds146_2000_tract_codebook.txt
-- TRACTDATA_FP: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/nhgis0009_ds146_2000_tract.csv
-- IPUMS_SHP_FP: /Users/amyyao/Desktop/echoair/echo-air/drive-download-20240625T231007Z-001/US_tract_2000.shp
+- CODEBOOK_FP: /Users/amyyao/Desktop/drive-download-20240625T231007Z-001/nhgis0009_ds146_2000_tract_codebook.txt
+- TRACTDATA_FP: /Users/amyyao/Desktop/drive-download-20240625T231007Z-001/nhgis0009_ds146_2000_tract.csv
+- IPUMS_SHP_FP: /Users/amyyao/Desktop/drive-download-20240625T231007Z-001/US_tract_2000.shp
 
 ╓────────────────────────────────╖
 ║ RUN CONTROLS                   ║
