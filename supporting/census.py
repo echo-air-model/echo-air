@@ -56,7 +56,7 @@ class census:
         self.verbose = verbose
         self.debug_mode = debug_mode
         self.codebook = self.load_codebook()
-        self.tract_data = pd.read_csv(tractdata_fp, encoding="ISO-8859-1")
+        self.tract_data = pd.read_csv(tractdata_fp, low_memory=False)
         self.census_geo = gpd.read_file(ipums_shp_fp)
 
     def load_codebook(self):
