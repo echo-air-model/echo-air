@@ -576,7 +576,6 @@ class emissions:
     
     def change_percentages(self, pol_name, pol_layer):
         ''' Changes emissions by x% for the given pollutant ''' 
-      
         emission_change = self.emis_delta_dict[pol_name]
 
         # Ensure the value is treated as a string for the startswith check
@@ -615,9 +614,6 @@ class emissions:
                          'NOX':self.NOX,
                          'SOX':self.SOX}
         
-        # Confirm pol_name is valid
-        assert pol_name in pollutant_dict.keys()
-        
         # Fetch the pollutant layer
         pol_layer = pollutant_dict[pol_name]
 
@@ -634,10 +630,10 @@ class emissions:
                 boundary_gdf = gpd.read_file(self.boundary_change).to_crs(self.crs)
 
                 # Intersect the pollutant layer with the boundary
-                pol_layer = gpd.overlay(tmp_layer, boundary_gdf, how='intersection')
+                intersected_layer = gpd.overlay(tmp_layer, boundary_gdf, how='intersection')
             
                 # Apply the percentage change within the intersected area
-                adjusted_intersected_layer = self.change_percentages(pol_name, tmp_layer)
+                adjusted_intersected_layer = self.change_percentages(pol_name, intersected_layer)
                 
                 # Removes the intersected area from the original layer to avoid duplication (area outside boundary)
                 unchanged_layer = gpd.overlay(pol_layer, boundary_gdf, how='difference', keep_geom_type=False)
