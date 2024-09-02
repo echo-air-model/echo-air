@@ -299,14 +299,14 @@ class control_file:
         
         # Boundary requires change in emissions. Assume no boundary if nothing specified 
         if emis_delta == '':
-            if boundary == '': 
+            if boundary_change == '': 
                 logging.info('* No value provided EMISSIONS_CHANGE field. Assuming same emissions.') 
             else: 
                 logging.info('* Was given a boundary but no emissions change. Assuming same emissions.') 
             emis_delta = False
         else: 
             self.emis_delta_dict = self.create_emis_delta_dict(emis_delta)
-            if boundary == '': 
+            if boundary_change == '': 
                 logging.info('* No value was provided for BOUNDARY field. Assuming emissions change for entire region.')
     
         return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, emis_delta, boundary_change
@@ -538,8 +538,12 @@ class control_file:
             self.emis_delta = self.emis_delta_dict
         
         ## Check the boundary path 
-        valid_boundary_path = self.check_path(file=self.boundary_change)
-        logging.info('* The boundary path for emissions change provided is not valid.') if not valid_boundary_path else ''
+        if self.boundary_change == '':
+            valid_boundary_path = True # If there is no boundary, continue to proceed
+        else: 
+            print(self.boundary_change)
+            valid_boundary_path = self.check_path(file=self.boundary_change)
+            logging.info('* The boundary path for emissions change provided is not valid.') if not valid_boundary_path else ''
             
         ## Output only one time
         valid_inputs = valid_batch_name and valid_run_name and valid_emissions_path and \

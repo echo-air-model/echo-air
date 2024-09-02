@@ -124,9 +124,9 @@ if __name__ == "__main__":
         try:
             # Default to verbose since this mode is just for checking files
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=False, verbose=True)
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, load_file=False, verbose=True)
+            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, boundary_change=boundary_change, load_file=False, verbose=True)
             if emis_delta: 
-                emis_change = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True,load_file=False, verbose=True)
+                emis_change = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, boundary_change=boundary_change, load_file=False, verbose=True)
             pop = population(population_path, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
 
@@ -160,11 +160,11 @@ if __name__ == "__main__":
             file_reader_pool = concurrent.futures.ThreadPoolExecutor()
             
             # Start reading in files in parallel
-            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, units=units, name=name, load_file=True, verbose=verbose)
+            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, boundary_change=boundary_change, units=units, name=name, load_file=True, verbose=verbose)
             
             # If an emissions change is toggled, a second emissions object will be created with solely the emissions change
             if emis_delta: 
-                emis_change_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out_change, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, units=units, name=name, load_file=True, verbose=verbose)
+                emis_change_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out_change, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, boundary_change=boundary_change, units=units, name=name, load_file=True, verbose=verbose)
             isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
             pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
       
@@ -212,11 +212,11 @@ if __name__ == "__main__":
             
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, load_file=False, verbose=True)
+            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, boundary_change=boundary_change, load_file=False, verbose=True)
             
             # If emiss
             if emis_delta: 
-                emis_change = emissions(emissions_path, output_dir, f_out_change, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True,load_file=False, verbose=True)
+                emis_change = emissions(emissions_path, output_dir, f_out_change, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, boundary_change=boundary_change, load_file=False, verbose=True)
             
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))

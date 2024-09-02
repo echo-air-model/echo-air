@@ -38,6 +38,7 @@ class emissions:
         - debug_mode: a Boolean indicating whether or not to output debug statements
         - emis_delta: the dictionary containing emissions change
         - emis_change_only: a Boolean indicating whehter or not the emissions object is solely the emissions change
+        - boundary_change: a shapefile containing the boundary for where emissions would be adjusted
         
     CALCULATES:
         - PM25: primary PM2.5 emissions in each grid cell
@@ -54,7 +55,7 @@ class emissions:
           pollutant
 
     '''
-    def __init__(self, file_path, output_dir, f_out, debug_mode, emis_delta, emis_change_only, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
+    def __init__(self, file_path, output_dir, f_out, debug_mode, emis_delta, emis_change_only, boundary_change, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
         ''' Initializes the emissions object'''     
         
         # Initialize path and check that it is valid
@@ -70,6 +71,7 @@ class emissions:
         self.emis_delta_dict = emis_delta
         self.emis_delta_change = bool(self.emis_delta_dict)  # returns False if empty, True if not empty
         self.emis_change_only = emis_change_only
+        self.boundary_change = boundary_change
         self.debug_mode = debug_mode
         self.verbose = verbose
         self.output_dir = output_dir
@@ -604,7 +606,7 @@ class emissions:
 
         return pol_layer
     
-    def get_pollutant_layer(self, pol_name, crs):
+    def get_pollutant_layer(self, pol_name):
         ''' Returns pollutant layer '''        
         # Define a pollutant dictionary for convenience
         pollutant_dict = {'PM25':self.PM25,
@@ -631,14 +633,17 @@ class emissions:
                 # Intersect the pollutant layer with the boundary
                 pol_layer = gpd.overlay(pol_layer, boundary_gdf, how='intersection')
             
-            # Apply the percentage change within the intersected area
-            adjusted_intersected_layer = self.change_percentages(pol_name, pol_layer)
-            
-            # Removes the intersected area from the original layer to avoid duplication (area outside boundary)
-            unchanged_layer = gpd.overlay(pollutant_layer, boundary_gdf, how='difference')
+                # Apply the percentage change within the intersected area
+                adjusted_intersected_layer = self.change_percentages(pol_name, pol_layer)
+                
+                # Removes the intersected area from the original layer to avoid duplication (area outside boundary)
+                unchanged_layer = gpd.overlay(pol_layer, boundary_gdf, how='difference')
 
-            # Combine the unchanged and adjusted layers
-            pol_layer = pd.concat([unchanged_layer, adjusted_intersected_layer], ignore_index=True)
+                # Combine the unchanged and adjusted layers
+                pol_layer = pd.concat([unchanged_layer, adjusted_intersected_layer], ignore_index=True)
+            
+            else: 
+                pol_layer = self.change_percentages(pol_name, pol_layer)
         
         # Return pollutant laye
         return pol_layer
