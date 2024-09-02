@@ -411,34 +411,14 @@ class emissions:
         # Otherwise, return the first choice
         else:
             return first_choice
-        
-    # def filter_emissions(self, emissions):
-    #     ''' Filters emissions based on inputted dictionary filter_dict '''
-    #     # Extracting key-value pairs using regex
-    #     matches = re.findall(r"(\w+(?: \w+)*): \[(.*?)\]", input_string)
-
-    #     # Creating the dictionary
-    #     filter_dict = {match[0].title(): [item.strip().upper() for item in match[1].split(',')] for match in matches}
-
-    #     for key in filter_dict.keys():
-    #         emissions = emissions.loc[emissions[key].isin(filter_dict[key]),:]
-        
-    #     return emissions
     
-    # def filter_emissions(self, emissions):
-    #     ''' Filters emissions based on inputted dictionary filter_dict '''
-    #     filter_dict = self.filter_dict
-        
-    #     for key in filter_dict.keys():
-    #         emissions = emissions.loc[emissions[key].isin(filter_dict[key]),:]
-        
-    #     return emissions
     def filter_emissions(self, emissions):
         ''' Filters emissions based on inputted dictionary filter_dict '''
         filter_dict = self.filter_dict
         
         for key, values in filter_dict.items():
             if key in emissions.columns:
+                
                 # If values is a single item, convert it to a list for uniformity
                 if not isinstance(values, list):
                     values = [values]
@@ -453,8 +433,6 @@ class emissions:
                 print(f"Warning: Key '{key}' not found in emissions data.")
         
         return emissions
-
-    
     
     def check_geo_types(self):
         ''' Checks for different geometry types and updates to polygons if needed '''
