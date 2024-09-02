@@ -161,12 +161,12 @@ if __name__ == "__main__":
             
             # Start reading in files in parallel
             emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, boundary_change=boundary_change, units=units, name=name, load_file=True, verbose=verbose)
-            
+            isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
+
             # If an emissions change is toggled, a second emissions object will be created with solely the emissions change
             if emis_delta: 
                 emis_change_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out_change, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, boundary_change=boundary_change, units=units, name=name, load_file=True, verbose=verbose)
-            isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
-            pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
       
             # To run multiple computations at once, we need to create multiple
             # processes instead of threads. Processes take longer to create, but
@@ -212,11 +212,11 @@ if __name__ == "__main__":
             
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, boundary_change=boundary_change, load_file=False, verbose=True)
             
+            emis = emissions(emissions_path, output_dir, f_out, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=False, boundary_change=boundary_change, units=units,   name=name, load_file=True, verbose=verbose)
             # If emiss
             if emis_delta: 
-                emis_change = emissions(emissions_path, output_dir, f_out_change, units=units, name=name, debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, boundary_change=boundary_change, load_file=False, verbose=True)
+                emis_change = emissions(emissions_path, output_dir, f_out_change,  debug_mode=debug_mode, emis_delta=emis_delta, emis_change_only=True, boundary_change=boundary_change, units=units, name=name, load_file=True, verbose=verbose)
             
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
         emis_change_only = False
-        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, emis_change_only, output_resolution,  run_calcs=True, verbose=verbose)
+        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, emis_change_only, output_resolution, run_calcs=True, verbose=verbose)
         if emis_delta: 
             emis_change_only = True 
             conc_change = concentration(emis_change, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, emis_change_only, output_resolution,  run_calcs=True, verbose=verbose)

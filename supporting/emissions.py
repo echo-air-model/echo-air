@@ -619,7 +619,10 @@ class emissions:
         assert pol_name in pollutant_dict.keys()
         
         # Fetch the pollutant layer
-        pol_layer = pollutant_dict[pol_name] 
+        pol_layer = pollutant_dict[pol_name]
+
+        # Create a copy of pollutant layer
+        tmp_layer = pol_layer.copy()
 
         # If pollutant is to be changed, apply reduction factor 
         if self.emis_delta_change: 
@@ -631,19 +634,19 @@ class emissions:
                 boundary_gdf = gpd.read_file(self.boundary_change).to_crs(self.crs)
 
                 # Intersect the pollutant layer with the boundary
-                pol_layer = gpd.overlay(pol_layer, boundary_gdf, how='intersection')
+                pol_layer = gpd.overlay(tmp_layer, boundary_gdf, how='intersection')
             
                 # Apply the percentage change within the intersected area
-                adjusted_intersected_layer = self.change_percentages(pol_name, pol_layer)
+                adjusted_intersected_layer = self.change_percentages(pol_name, tmp_layer)
                 
                 # Removes the intersected area from the original layer to avoid duplication (area outside boundary)
-                unchanged_layer = gpd.overlay(pol_layer, boundary_gdf, how='difference')
+                unchanged_layer = gpd.overlay(pol_layer, boundary_gdf, how='difference', keep_geom_type=False)
 
                 # Combine the unchanged and adjusted layers
-                pol_layer = pd.concat([unchanged_layer, adjusted_intersected_layer], ignore_index=True)
+                tmp_layer = pd.concat([unchanged_layer, adjusted_intersected_layer], ignore_index=True)
             
             else: 
-                pol_layer = self.change_percentages(pol_name, pol_layer)
+                tmp_layer = self.change_percentages(pol_name, tmp_layer)
         
         # Return pollutant laye
-        return pol_layer
+        return tmp_layer

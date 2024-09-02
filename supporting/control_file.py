@@ -541,7 +541,6 @@ class control_file:
         if self.boundary_change == '':
             valid_boundary_path = True # If there is no boundary, continue to proceed
         else: 
-            print(self.boundary_change)
             valid_boundary_path = self.check_path(file=self.boundary_change)
             logging.info('* The boundary path for emissions change provided is not valid.') if not valid_boundary_path else ''
             
