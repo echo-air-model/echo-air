@@ -38,7 +38,7 @@ class pop_control_file:
         
         # Initialize path and check that it is valid
         self.file_path = file_path
-        self.output_file_name, self.codebook_fp, self.tractdata_fp, self.ipums_shp_fp, self.verbose = self.get_all_inputs()
+        self.output_file_name, self.codebook_fp, self.tractdata_fp, self.ipums_shp_fp, self.sort_field, self.verbose = self.get_all_inputs()
         self.valid_inputs = self.check_inputs()
         
         # If the inputs aren't all valid, the rest of the script doesn't run
@@ -68,6 +68,7 @@ class pop_control_file:
         codebook_fp = self.get_input_value('CODEBOOK_FP')
         tractdata_fp = self.get_input_value('TRACTDATA_FP')
         ipums_shp_fp = self.get_input_value('IPUMS_SHP_FP')
+        sort_field = self.get_input_value('SORT_FIELD')
         verbose = self.get_input_value('VERBOSE')
 
         return output_file_name, codebook_fp, tractdata_fp, ipums_shp_fp, verbose
@@ -97,6 +98,11 @@ class pop_control_file:
         # Checks if ipums_shp_fp is a valid path
         valid_ipums_shp = self.check_path(file=self.ipums_shp_fp)
         logging.info('* The IPUMS shapefile path provided is not valid.') if not valid_ipums_shp else '' 
+
+        # Checks if sort_field is enabled, if it is valid 
+        valid_sort_field = True
+        if sort_field != '':
+            valid_sort_field = isinstance(self.sort_field, str)
 
         # Output only one time
         valid_inputs = valid_output_file_name and valid_codebook_path and valid_tract_data and valid_ipums_shp

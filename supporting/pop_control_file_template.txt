@@ -18,6 +18,11 @@
 - TRACTDATA_FP: #/example.csv
 - IPUMS_SHP_FP: #example.shp
 
+╓───────────────────╖
+║    FILTER DATA    ║
+╙───────────────────╜
+- SORT_FIELD: # Race/Ethnicity
+
 ╓────────────────────────────────╖
 ║ RUN CONTROLS                   ║
 ║ These should be set to Y or N  ║

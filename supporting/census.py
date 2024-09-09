@@ -47,11 +47,12 @@ class census:
         - ca_tracts_to_export: final processed data ready for export as a feather file      
     '''
 
-    def __init__(self, codebook_fp, tractdata_fp, ipums_shp_fp, output_dir, f_out, verbose=False, debug_mode=False):
+    def __init__(self, codebook_fp, tractdata_fp, ipums_shp_fp, output_dir, f_out, sort_field='Race/Ethnicity', verbose=False, debug_mode=False):
         self.codebook_fp = codebook_fp
         self.tractdata_fp = tractdata_fp
         self.ipums_shp_fp = ipums_shp_fp
         self.output_dir = output_dir
+        self.sort_field = sort_field
         self.f_out = f_out
         self.verbose = verbose
         self.debug_mode = debug_mode
