@@ -29,6 +29,7 @@ class census:
         - codebook_fp: the file path of the codebook data
         - tractdata_fp: the file path of the tract data
         - ipums_shp_fp: the file path of the shapefile data
+        - sort_field: the field by which the data would be sorted by 
         - output_dir: a string pointing to the output directory
         - f_out: a string containing the filename pattern to be used in output files
         - verbose: a Boolean indicating whether or not detailed logging statements should be printed
@@ -47,7 +48,7 @@ class census:
         - ca_tracts_to_export: final processed data ready for export as a feather file      
     '''
 
-    def __init__(self, codebook_fp, tractdata_fp, ipums_shp_fp, output_dir, f_out, sort_field='Race/Ethnicity', verbose=False, debug_mode=False):
+    def __init__(self, codebook_fp, tractdata_fp, ipums_shp_fp, output_dir, f_out, sort_field='RACE/ETHNICITY', verbose=False, debug_mode=False):
         self.codebook_fp = codebook_fp
         self.tractdata_fp = tractdata_fp
         self.ipums_shp_fp = ipums_shp_fp
@@ -217,7 +218,6 @@ class census:
         # Perform melt
         ca_tract_melt = ca_tract_data.melt(value_vars=melt_values, id_vars=['GISJOIN','YEAR'], var_name='GROUP CODE', value_name='POPULATION').reset_index(drop=True)
 
-
         # Map the code in the new GROUP CODE column to the descriptive names in the codebook object.
         ca_tract_melt['GROUP DESC'] = ca_tract_melt['GROUP CODE'].map(combined_codebook)
         
@@ -228,14 +228,13 @@ class census:
         ca_tract_melt = ca_tract_melt[ca_tract_melt['DUMMY'] == 3].copy()
         ca_tract_melt = ca_tract_melt[['GISJOIN', 'YEAR', 'POPULATION', 'GROUP DESC']].reset_index(drop=True)
         
- 
-        # Add a RACE/ETHNICITY column based using the str.split method
-        ca_tract_melt['RACE/ETHNICITY'] = ca_tract_melt['GROUP DESC'].apply(lambda x: self.split_description(x)[0])
+        # Add a column based on the sort_field using the str.split method
+        ca_tract_melt[self.sort_field] = ca_tract_melt['GROUP DESC'].apply(lambda x: self.split_description(x)[0])
         
         # Add an Age column based using the str.split method
         ca_tract_melt['AGE'] = ca_tract_melt['GROUP DESC'].apply(lambda x: self.split_description(x)[2])
         
-        verboseprint(self.verbose, '- [CENSUS] Data melted and columns created for RACE/ETHNICITY and AGE', self.debug_mode, frameinfo=getframeinfo(currentframe()))
+        verboseprint(self.verbose, '- [CENSUS] Data melted and columns created for {}. and AGE' .format(self.sort_field), self.debug_mode, frameinfo=getframeinfo(currentframe()))
        
         # Unique values of age
         unique_ages = ca_tract_melt['AGE'].unique()
@@ -277,44 +276,47 @@ class census:
         ca_tract_melt['AGE_BIN'] = ca_tract_melt['AGE'].str.strip(' ').map(age_mapper)
   
         # Perform a groupby sum
-        ca_tract_sum = ca_tract_melt.groupby(['GISJOIN', 'YEAR', 'RACE/ETHNICITY', 'AGE_BIN'])['POPULATION'].sum().reset_index()
+        ca_tract_sum = ca_tract_melt.groupby(['GISJOIN', 'YEAR', self.sort_field, 'AGE_BIN'])['POPULATION'].sum().reset_index()
         
         # Merge with the geodata
         ca_tracts = self.census_geo.merge(ca_tract_sum, on='GISJOIN', how='right')
 
         # Simplify and clean up columns
-        ca_tracts = ca_tracts[['GISJOIN','RACE/ETHNICITY','AGE_BIN','YEAR','POPULATION','geometry']].copy()
+        ca_tracts = ca_tracts[['GISJOIN', self.sort_field,'AGE_BIN','YEAR','POPULATION','geometry']].copy()
 
         verboseprint(self.verbose, '- [CENSUS] Summarized data and merged with geographic data.', self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
-        # Remove specific prefixes from the 'RACE/ETHNICITY' column
-        ca_tracts['RACE/ETHNICITY'] = ca_tracts['RACE/ETHNICITY'].str.replace(' Latino Persons: ', '').str.replace('ino Persons: ', '')
+        if self.sort_field == 'RACE/ETHNICITY': 
+            # Remove specific prefixes from the 'RACE/ETHNICITY' column
+            ca_tracts['RACE/ETHNICITY'] = ca_tracts['RACE/ETHNICITY'].str.replace(' Latino Persons: ', '').str.replace('ino Persons: ', '')
         
         # Strip any leading or trailing whitespace
-        ca_tracts['RACE/ETHNICITY'] = ca_tracts['RACE/ETHNICITY'].str.strip()
+        ca_tracts[self.sort_field] = ca_tracts[self.sort_field].str.strip()
         
-        # Define race/ethnicity mapper with exceptions
-        race_eth_mapper = {
-            'American Indian and Alaska Native alone': 'INDIG',
-            'Asian alone': 'ASIAN',
-            'Black or African American alone': 'BLACK',
-            'Hispanic or Latino': 'HISLA',
-            'Hispanic/Latino': 'HISLA',  # Note the difference here
-            'Native Hawaiian and Other Pacific Islander alone': 'PACIS',
-            'Some Other Race alone': 'OTHER',
-            'Some other race alone': 'OTHER',  # Note the difference here
-            'Two or more races': 'OTHER',  # Note the difference here
-            'Two or More Races': 'OTHER',
-            'White alone': 'WHITE'
-        }
-        
-        # Map using race_eth_mapper
-        ca_tracts['GROUP'] = ca_tracts['RACE/ETHNICITY'].map(race_eth_mapper)
-        
+        if self.sort_field == 'RACE/ETHNICITY': 
+            # Define race/ethnicity mapper with exceptions
+            race_eth_mapper = {
+                'American Indian and Alaska Native alone': 'INDIG',
+                'Asian alone': 'ASIAN',
+                'Black or African American alone': 'BLACK',
+                'Hispanic or Latino': 'HISLA',
+                'Hispanic/Latino': 'HISLA',  # Note the difference here
+                'Native Hawaiian and Other Pacific Islander alone': 'PACIS',
+                'Some Other Race alone': 'OTHER',
+                'Some other race alone': 'OTHER',  # Note the difference here
+                'Two or more races': 'OTHER',  # Note the difference here
+                'Two or More Races': 'OTHER',
+                'White alone': 'WHITE'
+            }
+
+            # Map using race_eth_mapper
+            ca_tracts['GROUP'] = ca_tracts[self.sort_field].map(race_eth_mapper)
+        else: 
+            ca_tracts['GROUP'] = ca_tracts[self.sort_field]
+
         # Drop rows where 'GROUP' column has NaN values
         ca_tracts = ca_tracts.dropna(subset=['GROUP'])
 
-   
         # Set display options to show all columns
         pd.set_option('display.max_columns', None)
 

@@ -103,6 +103,9 @@ class pop_control_file:
         valid_sort_field = True
         if sort_field != '':
             valid_sort_field = isinstance(self.sort_field, str)
+        else: 
+            logging.info ('* No sort field provided. Assuming default RACE/ETHNICITY sorting.')
+        logging.info('* The sort field provided is not valid') if not valid_sort_field else ''
 
         # Output only one time
         valid_inputs = valid_output_file_name and valid_codebook_path and valid_tract_data and valid_ipums_shp
