@@ -295,6 +295,12 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
     # Calculate the north arrow angle 
     angle_to_north = calculate_true_north_angle(center_lon, center_lat, hia_df.crs)
     
+    # Calculates the longitude and latitude of the center
+    center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
+
+    # Calculates the angle of the north arrow 
+    angle_to_north = calculate_true_north_angle(center_lon, center_lat, ca_shp.crs)
+
     for ax in [ax0, ax1, ax2, ax3]:
         ca_shp.dissolve().plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
         ax.xaxis.set_visible(False)
@@ -303,8 +309,13 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         ax.set_ylim([miny, maxy])
 
         # Add north arrow
+<<<<<<< 33-copy-branch
         add_north_arrow(ax, float(angle_to_north))
           
+=======
+        add_north_arrow(ax,float(angle_to_north))
+
+>>>>>>> main
         # Add scale bar
         scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
         ax.add_artist(scalebar)
