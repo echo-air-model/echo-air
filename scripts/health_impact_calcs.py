@@ -152,6 +152,7 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
                         'BLACK':endpoint+'_BLACK',
                         'HISLA':endpoint+'_HISLA',
                         'INDIG':endpoint+'_INDIG',
+                        'PACIS':endpoint+'_PACIS',
                         'TOTAL':endpoint+'_TOTAL',
                         'WHITE':endpoint+'_WHITE',
                         'OTHER':endpoint+'_OTHER'}
@@ -309,13 +310,8 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         ax.set_ylim([miny, maxy])
 
         # Add north arrow
-<<<<<<< 33-copy-branch
         add_north_arrow(ax, float(angle_to_north))
-          
-=======
-        add_north_arrow(ax,float(angle_to_north))
 
->>>>>>> main
         # Add scale bar
         scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
         ax.add_artist(scalebar)
