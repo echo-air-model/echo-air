@@ -190,7 +190,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         - group: the racial/ethnic group name
         - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
           'LUNG CANCER'
-        - output_resolution: a String that represents the output resoluotion 
+        - output_resolution: a String that represents the output resolution 
         - boundary: a GeoDataFrame that represents the output resolution data
         - output_dir: a filepath string of the location of the output directory
         - f_out: the name of the file output category (will append additional information) 
@@ -360,9 +360,6 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
       region_data['POP_AREA_NORM'] = region_data[group] / region_data['area_km2']
       region_data['MORT_AREA_NORM'] = region_data[mortality_col] / region_data['area_km2']
       region_data['MORT_OVER_POP'] = (region_data[mortality_col] / region_data[group]) * 1e5
-
-      # Aggregate by region
-      #hia_df = intersect.groupby(['NAME'])[['POP_AREA_NORM', 'MORT_AREA_NORM', 'MORT_OVER_POP']].sum().reset_index()
       
       # Merge with boundary to get full geometry
       hia_df = pd.merge(boundary, region_data, on='NAME', how='left')
