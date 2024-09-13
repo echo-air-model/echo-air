@@ -123,7 +123,8 @@ logging.info('╚═════════════════════
 logging.info('\n')
 
 # Create census object
-census_obj = census(codebook_fp, tractdata_fp, ipums_shp_fp, sort_field, output_dir, f_out, verbose, debug_mode=debug_mode)
+census_obj = census(codebook_fp, tractdata_fp, ipums_shp_fp, output_dir, f_out, sort_field, verbose, debug_mode=debug_mode)
+
 # Processes the data and exports the finished population feather folder
 census_obj.preprocess_data()
 
