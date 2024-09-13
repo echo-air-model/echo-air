@@ -25,6 +25,7 @@ sys.path.append('./scripts')
 from tool_utils import *
 sys.path.append('./supporting')
 from health_data import health_data
+from matplotlib_scalebar.scalebar import ScaleBar
 
 #%% Health Calculation Helper Functions
 def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
@@ -286,12 +287,25 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, 
     maxx = maxx + (maxx-minx)*0.025
     maxy = maxy + (maxy-miny)*0.025
     
+    # Calculates the longitude and latitude of the center
+    center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
+
+    # Calculates the angle of the north arrow 
+    angle_to_north = calculate_true_north_angle(center_lon, center_lat, ca_shp.crs)
+
     for ax in [ax0, ax1, ax2, ax3]:
         ca_shp.dissolve().plot(edgecolor='black',facecolor='none', linewidth=1,ax=ax)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         ax.set_xlim([minx, maxx])
         ax.set_ylim([miny, maxy])
+
+        # Add north arrow
+        add_north_arrow(ax,float(angle_to_north))
+
+        # Add scale bar
+        scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
+        ax.add_artist(scalebar)
 
     # Set titles
     ax0.set_title((group_label + ' Population Density').title())
