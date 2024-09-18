@@ -63,12 +63,13 @@ class control_file:
                          'EMISSIONS_UNITS', 'POPULATION_FILENAME', 'RUN_HEALTH', 
                          'RACE_STRATIFIED_INCIDENCE', 'CHECK_INPUTS','VERBOSE',
                          'REGION_OF_INTEREST','REGION_CATEGORY','OUTPUT_RESOLUTION',
-                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS']
+                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS', 'FILTER_OPTIONS']
         self.blanks_okay = [True, True, False, 
                             False, False, True, 
                             True, True, True,
                             True, True, True,
-                            True, True, True]
+                            True, True, True, 
+                            True]
         
         # Run basic checks on control file
         if self.valid_file:
@@ -78,7 +79,7 @@ class control_file:
             
         # If checks are good, import values
         if self.valid_structure and self.no_incorrect_blanks and self.valid_file:
-            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis = self.get_all_inputs()
+            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis, self.filter_options = self.get_all_inputs()
             self.valid_inputs = self.check_inputs()
             if self.valid_inputs:
                 logging.info('\n << Control file was successfully imported and inputs are correct >>')
@@ -129,18 +130,27 @@ class control_file:
         return path_exists and file_exists
     
     def get_input_value(self, keyword, upper=False):
-        ''' Gets the input for the given keyword '''
+        '''Gets the input for the given keyword from a file'''
         
-        # Iterate through each line of the file to find the keyword
-        for line in open(self.file_path):
-            re_k = '- '+keyword+':' # Grabs exact formatting
-            if re_k in line:
-                line_val = line.split(':')[1].strip('\n').strip(' ')
-            
-        if upper: # Should be uppercased
-            line_val = line_val.upper()
-            
-        return line_val
+        # Open the file and read through it line by line
+        with open(self.file_path, 'r') as file:
+            for line in file:
+                # Create the exact format of the keyword you're searching for
+                re_k = f'- {keyword}:'
+                
+                # Check if the line contains the keyword
+                if re_k in line:
+                    # Extract the value following the keyword
+                    line_val = line.split(':', 1)[1].strip()
+                    
+                    # If upper is True, convert the value to uppercase
+                    if upper:
+                        line_val = line_val.upper()
+                        
+                    return line_val  # Return the found value immediately
+        
+        # Return None or raise an error if the keyword is not found
+        return None
     
     
     def check_control_file(self):
@@ -187,6 +197,29 @@ class control_file:
 
         return valid_structure, no_incorrect_blanks
     
+    def create_filter_dict(self, filter_options):
+        ''' Creates a dictionary from the string filter_options'''
+        # Defining an empty dict 
+        filter_dict = {}
+
+        # Regular expression to split on commas that are outside brackets
+        pairs = re.split(r',\s*(?=[^]]*(?:\[|$))', filter_options)
+
+        for pair in pairs:
+            # Split each pair by colon to separate the column name with the filter options
+            col_name, options  = pair.split(':')
+
+            # Strip whitespace and brackets from column name and options
+            col_name = col_name.strip()
+            options = options.strip().strip('[]')
+
+            # Split the options into a list of values
+            option_list = [opt.strip() for opt in options.split(',')]
+            
+            # Add the cleaned data to the dictionary
+            filter_dict[col_name] = option_list
+
+        return filter_dict
     
     def get_all_inputs(self):
         ''' Once it passes the basic control file checks, import the values '''
@@ -207,6 +240,7 @@ class control_file:
         output_exposure = self.get_input_value('OUTPUT_EXPOSURE', upper=True)
         detailed_conc = self.get_input_value('DETAILED_CONC', upper=True)
         output_emis = self.get_input_value('OUTPUT_EMIS', upper=True)
+        filter_options = self.get_input_value('FILTER_OPTIONS', upper=True)
         
         # For ISRM folder, assume CA ISRM if no value is given
         if isrm_path == '':
@@ -269,8 +303,12 @@ class control_file:
             output_emis = False
         else:
             output_emis = mapper[output_emis]
-        
-        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis
+        if filter_options == '':
+            logging.info('* No value provided for the FILTER_OPTIONS field. The tool will not filter the emissions data and leave it as is.')
+            filter_options = False
+        else: 
+            filter_options = self.create_filter_dict(filter_options)
+        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, filter_options
     
     def get_region_dict(self):
         ''' Hard-coded dictionary of acceptable values for regions '''
