@@ -89,6 +89,8 @@ class concentration:
         self.output_emis_flag = output_emis_flag
         if self.output_resolution != 'ISRM':
             self.boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
+        else:
+            self.boundary = np.nan
     
         #verboseprint = logging.info if self.verbose else lambda *a, **k:None # for logging
         verboseprint(self.verbose, '- [CONCENTRATION] Creating a new concentration object',
