@@ -18,10 +18,18 @@
 - TRACTDATA_FP: #/example.csv
 - IPUMS_SHP_FP: #example.shp
 
-╓───────────────────╖
-║    FILTER DATA    ║
-╙───────────────────╜
-- SORT_FIELD: # Race/Ethnicity
+╓───────────────────────────────────╖
+║    ADDITIONAL DEMOGRAPHIC DATA    ║
+╙───────────────────────────────────╜
+- ADDITIONAL_DATA_FP: #/additional_demo.shp
+
+╓─────────────────────────────╖
+║    DEMOGRAPHIC VARIABLES    ║
+╙─────────────────────────────╜
+- INCLUDE_RACE_ETHNICITY: # Y/N
+- ADDITIONAL_DEMO_ID: #CES
+- PERCENTILES: # 4 # instead of quartiles, they can choose their own 
+- SORT_FIELD: # QUARTILES
 
 ╓────────────────────────────────╖
 ║ RUN CONTROLS                   ║
