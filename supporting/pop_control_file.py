@@ -68,10 +68,10 @@ class pop_control_file:
         codebook_fp = self.get_input_value('CODEBOOK_FP')
         tractdata_fp = self.get_input_value('TRACTDATA_FP')
         ipums_shp_fp = self.get_input_value('IPUMS_SHP_FP')
-        sort_field = self.get_input_value('SORT_FIELD')
+        sort_field = self.get_input_value('SORT_FIELD', upper=True)
         verbose = self.get_input_value('VERBOSE')
 
-        return output_file_name, codebook_fp, tractdata_fp, ipums_shp_fp, verbose
+        return output_file_name, codebook_fp, tractdata_fp, ipums_shp_fp, sort_field, verbose
 
     def check_inputs(self):
         ''' Checks validity of the control file before running''' 
@@ -101,10 +101,11 @@ class pop_control_file:
 
         # Checks if sort_field is enabled, if it is valid 
         valid_sort_field = True
-        if sort_field != '':
-            valid_sort_field = isinstance(self.sort_field, str)
+        if self.sort_field != '':
+            valid_sort_field = (isinstance(self.sort_field, str)) and (self.sort_field.upper() in ['RACE/ETHNICITY'])
         else: 
             logging.info ('* No sort field provided. Assuming default RACE/ETHNICITY sorting.')
+            self.sort_field = 'RACE/ETHNICITY'
         logging.info('* The sort field provided is not valid') if not valid_sort_field else ''
 
         # Output only one time
