@@ -4,7 +4,7 @@
 Emissions Data Object
 
 @author: libbykoolik
-last modified: 2024-02-15
+last modified: 2024-10-17
 """
 
 # Import Libraries
@@ -188,7 +188,7 @@ class emissions:
     def load_emissions(self):
         ''' Loads the emissions file, depending on the extension ''' 
         # Based on the file extension, run different load functions
-        if self.file_type == 'shp':
+        if self.file_type == 'shp' or self.file_type == 'gpkg':
             geometry, emissions_data, crs = self.load_shp()
         
         elif self.file_type == 'feather':
@@ -233,7 +233,7 @@ class emissions:
                 
     def load_shp(self):
         ''' 
-        Loads emissions data from a shapefile.
+        Loads emissions data from a shapefile or single-layer geo package.
         
         Requirements:
             - Emissions data must have the columns I_CELL and J_CELL that should be uniquely 
@@ -241,10 +241,10 @@ class emissions:
         
         '''
         # Add log statements
-        verboseprint(self.verbose, '- [EMISSIONS] Reading emissions from a shapefile.',
+        verboseprint(self.verbose, '- [EMISSIONS] Reading emissions from a shapefile or geo package.',
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
-        # Shapefiles are read using geopandas
+        # Shapefiles/geopackages are read using geopandas
         emissions_gdf = gpd.read_file(self.file_path)
         
         # Check for I_CELL/J_CELL

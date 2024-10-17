@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2024-06-11
+last modified: 2024-10-17
 """
 
 # Import Libraries
@@ -87,7 +87,10 @@ class concentration:
         self.run_calcs = run_calcs
         self.output_dir = output_dir
         self.output_emis_flag = output_emis_flag
-        self.boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
+        if self.output_resolution != 'ISRM':
+            self.boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
+        else:
+            self.boundary = np.nan
     
         #verboseprint = logging.info if self.verbose else lambda *a, **k:None # for logging
         verboseprint(self.verbose, '- [CONCENTRATION] Creating a new concentration object',
@@ -168,26 +171,33 @@ class concentration:
         # Reproject output_region
         output_region = output_region.to_crs(self.crs)
         
-        # Create necessary labels and strings
-        if var[0:10] == 'CONC_UG/M3':
-            pol = 'Emissions of '+var.split('_')[-1]
+        # # Create necessary labels and strings
+        # if var[0:10] == 'CONC_UG/M3':
+        #     pol = 'Emissions of '+var.split('_')[-1]
+        # else:
+        #     pol = 'All Emissions'
+            
+        # Create title string
+        if len(self.name) > 10:
+            title_name = '\n{}'.format(self.name.title())
         else:
-            pol = 'All Emissions'
+            title_name = '{}'.format(self.name.title())
         
         # A few things vary on the output resolution
         if self.output_resolution in ['AB','AD','C']:
             st_str = '* Area-Weighted Average'
-            fname = f_out + '_' + pol + '_area_wtd_concentrations.png'
-            t_str = r'PM$_{2.5}$ Concentrations* '+'from {}'.format(pol)
+            fname = f_out + '_' + self.name.lower() + '_area_wtd_concentrations.png'
+            t_str = r'PM$_{2.5}$ Concentrations* '+'from {}'.format(title_name)
             c_to_plot = self.summary_conc[['NAME', 'geometry', var]].copy()
             
         else:
-            t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(pol)
-            fname = f_out + '_' + pol + '_concentrations.png'
+            t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(title_name)
+            fname = f_out + '_' + self.name.lower() + '_concentrations.png'
             c_to_plot = self.detailed_conc_clean[['ISRM_ID', 'geometry', var]].copy()
             
         # Tie things together
         fname = str.lower(fname)
+        fname = fname.replace(' ','_')
         fpath = os.path.join(output_dir, fname)
         
         # Clip to output region
