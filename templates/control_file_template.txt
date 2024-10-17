@@ -52,3 +52,8 @@
 - OUTPUT_EXPOSURE: #Y (*)
 - DETAILED_CONC: #Y (*)
 - OUTPUT_EMIS: #N (*)
+
+╓──────────────────╖
+║    EMISSIONS %   ║
+╙──────────────────╜
+- EMISSIONS_CHANGE: #PM25: +30, NH3: -20, VOC: -10, NOX: 0, SOX: +20 (*)
