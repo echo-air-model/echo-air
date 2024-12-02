@@ -52,3 +52,8 @@
 - OUTPUT_EXPOSURE: #Y (*)
 - DETAILED_CONC: #Y (*)
 - OUTPUT_EMIS: #N (*)
+
+╓────────────────────╖
+║   EDIT EMISSIONS   ║
+╙────────────────────╜
+- FILTER_OPTIONS: # Vehicle Type: [CAR, TRUCK], Regulated:[Y] (*)

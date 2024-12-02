@@ -11,6 +11,7 @@ last modified: 2024-10-17
 import sys
 import pandas as pd
 import geopandas as gpd
+import re
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -410,13 +411,26 @@ class emissions:
         # Otherwise, return the first choice
         else:
             return first_choice
-        
+    
     def filter_emissions(self, emissions):
         ''' Filters emissions based on inputted dictionary filter_dict '''
         filter_dict = self.filter_dict
         
-        for key in filter_dict.keys():
-            emissions = emissions.loc[emissions[key].isin(filter_dict[key]),:]
+        for key, values in filter_dict.items():
+            if key in emissions.columns:
+                
+                # If values is a single item, convert it to a list for uniformity
+                if not isinstance(values, list):
+                    values = [values]
+
+                # Convert both column and filter values to uppercase (case-insensitive matching)
+                emissions[key] = emissions[key].str.upper()  # Assuming the column is of string type
+                values = [val.upper() for val in values]
+
+                # Filter the DataFrame to keep only the rows where the column value is in the provided list
+                emissions = emissions[emissions[key].isin(values)]
+            else:
+                print(f"Warning: Key '{key}' not found in emissions data.")
         
         return emissions
     
