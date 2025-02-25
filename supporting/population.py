@@ -136,7 +136,7 @@ class population:
         # Sum across POP_ID and YEAR
         pop_exp = pop_exp.groupby(['POP_ID','YEAR'])[['TOTAL', 'ASIAN', 'BLACK', 
                                                       'HISLA', 'INDIG', 'PACIS', 
-                                                      'WHITE', 'OTHER']].sum().reset_index()
+                                                      'WHITE', 'OTHER']].sum(numeric_only=True).reset_index()
         
         # Add geometry back in
         pop_exp = pd.merge(self.pop_geo, pop_exp, on='POP_ID')
@@ -182,7 +182,7 @@ class population:
         
         # Create intersect object
         intersect = gpd.overlay(pop_tmp, new_geometry, how='intersection')
-        pop_totalarea = intersect.groupby('POP_ID').sum()['AREA_M2'].to_dict()
+        pop_totalarea = intersect.groupby('POP_ID').agg({'AREA_M2': 'sum'}).to_dict()['AREA_M2']
     
         # Add a total area and area fraction to the intersect object
         intersect['AREA_POP_TOTAL'] = intersect['POP_ID'].map(pop_totalarea)
@@ -202,7 +202,8 @@ class population:
             gb_cols = [new_geometry_ID]
         
         # Sum across new geometry grid cells
-        new_alloc_pop = intersect.groupby(gb_cols)[cols].sum().reset_index()
+        new_alloc_pop = intersect.drop(columns='geometry').groupby(gb_cols[cols].sum(numeric_only=True).reset_index()
+
         
         # Merge back into the new geometry using the new_geometry_ID
         new_alloc_pop = new_geometry.merge(new_alloc_pop, how='left',
@@ -213,8 +214,9 @@ class population:
         new_alloc_pop[cols] = new_alloc_pop[cols].fillna(0)
         
         # Confirm that the population slipt was close
-        old_pop_total = pop_tmp[cols].sum()
-        new_pop_total = new_alloc_pop[cols].sum()
+        old_pop_total = pop_tmp[cols].sum(numeric_only=True)
+	new_pop_total = new_alloc_pop[cols].sum(numeric_only=True)
+
         
         for c in cols:
             assert np.isclose(old_pop_total[c], new_pop_total[c])
