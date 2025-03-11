@@ -46,6 +46,9 @@ def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
     # Pull the total concentration from the conc object
     conc_gdf = conc.total_conc.copy()
     conc_gdf.columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
+
+    if not isinstance(conc_gdf, gpd.GeoDataFrame):
+      conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry="geometry", crs="EPSG:4326")
     
     # Pull only relevant columns from isrm_pop_alloc
     groups = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
