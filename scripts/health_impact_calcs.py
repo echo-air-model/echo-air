@@ -120,6 +120,13 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     # Get the population-incidence  and total concentration
     verboseprint(verbose, '- {} Creating dataframe to combine concentration data with {} mortality BenMAP inputs.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
     conc_hia = conc.copy()
+
+    if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
+        if "geometry" in health_data_pop_inc.columns:
+          health_data_pop_inc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")  # Adjust CRS if needed
+    else:
+        raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
+    
     pop_inc = health_data_pop_inc.copy().to_crs(conc_hia.crs)
     
     # Merge these on ISRM_ID
