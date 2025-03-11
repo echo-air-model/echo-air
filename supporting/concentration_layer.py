@@ -153,7 +153,7 @@ class concentration_layer:
         intersect['EMISSIONS_UG/S'] = intersect['area_frac'] * intersect['EMISSIONS_UG/S']
         
         # Sum over ISRM grid cell
-        reallocated_emis = intersect.groupby('ISRM_ID')[['EMISSIONS_UG/S']].sum().reset_index()
+        reallocated_emis = intersect.drop(columns="geometry", errors="ignore").groupby('ISRM_ID')[['EMISSIONS_UG/S']].sum().reset_index()
         
         # Preserve all ISRM grid cells for consistent shapes
         reallocated_emis = isrm_geography[['ISRM_ID', 'geometry']].merge(reallocated_emis,
@@ -187,7 +187,9 @@ class concentration_layer:
         
         # Create intersect object between emis and ISRM grid
         intersect = gpd.overlay(emis, isrm_geography, how='intersection')
-        emis_totalarea = intersect.groupby('EMIS_ID').sum()['area_km2'].to_dict()
+        intersect = intersect.drop(columns="geometry", errors="ignore")
+        emis_totalarea = intersect.drop(columns="geometry", errors="ignore").groupby('EMIS_ID').sum(numeric_only=True)['area_km2'].to_dict()
+
         
         # Add a total area and area fraction to the intersect object
         intersect['area_total'] = intersect['EMIS_ID'].map(emis_totalarea)
