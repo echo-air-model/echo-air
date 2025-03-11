@@ -144,7 +144,7 @@ class concentration:
         # First, need to get rid of unnecessary columns
         detailed_concentration_clean = detailed_concentration[detailed_concentration.columns.drop(list(detailed_concentration.filter(regex='EMISSIONS')))]
         detailed_concentration_clean = detailed_concentration_clean.drop(columns='geometry').copy()
-        
+
         # Add across ISRM IDs
         detailed_concentration_clean = detailed_concentration_clean.groupby(['ISRM_ID']).sum().reset_index()
         
@@ -200,6 +200,14 @@ class concentration:
         fname = fname.replace(' ','_')
         fpath = os.path.join(output_dir, fname)
         
+        #Make sure c_to_plot is a geodataframe
+        if not isinstance(c_to_plot, gpd.GeoDataFrame):
+            c_to_plot = gpd.GeoDataFrame(c_to_plot, geometry="geometry", crs="EPSG:4326")  # Adjust CRS if needed
+
+        # Convert CRS if there is a mismatch
+        if c_to_plot.crs != output_region.crs:
+            c_to_plot = c_to_plot.to_crs(output_region.crs)
+
         # Clip to output region
         c_to_plot = gpd.clip(c_to_plot, output_region)
         
