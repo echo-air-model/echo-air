@@ -202,7 +202,8 @@ class population:
             gb_cols = [new_geometry_ID]
         
         # Sum across new geometry grid cells
-        new_alloc_pop = intersect.drop(columns='geometry').groupby(gb_cols[cols].sum(numeric_only=True).reset_index()
+        new_alloc_pop = intersect.drop(columns='geometry').groupby(gb_cols)[cols].sum(numeric_only=True).reset_index()
+
 
         
         # Merge back into the new geometry using the new_geometry_ID
@@ -215,7 +216,7 @@ class population:
         
         # Confirm that the population slipt was close
         old_pop_total = pop_tmp[cols].sum(numeric_only=True)
-	new_pop_total = new_alloc_pop[cols].sum(numeric_only=True)
+        new_pop_total = new_alloc_pop[cols].sum(numeric_only=True)
 
         
         for c in cols:
