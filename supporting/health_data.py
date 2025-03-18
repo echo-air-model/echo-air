@@ -216,21 +216,22 @@ class health_data:
         # ** THIS SHOULD BE UPDATED TO ISRM_ID
         pop_geo = population[['ISRM_ID','geometry']].drop_duplicates()
 
-        # Perform the intersect
-        pop_inc = gpd.overlay(pop_geo, inc_geo, how='intersection') 
+        # Perform the spatial intersection
+        pop_inc = gpd.overlay(pop_geo, inc_geo, how='intersection')
         
-        # # Merge in the population data on the ID field
-        pop_inc = pd.merge(pop_inc, population[['ISRM_ID','START_AGE', 'END_AGE',
-                                                'RACE', 'POPULATION']],
-                            on='ISRM_ID')
+        # Merge in the population data on the ISRM_ID field
+        pop_inc = pd.merge(pop_inc, population[['ISRM_ID','START_AGE', 'END_AGE', 'RACE', 'POPULATION']], on='ISRM_ID')
         
         # Trim data to only include population age groups over 30 for faster processing
-        pop_inc = pop_inc[pop_inc['START_AGE']>= 30]
+        pop_inc = pop_inc[pop_inc['START_AGE'] >= 30]
         
         # Set up lookup keys
-        pop_inc['KEY'] = pop_inc['START_AGE'].astype(str) + '_' + pop_inc['END_AGE'].astype(str) + '_' + pop_inc['NAME'].astype(str) + '_' + pop_inc['RACE'].astype(str)
+        pop_inc['KEY'] = (pop_inc['START_AGE'].astype(str) + '_' +
+                        pop_inc['END_AGE'].astype(str) + '_' +
+                        pop_inc['NAME'].astype(str) + '_' +
+                        pop_inc['RACE'].astype(str))
         
-        # Create a smaller incidence lookup tables for merging
+        # Build incidence lookup dictionaries
         keys = pop_inc[['KEY']].drop_duplicates()
         lookups = self.incidence_by_age(incidence, population)
         lookup_dict = self.make_incidence_lookup(incidence, keys, lookups)
@@ -241,8 +242,19 @@ class health_data:
         pop_inc['ISCHEMIC HEART DISEASE INC'] = pop_inc['INCIDENCE'].str[1]
         pop_inc['LUNG CANCER INC'] = pop_inc['INCIDENCE'].str[2]
         
-        # Clean up
-        pop_inc = pop_inc[['ISRM_ID', 'NAME', 'RACE', 'POPULATION','ALL CAUSE INC', 
-                           'ISCHEMIC HEART DISEASE INC','LUNG CANCER INC','geometry']]
+        # --- Option 4: Aggregate numeric columns without geometry, then reattach geometry ---
+        numeric_cols = ['POPULATION', 'ALL CAUSE INC', 'ISCHEMIC HEART DISEASE INC', 'LUNG CANCER INC']
         
-        return pop_inc
+        # Create a lookup table for geometry by ISRM_ID.
+        # (This assumes that each ISRM_ID corresponds to a single geometry.)
+        geom_lookup = pop_inc[['ISRM_ID', 'geometry']].drop_duplicates()
+        
+        # Drop geometry from pop_inc and aggregate numeric columns by ISRM_ID.
+        pop_inc_numeric = pop_inc.drop(columns='geometry').groupby('ISRM_ID', as_index=False)[numeric_cols].sum()
+        
+        # Merge the preserved geometry back in.
+        pop_inc = pd.merge(geom_lookup, pop_inc_numeric, on='ISRM_ID', how='left')
+        pop_inc = gpd.GeoDataFrame(pop_inc, geometry='geometry', crs=population.crs)
+        
+        # Select only the desired columns (if needed) before returning.
+    return pop_inc
