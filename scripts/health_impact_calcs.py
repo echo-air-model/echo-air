@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/BenjaminSalop/Desktop/CE107_Research_ python3
 # -*- coding: utf-8 -*-
 """
 Health Impact Functions
@@ -26,6 +26,8 @@ from tool_utils import *
 sys.path.append('./supporting')
 from health_data import health_data
 from matplotlib_scalebar.scalebar import ScaleBar
+
+print('what the heck?')
 
 #%% Health Calculation Helper Functions
 def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
@@ -119,18 +121,32 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     
     # Get the population-incidence  and total concentration
     verboseprint(verbose, '- {} Creating dataframe to combine concentration data with {} mortality BenMAP inputs.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
-    conc_hia = conc.copy()
+
+     # Ensure conc is a GeoDataFrame by converting it explicitly.
+    # Here, 'conc' is assumed to have a 'geometry' column and a CRS stored in conc.crs
+    conc_hia = gpd.GeoDataFrame(conc.copy(), geometry='geometry', crs=conc.crs)
 
     if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
-        if "geometry" in health_data_pop_inc.columns:
-          health_data_pop_inc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")  # Adjust CRS if needed
+      if "geometry" in health_data_pop_inc.columns:
+        health_data_pop_inc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
+      else:
+        raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
+    elif "geometry" not in health_data_pop_inc.columns:
+      raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
+
+    # Now, convert the population-incidence data to the same CRS
+    pop_inc = health_data_pop_inc.copy().to_crs(conc_hia.crs)
+    
+    if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
+      if "geometry" in health_data_pop_inc.columns:
+        pop_inc_conc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
     else:
         raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
     
-    pop_inc = health_data_pop_inc.copy().to_crs(conc_hia.crs)
-    
     # Merge these on ISRM_ID
-    pop_inc_conc = pd.merge(pop_inc, conc_hia[['ISRM_ID','TOTAL_CONC_UG/M3']], on='ISRM_ID')
+    pop_inc_conc = pop_inc.merge(conc_hia[['ISRM_ID', 'TOTAL_CONC_UG/M3']], on='ISRM_ID')
+
+    
     
     verboseprint(verbose, '- {} Successfully merged concentrations and {} input data.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
     verboseprint(verbose, '- {} Estimating {} mortality for each ISRM grid cell.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
