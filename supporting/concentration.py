@@ -150,8 +150,11 @@ class concentration:
         
         # Merge back in the geodata
         geodata = self.isrm.geodata.copy()
-        detailed_concentration_clean = pd.merge(detailed_concentration_clean, geodata, 
-                                                left_on='ISRM_ID', right_on='ISRM_ID')
+        # After merging with geodata in combine_concentrations:
+        detailed_concentration_clean = pd.merge(detailed_concentration_clean, geodata, left_on='ISRM_ID', right_on='ISRM_ID')
+
+        # Convert to a GeoDataFrame (assuming self.crs is defined in your concentration object)
+        detailed_concentration_clean = gpd.GeoDataFrame(detailed_concentration_clean, geometry='geometry', crs=self.crs)
         
         # Make a final version that is very simple
         total_concentration = detailed_concentration_clean[['ISRM_ID','geometry', 'TOTAL_CONC_UG/M3']].copy()
