@@ -417,6 +417,8 @@ class concentration_layer:
         # Convert into a geodataframe
         conc_df = pd.DataFrame(conc, columns=['CONC_UG/M3'], index=self.receptor_id)#pol_emis.index)
         conc_gdf = pol_emis.merge(conc_df, left_index=True, right_index=True)
+        conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry='geometry', crs=self.crs)
+
         
         return conc_gdf
     
