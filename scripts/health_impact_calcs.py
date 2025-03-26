@@ -127,27 +127,24 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     conc_hia = gpd.GeoDataFrame(conc.copy(), geometry='geometry', crs=conc.crs)
 
     if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
-      if "geometry" in health_data_pop_inc.columns:
-        health_data_pop_inc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
-      else:
-        raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
+        if "geometry" in health_data_pop_inc.columns:
+            health_data_pop_inc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
+            print('A')
+        else:
+            raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
+            print('B')
     elif "geometry" not in health_data_pop_inc.columns:
-      raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
+        print('C')
+        raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
 
     # Now, convert the population-incidence data to the same CRS
-    pop_inc = health_data_pop_inc.copy().to_crs(conc_hia.crs)
-    
     if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
-      if "geometry" in health_data_pop_inc.columns:
-        pop_inc_conc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
-    else:
-        raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
+        if "geometry" in health_data_pop_inc.columns:
+            print('D')
+            pop_inc_conc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
     
     # Merge these on ISRM_ID
     pop_inc_conc = pop_inc.merge(conc_hia[['ISRM_ID', 'TOTAL_CONC_UG/M3']], on='ISRM_ID')
-
-    
-    
     verboseprint(verbose, '- {} Successfully merged concentrations and {} input data.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
     verboseprint(verbose, '- {} Estimating {} mortality for each ISRM grid cell.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
         

@@ -255,6 +255,7 @@ class health_data:
         pop_inc = gpd.GeoDataFrame(pop_inc, geometry='geometry', crs=population.crs)
         
         # (Optional) Debug print to verify that the geometry column exists
-        # print("Final pop_inc columns:", pop_inc.columns)
+        print("Final pop_inc columns:", pop_inc.columns)
+        print("Data type for pop_inc:", type(pop_inc))
 
         return pop_inc
