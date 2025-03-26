@@ -242,23 +242,16 @@ class health_data:
         # --- Option 4: Aggregate numeric columns without geometry, then reattach geometry ---
         numeric_cols = ['POPULATION', 'ALL CAUSE INC', 'ISCHEMIC HEART DISEASE INC', 'LUNG CANCER INC']
         
-        # Create a lookup table for geometry by ISRM_ID.
-        # (This assumes that each ISRM_ID corresponds to a single geometry.)
+        # Create a lookup table for geometry by ISRM_ID (ensuring uniqueness).
         geom_lookup = pop_inc[['ISRM_ID', 'geometry']].drop_duplicates(subset=['ISRM_ID'])
         
         # Drop geometry from pop_inc and aggregate numeric columns by ISRM_ID.
-        # Drop geometry from pop_inc and aggregate numeric columns by ISRM_ID.
-        # Drop geometry from pop_inc and aggregate numeric columns by ISRM_ID.
         pop_inc_numeric = pop_inc.drop(columns='geometry').groupby('ISRM_ID', as_index=False)[numeric_cols].sum()
-
-        # Ensure geom_lookup has unique ISRM_IDs.
-        geom_lookup = pop_inc[['ISRM_ID', 'geometry']].drop_duplicates(subset=['ISRM_ID'])
-
-        # Merge the preserved geometry back in using geom_lookup.
-        pop_inc = pd.merge(geom_lookup, pop_inc_numeric, on='ISRM_ID', how='left')
-
-        # Convert to a GeoDataFrame with the proper CRS.
+        
+        # Merge using the GeoDataFrame merge method (which preserves the geometry column).
+        pop_inc = geom_lookup.merge(pop_inc_numeric, on='ISRM_ID', how='left')
+        
+        # Convert the result into a GeoDataFrame to ensure proper CRS.
         pop_inc = gpd.GeoDataFrame(pop_inc, geometry='geometry', crs=population.crs)
 
-        # Select only the desired columns (if needed) before returning.
         return pop_inc
