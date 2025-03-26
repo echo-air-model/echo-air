@@ -244,19 +244,19 @@ class health_data:
         
         # Create a lookup table for geometry by ISRM_ID.
         # (This assumes that each ISRM_ID corresponds to a single geometry.)
-        geom_lookup = pop_inc[['ISRM_ID', 'geometry']].drop_duplicates()
+        geom_lookup = pop_inc[['ISRM_ID', 'geometry']].drop_duplicates(subset=['ISRM_ID'])
         
         # Drop geometry from pop_inc and aggregate numeric columns by ISRM_ID.
         # Drop geometry from pop_inc and aggregate numeric columns by ISRM_ID.
+        # Drop geometry from pop_inc and aggregate numeric columns by ISRM_ID.
         pop_inc_numeric = pop_inc.drop(columns='geometry').groupby('ISRM_ID', as_index=False)[numeric_cols].sum()
-    
+
+        # Ensure geom_lookup has unique ISRM_IDs.
+        geom_lookup = pop_inc[['ISRM_ID', 'geometry']].drop_duplicates(subset=['ISRM_ID'])
+
         # Merge the preserved geometry back in using geom_lookup.
         pop_inc = pd.merge(geom_lookup, pop_inc_numeric, on='ISRM_ID', how='left')
-    
-        # Explicitly reassign the geometry column from geom_lookup.
-        # This ensures that even if the merge dropped the geometry metadata, it is restored.
-        pop_inc["geometry"] = geom_lookup.set_index("ISRM_ID").loc[pop_inc["ISRM_ID"], "geometry"].values
-    
+
         # Convert to a GeoDataFrame with the proper CRS.
         pop_inc = gpd.GeoDataFrame(pop_inc, geometry='geometry', crs=population.crs)
 
