@@ -247,11 +247,18 @@ class health_data:
         geom_lookup = pop_inc[['ISRM_ID', 'geometry']].drop_duplicates()
         
         # Drop geometry from pop_inc and aggregate numeric columns by ISRM_ID.
+        # Drop geometry from pop_inc and aggregate numeric columns by ISRM_ID.
         pop_inc_numeric = pop_inc.drop(columns='geometry').groupby('ISRM_ID', as_index=False)[numeric_cols].sum()
-        
-        # Merge the preserved geometry back in.
+    
+        # Merge the preserved geometry back in using geom_lookup.
         pop_inc = pd.merge(geom_lookup, pop_inc_numeric, on='ISRM_ID', how='left')
+    
+        # Explicitly reassign the geometry column from geom_lookup.
+        # This ensures that even if the merge dropped the geometry metadata, it is restored.
+        pop_inc["geometry"] = geom_lookup.set_index("ISRM_ID").loc[pop_inc["ISRM_ID"], "geometry"].values
+    
+        # Convert to a GeoDataFrame with the proper CRS.
         pop_inc = gpd.GeoDataFrame(pop_inc, geometry='geometry', crs=population.crs)
-        
+
         # Select only the desired columns (if needed) before returning.
         return pop_inc
