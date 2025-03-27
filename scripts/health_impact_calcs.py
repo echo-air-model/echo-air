@@ -144,7 +144,7 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
             pop_inc_conc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
     
     # Merge these on ISRM_ID
-    pop_inc_conc = pop_inc.merge(conc_hia[['ISRM_ID', 'TOTAL_CONC_UG/M3']], on='ISRM_ID')
+    pop_inc_conc = health_data_pop_inc.merge(conc_hia[['ISRM_ID', 'TOTAL_CONC_UG/M3']], on='ISRM_ID')
     verboseprint(verbose, '- {} Successfully merged concentrations and {} input data.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
     verboseprint(verbose, '- {} Estimating {} mortality for each ISRM grid cell.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
         
