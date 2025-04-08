@@ -174,7 +174,7 @@ if __name__ == "__main__":
             verboseprint(verbose, '- Notes about this step will be preceded by the tag [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
             logging.info('\n')
             exp_pop_alloc_future = executor.submit(
-                pop.allocate_population, pop.pop_exp, isrmgrid.geodata, 'ISRM_ID', False)
+                pop.allocate_pop, pop.pop_exp, isrmgrid.geodata, False)
             executor_jobs.append(exp_pop_alloc_future)
             
             # Creating HIA inputs takes a long time. Start the process as early as 
@@ -197,16 +197,14 @@ if __name__ == "__main__":
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
             emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
-        
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
-            
             # Create population object
             verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
             pop = population(population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
             logging.info('- [POPULATION] Re-allocating population data to the ISRM grid.')
-            exp_pop_alloc = pop.allocate_population(pop.pop_exp, isrmgrid.geodata, 'ISRM_ID', False)
+            exp_pop_alloc = pop.allocate_pop(pop.pop_exp, isrmgrid.geodata, False)
             
             
         # Close the linear/parallel split to estimate concentrations
@@ -227,7 +225,7 @@ if __name__ == "__main__":
         logging.info("- [CONCENTRATION] Concentration files output into: {}.".format(output_dir))
 
         ## Perform concentration-related EJ analyses
-        exp_pop_alloc = pop.allocate_population(pop.pop_exp, isrmgrid.geodata, 'ISRM_ID', False)
+        exp_pop_alloc = pop.allocate_pop(pop.pop_exp, isrmgrid.geodata, False)
         verboseprint(verbose, '- [POPULATION] Population data is properly allocated to the ISRM grid and ready for EJ calculations.', debug_mode, frameinfo=getframeinfo(currentframe()))
         
         ## Create the exposure dataframe and run EJ functions
@@ -266,7 +264,7 @@ if __name__ == "__main__":
             else:
                 logging.info('\n<< Beginning to import health calculation inputs.')
                 verboseprint(verbose, '- Health calculation input details in verbose mode will be preceded by the tag [HEALTH].', debug_mode, frameinfo=getframeinfo(currentframe()))
-                hia_pop_alloc = pop.allocate_population(pop.pop_all, isrmgrid.geodata, 'ISRM_ID', True)
+                hia_pop_alloc = pop.allocate_pop(pop.pop_all, isrmgrid.geodata, True)
                 hia_inputs = health_data(hia_pop_alloc, incidence_fp, debug_mode=debug_mode, verbose=verbose, race_stratified=False)
             
             #% Close the split with a print statement
