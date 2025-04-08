@@ -296,6 +296,7 @@ class population:
             isrm_group = isrm_group.merge(isrm_gdf, on = "ISRM_ID", how = 'right')
             isrm_group = isrm_group.drop(columns = {"AGE_BIN","geometry_x", "START_AGE_y", "END_AGE_y"})
             isrm_group = isrm_group.rename(columns={"START_AGE_x":"START_AGE","END_AGE_x":"END_AGE","geometry_y" : "geometry"})
+            isrm_group = isrm_group.rename(columns={'TOTAL_adjusted':'TOTAL', 'ASIAN_adjusted':'ASIAN','BLACK_adjusted':'BLACK', 'HISLA_adjusted':'HISLA', 'INDIG_adjusted':'INDIG', 'PACIS_adjusted':'PACIS', 'WHITE_adjusted':'WHITE', 'OTHER_adjusted':"OTHER"})
             #Reorganize column order
             cols = isrm_group.columns.tolist()  # Get column names as a list
             last_col = cols.pop()  # Remove last column ('geometry')
