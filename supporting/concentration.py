@@ -314,8 +314,8 @@ class concentration:
 
             # Add the area column for the intersected data
             intersect['area_km2'] = intersect.geometry.area/(1000.0*1000.0)    
-            total_area = intersect.groupby('NAME').sum()['area_km2'].to_dict()
-            
+            total_area = intersect.groupby('NAME')['area_km2'].sum().to_dict()
+
             # Add a total area and area fraction to the intersect object
             intersect['area_total'] = intersect['NAME'].map(total_area)
             intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
