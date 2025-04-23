@@ -267,7 +267,7 @@ class concentration:
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
         # If detailed flag is True, export detailed shapefile
         if self.detailed_conc_flag:
-            fname = f_out + '_detailed_concentration.shp' # File Name
+            fname = f_out + '_detailed_concentration.shp'
             fpath = os.path.join(output_dir, fname)
             
             # Make a copy and change column names to meet shapefile requirements
@@ -277,19 +277,38 @@ class concentration:
                                   'fNH3_UG_M3', 'fVOC_UG_M3', 'fNOX_UG_M3',
                                   'fSOX_UG_M3', 'PM25_UG_M3', 'LAYER']
             
+            # ─── INSERT HERE ───
+            # Ensure it's a GeoDataFrame so .to_file() exists
+            if not isinstance(gdf_export, gpd.GeoDataFrame):
+                gdf_export = gpd.GeoDataFrame(
+                    gdf_export,
+                    geometry='geometry',
+                    crs=self.crs
+                )
+            # ───────────────────
+
             # Export
             gdf_export.to_file(fpath)
             logging.info('   - [CONCENTRATION] Detailed concentrations output as {} >>'.format(fname))
             
-        # If detailed flag is False, export only total concentration shapefile
         else:
-            fname = str.lower(f_out + '_total_concentration.shp') # File Name
+            fname = str.lower(f_out + '_total_concentration.shp')
             fpath = os.path.join(output_dir, fname)
             
             # Make a copy and change column names to meet shapefile requirements
             gdf_export = self.summary_conc.copy()
             gdf_export.columns = ['NAME', 'geometry', 'PM25_UG_M3']
             
+            # ─── INSERT HERE ───
+            # Ensure it's a GeoDataFrame so .to_file() exists
+            if not isinstance(gdf_export, gpd.GeoDataFrame):
+                gdf_export = gpd.GeoDataFrame(
+                    gdf_export,
+                    geometry='geometry',
+                    crs=self.crs
+                )
+            # ───────────────────
+
             # Export
             gdf_export.to_file(fpath)
             logging.info('   - [CONCENTRATION] Total concentrations output as {}'.format(fname))

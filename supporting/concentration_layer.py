@@ -397,6 +397,15 @@ class concentration_layer:
         fname_tmp = '{}_layer{}_allocated_emis.shp'.format(self.name, self.layer)
         
         # Output
+        # Ensure aloc_emis is a GeoDataFrame before writing
+        if not isinstance(aloc_emis, gpd.GeoDataFrame):
+            aloc_emis = gpd.GeoDataFrame(
+                aloc_emis,
+                geometry='geometry',            # adjust if your geom column is named differently
+                crs=self.isrm.crs               # or use self.isrm.geodata.crs
+            )
+        # ─────────────────────────────────────────────
+
         aloc_emis.to_file(path.join(output_dir, 'shapes', fname_tmp))
         verboseprint(verbose, '      - [CONCENTRATION] Shapefiles of ISRM-allocated emissions have been saved in the output directory.',
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
