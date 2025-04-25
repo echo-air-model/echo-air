@@ -189,62 +189,8 @@ class concentration_layer:
         # Add a total area and area fraction to the intersect object
         intersect['area_total'] = intersect['EMIS_ID'].map(emis_totalarea)
         intersect['area_frac'] = int_areas / intersect['area_total']
-        # check_frac_sum = intersect.groupby('EMIS_ID')['area_frac'].sum()
-        # sums = check_frac_sum.to_dict()
-        # print("Fraction sums min/max:", check_frac_sum.min(), check_frac_sum.max())
-        # print("Any rows where sum ≠ 1:", check_frac_sum[~np.isclose(check_frac_sum, 1)])
+
         return intersect
-    @staticmethod
-    def plot_emissions_intersection_quality(emis_layer, intersect, isrm_geography):
-        """
-        Plots emissions cells colored by intersection quality:
-      - Green: Full intersection (area_frac sum ≈ 1)
-      - Yellow: Partial intersection (area_frac sum < 1)
-      - Red: No intersection
-         """
-        # Add EMIS_ID field to emissions if not present
-        if 'EMIS_ID' not in emis_layer.columns:
-            emis_layer = emis_layer.copy()
-            emis_layer['EMIS_ID'] = 'EMIS_' + emis_layer.index.astype(str)
-
-        # Group by EMIS_ID to get sum of area_frac
-        area_frac_sums = intersect.groupby('EMIS_ID')['area_frac'].sum()
-
-    # Classify emission polygons
-        emis_layer = emis_layer.set_index('EMIS_ID')
-        emis_layer['frac_sum'] = area_frac_sums
-        emis_layer['frac_sum'].fillna(0, inplace=True)  # Fill non-intersected with 0
-
-        def classify_row(row):
-            if np.isclose(row['frac_sum'], 1.0):
-                return 'Full'
-            elif row['frac_sum'] == 0:
-                return 'None'
-            else:
-                return 'Partial'
-
-        emis_layer['intersection_type'] = emis_layer.apply(classify_row, axis=1)
-
-    # Plot
-        fig, ax = plt.subplots(1, 1, figsize=(12, 12))
-        base = isrm_geography.boundary.plot(ax=ax, color='lightgrey', linewidth=0.5)
-
-        colors = {
-            'Full': 'green',
-            'Partial': 'orange',
-            'None': 'red'
-        }
-
-        for label, color in colors.items():
-            subset = emis_layer[emis_layer['intersection_type'] == label]
-            if not subset.empty:
-                subset.plot(ax=base, color=color, label=label, alpha=0.5, edgecolor='k', linewidth=0.3)
-
-        plt.title("Emissions Layer Intersection with ISRM Grid")
-        plt.legend(title='Intersection Type')
-        plt.axis('off')
-        plt.tight_layout()
-        plt.show()
     
     def process_emissions(self, emis, isrm_obj, verbose, output_dir, output_emis_flag):
         ''' Processes emissions before calculating concentrations '''
@@ -359,10 +305,10 @@ class concentration_layer:
         for ax, pol in zip(axes, pollutants):
             # Filter data for the current pollutant
             data = clipped_data[['ISRM_ID',pol,'geometry']].copy()
-
+            data[pol] = data[pol] / data.geometry.area
             # Plot data on the current subplot
             data.plot(column=pol,
-                    legend_kwds={'label': "Emissions (ug/s)"},
+                    legend_kwds={'label': r'Emission Flux ($\mu$g/s-m$^2$)'},
                     legend=True, 
                     cmap='mako_r',
                     edgecolor='none',
