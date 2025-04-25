@@ -48,7 +48,7 @@ def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
     conc_gdf.columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
 
     if not isinstance(conc_gdf, gpd.GeoDataFrame):
-      conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry="geometry", crs="EPSG:4326")
+      conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry="geometry", crs=conc.crs)
     
     # Pull only relevant columns from isrm_pop_alloc
     groups = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
@@ -446,9 +446,8 @@ def region_pwm_helper(name, group, full_dataset):
 def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out):
     ''' 
     Creates the exports for the population-weighted products requested when the 
-    user inputs an output resolution larger than the ISRM grid.
-    This version uses Option 4: dropping geometry before aggregation and then
-    reusing the geometry as needed.
+    user inputs an output resolution larger than the ISRM grid. In this step, 
+    dropping geometry occurs before aggregation and then is reused as needed.
     
     INPUTS:
         - pop_exp: a dataframe containing the population information without age-resolution

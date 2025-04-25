@@ -205,7 +205,7 @@ class concentration:
         
         #Make sure c_to_plot is a geodataframe
         if not isinstance(c_to_plot, gpd.GeoDataFrame):
-            c_to_plot = gpd.GeoDataFrame(c_to_plot, geometry="geometry", crs="EPSG:4326")  # Adjust CRS if needed
+            c_to_plot = gpd.GeoDataFrame(c_to_plot, geometry="geometry", crs=self.crs)  # Adjust CRS if needed
 
         # Convert CRS if there is a mismatch
         if c_to_plot.crs != output_region.crs:

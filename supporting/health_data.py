@@ -254,9 +254,4 @@ class health_data:
         # Convert the result into a GeoDataFrame with the proper CRS.
         pop_inc = gpd.GeoDataFrame(pop_inc, geometry='geometry', crs=population.crs)
 
-    
-        # (Optional) Debug print to verify that the geometry column exists
-        print("Final pop_inc columns:", pop_inc.columns)
-        print("Data type for pop_inc:", type(pop_inc))
-
         return pop_inc

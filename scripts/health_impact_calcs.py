@@ -1,4 +1,4 @@
-#!/Users/BenjaminSalop/Desktop/CE107_Research_ python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Health Impact Functions
@@ -26,8 +26,6 @@ from tool_utils import *
 sys.path.append('./supporting')
 from health_data import health_data
 from matplotlib_scalebar.scalebar import ScaleBar
-
-print('what the heck?')
 
 #%% Health Calculation Helper Functions
 def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
@@ -129,18 +127,14 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
         if "geometry" in health_data_pop_inc.columns:
             health_data_pop_inc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
-            print('A')
         else:
             raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
-            print('B')
     elif "geometry" not in health_data_pop_inc.columns:
-        print('C')
         raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
 
     # Now, convert the population-incidence data to the same CRS
     if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
         if "geometry" in health_data_pop_inc.columns:
-            print('D')
             pop_inc_conc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
     
     # Merge these on ISRM_ID
@@ -364,7 +358,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
       # Calculate area and fractions
       intersect['area_km2'] = intersect.geometry.area / 1e6
-      total_area = intersect.groupby('NAME').sum()['area_km2'].to_dict()
+      total_area = intersect.groupby('NAME').sum(numeric_only=True)['area_km2'].to_dict()
       intersect['area_total'] = intersect['NAME'].map(total_area)
       intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
 
