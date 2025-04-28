@@ -354,6 +354,9 @@ if __name__ == "__main__":
         run_time = round((time.time() - start_time)/60.0,1)
         logging.info('- Total run time: {} minutes'.format(run_time))
         logging.info('- All log statements have been saved into a text file: {}'.format(new_logger))
+        
+        # Shut down the logger and the parallel processes
         logging.shutdown()
+        run_parallel and executor.shutdown(wait=True) 
         
         quit()
