@@ -4,7 +4,7 @@
 Population Data Object
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2025-04-28
 """
 
 # Import Libraries
@@ -185,6 +185,8 @@ class population:
             intersection["area_isrm"] = intersection["ISRM_ID"].map(selected_grids.set_index("ISRM_ID").geometry.area.to_dict())
             intersection["fpop"] = intersection["area_intersection"] / intersection["area_pop"]
             intersection["fisrm"] = intersection["area_intersection"] / intersection["area_isrm"]
+            
+            # Simplify the crosswalk for export
             crosswalk = intersection[["POP_ID", "AGE_BIN","ISRM_ID", "fpop", "fisrm", "geometry"]]
         else:
             #Select relevant columns
@@ -208,6 +210,8 @@ class population:
             intersection["area_isrm"] = intersection["ISRM_ID"].map(selected_grids.set_index("ISRM_ID").geometry.area.to_dict())
             intersection["fpop"] = intersection["area_intersection"] / intersection["area_pop"]
             intersection["fisrm"] = intersection["area_intersection"] / intersection["area_isrm"]
+            
+            # Simplify the crosswalk for export
             crosswalk = intersection[["POP_ID","ISRM_ID", "fpop", "fisrm", "geometry"]]
 
         # Note that the only ISRM Grid IDs in this dataframe are ones that intersect with a district
@@ -217,7 +221,9 @@ class population:
         ''' Takes crosswalk and reallocates popualtion into the ISRM grid cells'''
         total_population = population_gdf["TOTAL"].sum()
         crosswalk_df = self.crosswalk(population_gdf, isrm_gdf, hia_flag)
+        
         if hia_flag == True:
+            
             #Merge all data
             merged_data = crosswalk_df.merge(population_gdf[ ['POP_ID', 'YEAR', 'AGE_BIN', 'START_AGE', 'END_AGE', 'TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID","AGE_BIN"] , how="left")
             pop_columns = ['TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']
@@ -271,6 +277,8 @@ class population:
             cols.insert(1, last_col)
             isrm_group = isrm_group[cols]
             isrm_group[cols] = isrm_group[cols].fillna(0)
+            
+            # Convert to a GeoDataFrame
             isrm_group = gpd.GeoDataFrame(isrm_group, geometry="geometry", crs=isrm_gdf.crs)
 
         final_population = isrm_group["TOTAL"].sum()

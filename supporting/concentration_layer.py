@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2024-06-11
+last modified: 2025-04-28
 """
 
 # Import Libraries
@@ -142,8 +142,10 @@ class concentration_layer:
         # Deep copy the emissions layer and add an ID field
         emis = emis_layer[['EMISSIONS_UG/S']].copy(deep=True)
         emis['EMIS_ID'] = 'EMIS_' + emis.index.astype(str)
+        
         # Merge together the emissions and the intersect
         intersect = pd.merge(emis, intersect, on='EMIS_ID')
+        
         # Store the total emissions from the raw emissions data for later comparison
         old_total = emis['EMISSIONS_UG/S'].sum()
         
@@ -264,7 +266,7 @@ class concentration_layer:
         return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
     
     def visualize_individual_emissions(self, aloc_emis, pollutant_name=''):
-        ''' Create a 5-panel plot of total emissions for each individual pollutant and save as a PNG file '''
+        ''' Create a 5-panel plot of total emission fluxes for each individual pollutant and save as a PNG file '''
 
         if self.verbose:
             logging.info('   - [CONCENTRATION] Drawing map of total emissions at level {} by pollutant.'.format(self.layer))

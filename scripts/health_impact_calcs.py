@@ -4,7 +4,7 @@
 Health Impact Functions
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2025-04-28
 """
 
 # Import Libraries
