@@ -4,7 +4,7 @@
 Health Impact Functions
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2025-04-28
 """
 
 # Import Libraries
@@ -47,7 +47,7 @@ def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
         - a health data object ready for health calculations
     
     """
-    hia_pop_alloc = pop.allocate_population(pop.pop_all, geodata, 'ISRM_ID', True)
+    hia_pop_alloc = pop.allocate_pop(pop.pop_all, geodata, True)
     return health_data(hia_pop_alloc, incidence_fp, verbose=verbose, race_stratified=False, debug_mode=debug_mode)
 
 def krewski(conc, inc, pop, endpoint):

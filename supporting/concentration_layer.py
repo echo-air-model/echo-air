@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2024-06-11
+last modified: 2025-04-28
 """
 
 # Import Libraries
@@ -161,8 +161,6 @@ class concentration_layer:
                                                                           left_on='ISRM_ID',
                                                                           right_on='ISRM_ID')
         reallocated_emis['EMISSIONS_UG/S'].fillna(0, inplace=True)
-        
-        # Confirm that the total has not changed
         assert np.isclose(reallocated_emis['EMISSIONS_UG/S'].sum(), old_total)
         
         return reallocated_emis
@@ -187,12 +185,13 @@ class concentration_layer:
         
         # Create intersect object between emis and ISRM grid
         intersect = gpd.overlay(emis, isrm_geography, how='intersection')
-        emis_totalarea = intersect.groupby('EMIS_ID').sum()['area_km2'].to_dict()
+        emis_totalarea = intersect.groupby('EMIS_ID')['area_km2'].first().to_dict()
+        int_areas = intersect.geometry.area / (1000 * 1000)
         
         # Add a total area and area fraction to the intersect object
         intersect['area_total'] = intersect['EMIS_ID'].map(emis_totalarea)
-        intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
-        
+        intersect['area_frac'] = int_areas / intersect['area_total']
+
         return intersect
     
     def process_emissions(self, emis, isrm_obj, verbose, output_dir, output_emis_flag):
@@ -267,7 +266,7 @@ class concentration_layer:
         return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
     
     def visualize_individual_emissions(self, aloc_emis, pollutant_name=''):
-        ''' Create a 5-panel plot of total emissions for each individual pollutant and save as a PNG file '''
+        ''' Create a 5-panel plot of total emission fluxes for each individual pollutant and save as a PNG file '''
 
         if self.verbose:
             logging.info('   - [CONCENTRATION] Drawing map of total emissions at level {} by pollutant.'.format(self.layer))
@@ -308,10 +307,10 @@ class concentration_layer:
         for ax, pol in zip(axes, pollutants):
             # Filter data for the current pollutant
             data = clipped_data[['ISRM_ID',pol,'geometry']].copy()
-
+            data[pol] = data[pol] / data.geometry.area
             # Plot data on the current subplot
             data.plot(column=pol,
-                    legend_kwds={'label': "Emissions (ug/s)"},
+                    legend_kwds={'label': r'Emission Flux ($\mu$g/s-m$^2$)'},
                     legend=True, 
                     cmap='mako_r',
                     edgecolor='none',
