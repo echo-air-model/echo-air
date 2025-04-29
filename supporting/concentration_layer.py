@@ -391,7 +391,7 @@ class concentration_layer:
             
         # Add the geodata back in
         aloc_emis = pd.merge(aloc_emis, geodata, on='ISRM_ID')
-	aloc_emis = gpd.GeoDataFrame(aloc_emis, geometry=aloc_emis.geometry, crs=geodata.crs)
+        aloc_emis = gpd.GeoDataFrame(aloc_emis, geometry=aloc_emis.geometry, crs=geodata.crs)
             
         # Create a file name
         fname_tmp = '{}_layer{}_allocated_emis.shp'.format(self.name, self.layer)
