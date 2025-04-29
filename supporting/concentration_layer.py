@@ -1,3 +1,4 @@
+'''''''
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -81,6 +82,7 @@ class concentration_layer:
         
         # Print a few things for logging purposes
         logging.info('- [CONCENTRATION] Estimating concentrations from layer {} of the ISRM.'.format(self.layer))
+        #verboseprint = logging.info if self.verbose else lambda *a, **k:None # for logging
         verboseprint(self.verbose, '   - [CONCENTRATION] Creating a new concentration object for layer {}'.format(self.layer),
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
@@ -153,15 +155,13 @@ class concentration_layer:
         
         # Sum over ISRM grid cell
         reallocated_emis = intersect.drop(columns="geometry", errors="ignore").groupby('ISRM_ID')[['EMISSIONS_UG/S']].sum().reset_index()
-        
+
         # Preserve all ISRM grid cells for consistent shapes
         reallocated_emis = isrm_geography[['ISRM_ID', 'geometry']].merge(reallocated_emis,
                                                                           how='left',
                                                                           left_on='ISRM_ID',
                                                                           right_on='ISRM_ID')
         reallocated_emis['EMISSIONS_UG/S'].fillna(0, inplace=True)
-        
-        # Confirm that the total has not changed
         assert np.isclose(reallocated_emis['EMISSIONS_UG/S'].sum(), old_total)
         
         return reallocated_emis
@@ -186,14 +186,17 @@ class concentration_layer:
         
         # Create intersect object between emis and ISRM grid
         intersect = gpd.overlay(emis, isrm_geography, how='intersection')
+        
         intersect = intersect.drop(columns="geometry", errors="ignore")
-        emis_totalarea = intersect.drop(columns="geometry", errors="ignore").groupby('EMIS_ID').sum(numeric_only=True)['area_km2'].to_dict()
-
+        emis_totalarea = intersect.drop(columns="geometry", errors="ignore").groupby('EMIS_ID')['area_km2'].first().to_dict()
+        
+        #emis_totalarea = intersect.groupby('EMIS_ID')['area_km2'].first().to_dict()
+        int_areas = intersect.geometry.area / (1000 * 1000)
         
         # Add a total area and area fraction to the intersect object
         intersect['area_total'] = intersect['EMIS_ID'].map(emis_totalarea)
-        intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
-        
+        intersect['area_frac'] = int_areas / intersect['area_total']
+
         return intersect
     
     def process_emissions(self, emis, isrm_obj, verbose, output_dir, output_emis_flag):
@@ -235,6 +238,8 @@ class concentration_layer:
 
                     # Cut the pollutant layer based on the height
                     emis_slice = emis_slice[(emis_slice['HEIGHT_M'] >= height_min) & (emis_slice['HEIGHT_M'] < height_max)]
+
+                    # verboseprint(self.verbose, f'- Estimating concentrations of PM2.5 from {pollutant}')
                     futures[pollutant] = cl_executor.submit(self.allocate_emissions, intersect, emis_slice, isrm_obj.geodata, pollutant, verbose, self.debug_mode)
 
                 verboseprint(verbose, '- [CONCENTRATION] Waiting for all allocations to complete',
@@ -266,7 +271,7 @@ class concentration_layer:
         return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
     
     def visualize_individual_emissions(self, aloc_emis, pollutant_name=''):
-        ''' Create a 5-panel plot of total emissions for each individual pollutant and save as a PNG file '''
+        ''' Create a 5-panel plot of total emission fluxes for each individual pollutant and save as a PNG file '''
 
         if self.verbose:
             logging.info('   - [CONCENTRATION] Drawing map of total emissions at level {} by pollutant.'.format(self.layer))
@@ -307,10 +312,10 @@ class concentration_layer:
         for ax, pol in zip(axes, pollutants):
             # Filter data for the current pollutant
             data = clipped_data[['ISRM_ID',pol,'geometry']].copy()
-
+            data[pol] = data[pol] / data.geometry.area
             # Plot data on the current subplot
             data.plot(column=pol,
-                    legend_kwds={'label': "Emissions (ug/s)"},
+                    legend_kwds={'label': r'Emission Flux ($\mu$g/s-m$^2$)'},
                     legend=True, 
                     cmap='mako_r',
                     edgecolor='none',
@@ -394,15 +399,6 @@ class concentration_layer:
         fname_tmp = '{}_layer{}_allocated_emis.shp'.format(self.name, self.layer)
         
         # Output
-        # Ensure aloc_emis is a GeoDataFrame before writing
-        if not isinstance(aloc_emis, gpd.GeoDataFrame):
-            aloc_emis = gpd.GeoDataFrame(
-                aloc_emis,
-                geometry='geometry',            # adjust if your geom column is named differently
-                crs=self.isrm.crs               # or use self.isrm.geodata.crs
-            )
-        # ─────────────────────────────────────────────
-
         aloc_emis.to_file(path.join(output_dir, 'shapes', fname_tmp))
         verboseprint(verbose, '      - [CONCENTRATION] Shapefiles of ISRM-allocated emissions have been saved in the output directory.',
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -424,7 +420,6 @@ class concentration_layer:
         conc_df = pd.DataFrame(conc, columns=['CONC_UG/M3'], index=self.receptor_id)#pol_emis.index)
         conc_gdf = pol_emis.merge(conc_df, left_index=True, right_index=True)
         conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry='geometry', crs=self.crs)
-
         
         return conc_gdf
     
