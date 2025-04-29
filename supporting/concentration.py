@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2024-10-17
+last modified: 2025-04-29
 """
 
 # Import Libraries
@@ -277,7 +277,6 @@ class concentration:
                                   'fNH3_UG_M3', 'fVOC_UG_M3', 'fNOX_UG_M3',
                                   'fSOX_UG_M3', 'PM25_UG_M3', 'LAYER']
             
-            # ─── INSERT HERE ───
             # Ensure it's a GeoDataFrame so .to_file() exists
             if not isinstance(gdf_export, gpd.GeoDataFrame):
                 gdf_export = gpd.GeoDataFrame(
@@ -285,7 +284,6 @@ class concentration:
                     geometry='geometry',
                     crs=self.crs
                 )
-            # ───────────────────
 
             # Export
             gdf_export.to_file(fpath)
@@ -299,7 +297,6 @@ class concentration:
             gdf_export = self.summary_conc.copy()
             gdf_export.columns = ['NAME', 'geometry', 'PM25_UG_M3']
             
-            # ─── INSERT HERE ───
             # Ensure it's a GeoDataFrame so .to_file() exists
             if not isinstance(gdf_export, gpd.GeoDataFrame):
                 gdf_export = gpd.GeoDataFrame(
@@ -307,7 +304,6 @@ class concentration:
                     geometry='geometry',
                     crs=self.crs
                 )
-            # ───────────────────
 
             # Export
             gdf_export.to_file(fpath)

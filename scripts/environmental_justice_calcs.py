@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2024-01-29
+last modified: 2025-04-29
 """
 
 # Import Libraries
@@ -356,7 +356,7 @@ def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mo
     fig, ax = plt.subplots(figsize=(10,8))
     sns.lineplot(data=pctl_melt, x='Percentile', y='PM25_UG_M3', hue='Racial/Ethnic Group', ci=None, 
                  linewidth=3, palette='deep', ax=ax)
-    ax.set(ylabel='PM$_{2.5}$ Exposure ($\mu$g/m$^3$)')
+    ax.set(ylabel=r'PM$_{2.5}$ Exposure ($\mu$g/m$^3$)')
     ax.set_xticks(ticks=[5,25,50,75,95], 
                   labels=['5th','25th','50th','75th','95th'])
     

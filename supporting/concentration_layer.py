@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2024-06-11
+last modified: 2025-04-29
 """
 
 # Import Libraries
@@ -81,7 +81,6 @@ class concentration_layer:
         
         # Print a few things for logging purposes
         logging.info('- [CONCENTRATION] Estimating concentrations from layer {} of the ISRM.'.format(self.layer))
-        #verboseprint = logging.info if self.verbose else lambda *a, **k:None # for logging
         verboseprint(self.verbose, '   - [CONCENTRATION] Creating a new concentration object for layer {}'.format(self.layer),
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
@@ -236,8 +235,6 @@ class concentration_layer:
 
                     # Cut the pollutant layer based on the height
                     emis_slice = emis_slice[(emis_slice['HEIGHT_M'] >= height_min) & (emis_slice['HEIGHT_M'] < height_max)]
-
-                    # verboseprint(self.verbose, f'- Estimating concentrations of PM2.5 from {pollutant}')
                     futures[pollutant] = cl_executor.submit(self.allocate_emissions, intersect, emis_slice, isrm_obj.geodata, pollutant, verbose, self.debug_mode)
 
                 verboseprint(verbose, '- [CONCENTRATION] Waiting for all allocations to complete',
