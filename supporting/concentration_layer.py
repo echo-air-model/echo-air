@@ -185,8 +185,6 @@ class concentration_layer:
         
         # Create intersect object between emis and ISRM grid
         intersect = gpd.overlay(emis, isrm_geography, how='intersection')
-        
-        intersect = intersect.drop(columns="geometry", errors="ignore")
         emis_totalarea = intersect.drop(columns="geometry", errors="ignore").groupby('EMIS_ID')['area_km2'].first().to_dict()
         
         #emis_totalarea = intersect.groupby('EMIS_ID')['area_km2'].first().to_dict()
