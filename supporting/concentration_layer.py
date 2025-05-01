@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2025-04-28
+last modified: 2025-04-29
 """
 
 # Import Libraries
@@ -153,8 +153,8 @@ class concentration_layer:
         intersect['EMISSIONS_UG/S'] = intersect['area_frac'] * intersect['EMISSIONS_UG/S']
         
         # Sum over ISRM grid cell
-        reallocated_emis = intersect.groupby('ISRM_ID')[['EMISSIONS_UG/S']].sum().reset_index()
-        
+        reallocated_emis = intersect.drop(columns="geometry", errors="ignore").groupby('ISRM_ID')[['EMISSIONS_UG/S']].sum().reset_index()
+
         # Preserve all ISRM grid cells for consistent shapes
         reallocated_emis = isrm_geography[['ISRM_ID', 'geometry']].merge(reallocated_emis,
                                                                           how='left',
@@ -185,7 +185,9 @@ class concentration_layer:
         
         # Create intersect object between emis and ISRM grid
         intersect = gpd.overlay(emis, isrm_geography, how='intersection')
-        emis_totalarea = intersect.groupby('EMIS_ID')['area_km2'].first().to_dict()
+        emis_totalarea = intersect.drop(columns="geometry", errors="ignore").groupby('EMIS_ID')['area_km2'].first().to_dict()
+        
+        #emis_totalarea = intersect.groupby('EMIS_ID')['area_km2'].first().to_dict()
         int_areas = intersect.geometry.area / (1000 * 1000)
         
         # Add a total area and area fraction to the intersect object
@@ -389,6 +391,7 @@ class concentration_layer:
             
         # Add the geodata back in
         aloc_emis = pd.merge(aloc_emis, geodata, on='ISRM_ID')
+        aloc_emis = gpd.GeoDataFrame(aloc_emis, geometry=aloc_emis.geometry, crs=geodata.crs)
             
         # Create a file name
         fname_tmp = '{}_layer{}_allocated_emis.shp'.format(self.name, self.layer)
@@ -414,6 +417,7 @@ class concentration_layer:
         # Convert into a geodataframe
         conc_df = pd.DataFrame(conc, columns=['CONC_UG/M3'], index=self.receptor_id)#pol_emis.index)
         conc_gdf = pol_emis.merge(conc_df, left_index=True, right_index=True)
+        conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry='geometry', crs=self.crs)
         
         return conc_gdf
     

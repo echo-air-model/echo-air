@@ -4,7 +4,9 @@
 Main Run File
 
 @author: libbykoolik
-Last updated: 2025-04-28
+
+Last updated: 2025-04-29
+
 """
 #%% Import useful libraries, supporting objects, and scripts
 # Useful libraries for main script
@@ -330,11 +332,11 @@ if __name__ == "__main__":
                 
                 # Estimate excess mortality for each endpoint
                 allcause = calculate_excess_mortality(trimmed_conc, hia_inputs.pop_inc, pop, 
-                                                      'ALL CAUSE', krewski, verbose, debug_mode)
+                                                    'ALL CAUSE', krewski, verbose, debug_mode)
                 ihd = calculate_excess_mortality(trimmed_conc, hia_inputs.pop_inc, pop, 
-                                                 'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
+                                                    'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                 lungcancer = calculate_excess_mortality(trimmed_conc, hia_inputs.pop_inc, 
-                                                        pop, 'LUNG CANCER', krewski, verbose, debug_mode)            
+                                                    pop, 'LUNG CANCER', krewski, verbose, debug_mode)            
                 
                 # Plot and export
                 logging.info('<< Exporting Health Impact Outputs >>')

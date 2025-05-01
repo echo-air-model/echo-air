@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2024-10-17
+last modified: 2025-04-29
 """
 
 # Import Libraries
@@ -144,14 +144,17 @@ class concentration:
         # First, need to get rid of unnecessary columns
         detailed_concentration_clean = detailed_concentration[detailed_concentration.columns.drop(list(detailed_concentration.filter(regex='EMISSIONS')))]
         detailed_concentration_clean = detailed_concentration_clean.drop(columns='geometry').copy()
-        
+
         # Add across ISRM IDs
         detailed_concentration_clean = detailed_concentration_clean.groupby(['ISRM_ID']).sum().reset_index()
         
         # Merge back in the geodata
         geodata = self.isrm.geodata.copy()
-        detailed_concentration_clean = pd.merge(detailed_concentration_clean, geodata, 
-                                                left_on='ISRM_ID', right_on='ISRM_ID')
+        # After merging with geodata in combine_concentrations:
+        detailed_concentration_clean = pd.merge(detailed_concentration_clean, geodata, left_on='ISRM_ID', right_on='ISRM_ID')
+
+        # Convert to a GeoDataFrame (assuming self.crs is defined in your concentration object)
+        detailed_concentration_clean = gpd.GeoDataFrame(detailed_concentration_clean, geometry='geometry', crs=self.crs)
         
         # Make a final version that is very simple
         total_concentration = detailed_concentration_clean[['ISRM_ID','geometry', 'TOTAL_CONC_UG/M3']].copy()
@@ -200,6 +203,14 @@ class concentration:
         fname = fname.replace(' ','_')
         fpath = os.path.join(output_dir, fname)
         
+        #Make sure c_to_plot is a geodataframe
+        if not isinstance(c_to_plot, gpd.GeoDataFrame):
+            c_to_plot = gpd.GeoDataFrame(c_to_plot, geometry="geometry", crs=self.crs)  # Adjust CRS if needed
+
+        # Convert CRS if there is a mismatch
+        if c_to_plot.crs != output_region.crs:
+            c_to_plot = c_to_plot.to_crs(output_region.crs)
+
         # Clip to output region
         c_to_plot = gpd.clip(c_to_plot, output_region)
         
@@ -256,7 +267,7 @@ class concentration:
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
         # If detailed flag is True, export detailed shapefile
         if self.detailed_conc_flag:
-            fname = f_out + '_detailed_concentration.shp' # File Name
+            fname = f_out + '_detailed_concentration.shp'
             fpath = os.path.join(output_dir, fname)
             
             # Make a copy and change column names to meet shapefile requirements
@@ -266,19 +277,34 @@ class concentration:
                                   'fNH3_UG_M3', 'fVOC_UG_M3', 'fNOX_UG_M3',
                                   'fSOX_UG_M3', 'PM25_UG_M3', 'LAYER']
             
+            # Ensure it's a GeoDataFrame so .to_file() exists
+            if not isinstance(gdf_export, gpd.GeoDataFrame):
+                gdf_export = gpd.GeoDataFrame(
+                    gdf_export,
+                    geometry='geometry',
+                    crs=self.crs
+                )
+
             # Export
             gdf_export.to_file(fpath)
             logging.info('   - [CONCENTRATION] Detailed concentrations output as {} >>'.format(fname))
             
-        # If detailed flag is False, export only total concentration shapefile
         else:
-            fname = str.lower(f_out + '_total_concentration.shp') # File Name
+            fname = str.lower(f_out + '_total_concentration.shp')
             fpath = os.path.join(output_dir, fname)
             
             # Make a copy and change column names to meet shapefile requirements
             gdf_export = self.summary_conc.copy()
             gdf_export.columns = ['NAME', 'geometry', 'PM25_UG_M3']
             
+            # Ensure it's a GeoDataFrame so .to_file() exists
+            if not isinstance(gdf_export, gpd.GeoDataFrame):
+                gdf_export = gpd.GeoDataFrame(
+                    gdf_export,
+                    geometry='geometry',
+                    crs=self.crs
+                )
+
             # Export
             gdf_export.to_file(fpath)
             logging.info('   - [CONCENTRATION] Total concentrations output as {}'.format(fname))
@@ -303,8 +329,8 @@ class concentration:
 
             # Add the area column for the intersected data
             intersect['area_km2'] = intersect.geometry.area/(1000.0*1000.0)    
-            total_area = intersect.groupby('NAME').sum()['area_km2'].to_dict()
-            
+            total_area = intersect.groupby('NAME')['area_km2'].sum().to_dict()
+
             # Add a total area and area fraction to the intersect object
             intersect['area_total'] = intersect['NAME'].map(total_area)
             intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']

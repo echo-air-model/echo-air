@@ -4,7 +4,9 @@
 Population Data Object
 
 @author: libbykoolik
-last modified: 2025-04-28
+
+last modified: 2025-04-29
+
 """
 
 # Import Libraries
@@ -136,7 +138,7 @@ class population:
         # Sum across POP_ID and YEAR
         pop_exp = pop_exp.groupby(['POP_ID','YEAR'])[['TOTAL', 'ASIAN', 'BLACK', 
                                                       'HISLA', 'INDIG', 'PACIS', 
-                                                      'WHITE', 'OTHER']].sum().reset_index()
+                                                      'WHITE', 'OTHER']].sum(numeric_only=True).reset_index()
         
         # Add geometry back in
         pop_exp = pd.merge(self.pop_geo, pop_exp, on='POP_ID')
@@ -159,7 +161,6 @@ class population:
         pop_obj_prj = pop_obj.to_crs(new_crs)
     
         return pop_obj_prj  
-    
     
     def crosswalk(self,population_gdf,isrm_gdf,hia_flag):
         ''' Creates a crosswalk of the population cells and ISRM Grid cells. Returns a crosswalk geodataframe'''
@@ -188,6 +189,7 @@ class population:
             
             # Simplify the crosswalk for export
             crosswalk = intersection[["POP_ID", "AGE_BIN","ISRM_ID", "fpop", "fisrm", "geometry"]]
+        
         else:
             #Select relevant columns
             omit = population_gdf[population_gdf["geometry"] == None]["POP_ID"]
@@ -225,7 +227,8 @@ class population:
         if hia_flag == True:
             
             #Merge all data
-            merged_data = crosswalk_df.merge(population_gdf[ ['POP_ID', 'YEAR', 'AGE_BIN', 'START_AGE', 'END_AGE', 'TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID","AGE_BIN"] , how="left")
+            merged_data = crosswalk_df.merge(population_gdf[ ['POP_ID', 'YEAR', 'AGE_BIN', 'START_AGE', 'END_AGE', 'TOTAL', 
+                                                              'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID","AGE_BIN"] , how="left")
             pop_columns = ['TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']
 
             #Multiply population counts by respective fractions
@@ -233,7 +236,16 @@ class population:
                 merged_data[f"{col}_adjusted"] = merged_data[col] * merged_data["fpop"]
 
             #aggregate by ISRM ID and AGE BIN
-            isrm_group = merged_data.groupby(["ISRM_ID","AGE_BIN"])[['geometry','START_AGE', 'END_AGE','TOTAL_adjusted', 'ASIAN_adjusted','BLACK_adjusted', 'HISLA_adjusted', 'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted', 'OTHER_adjusted']].agg({'geometry':'first', 'START_AGE':'first', 'END_AGE':'first','TOTAL_adjusted':'sum', 'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 'OTHER_adjusted':'sum'}).reset_index()
+            '''<< LIKELY TO BREAK >>'''
+            isrm_group = merged_data.groupby(["ISRM_ID","AGE_BIN"])[['geometry','START_AGE', 'END_AGE','TOTAL_adjusted', 
+                                                                     'ASIAN_adjusted','BLACK_adjusted', 'HISLA_adjusted', 
+                                                                     'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted', 
+                                                                     'OTHER_adjusted']].agg({'geometry':'first', 'START_AGE':'first', 
+                                                                                             'END_AGE':'first','TOTAL_adjusted':'sum', 
+                                                                                             'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 
+                                                                                             'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 
+                                                                                             'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 
+                                                                                             'OTHER_adjusted':'sum'}).reset_index()
 
             #Create a list of all ISRM_ID, START_AGE, END_AGE options
             isrm_ids = isrm_gdf[['ISRM_ID']].drop_duplicates()
@@ -266,8 +278,17 @@ class population:
                 merged_data[f"{col}_adjusted"] = merged_data[col] * merged_data["fpop"]
 
             #Aggregate by ISRM ID
-            isrm_group = merged_data.groupby(["ISRM_ID"])[['geometry','TOTAL_adjusted', 'ASIAN_adjusted','BLACK_adjusted', 'HISLA_adjusted', 'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted', 'OTHER_adjusted']].agg({'geometry':'first', 'TOTAL_adjusted':'sum', 'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 'OTHER_adjusted':'sum'}).reset_index()
-            isrm_group = isrm_group.rename(columns={'TOTAL_adjusted':'TOTAL', 'ASIAN_adjusted':'ASIAN','BLACK_adjusted':'BLACK', 'HISLA_adjusted':'HISLA', 'INDIG_adjusted':'INDIG', 'PACIS_adjusted':'PACIS', 'WHITE_adjusted':'WHITE', 'OTHER_adjusted':"OTHER"})
+            '''<< LIKELY TO BREAK >>'''
+            isrm_group = merged_data.groupby(["ISRM_ID"])[['geometry','TOTAL_adjusted', 'ASIAN_adjusted','BLACK_adjusted',
+                                                           'HISLA_adjusted', 'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted',
+                                                           'OTHER_adjusted']].agg({'geometry':'first', 'TOTAL_adjusted':'sum', 
+                                                                                   'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 
+                                                                                   'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 
+                                                                                   'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 
+                                                                                   'OTHER_adjusted':'sum'}).reset_index()
+            isrm_group = isrm_group.rename(columns={'TOTAL_adjusted':'TOTAL', 'ASIAN_adjusted':'ASIAN','BLACK_adjusted':'BLACK', 
+                                                    'HISLA_adjusted':'HISLA', 'INDIG_adjusted':'INDIG', 'PACIS_adjusted':'PACIS',
+                                                    'WHITE_adjusted':'WHITE', 'OTHER_adjusted':"OTHER"})
             isrm_group = isrm_group.drop(columns = "geometry")
 
             #Remerge with ISRM Grid so that all ISRMs are present

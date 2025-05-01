@@ -4,7 +4,7 @@
 Health Impact Function Meta Data Object
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2025-04-29
 """
 
 # Import Libraries
@@ -213,36 +213,45 @@ class health_data:
         inc_geo = incidence[['NAME','geometry']].drop_duplicates()
         
         # Grab the population geometry and assign an ID for simplicity
-        # ** THIS SHOULD BE UPDATED TO ISRM_ID
         pop_geo = population[['ISRM_ID','geometry']].drop_duplicates()
 
-        # Perform the intersect
-        pop_inc = gpd.overlay(pop_geo, inc_geo, how='intersection') 
+        # Perform the spatial intersection
+        pop_inc = gpd.overlay(pop_geo, inc_geo, how='intersection')
         
-        # # Merge in the population data on the ID field
-        pop_inc = pd.merge(pop_inc, population[['ISRM_ID','START_AGE', 'END_AGE',
-                                                'RACE', 'POPULATION']],
-                            on='ISRM_ID')
+        # Merge in the population data on the ISRM_ID field
+        pop_inc = pd.merge(pop_inc, population[['ISRM_ID','START_AGE', 'END_AGE', 'RACE', 'POPULATION']], on='ISRM_ID')
         
         # Trim data to only include population age groups over 30 for faster processing
-        pop_inc = pop_inc[pop_inc['START_AGE']>= 30]
+        pop_inc = pop_inc[pop_inc['START_AGE'] >= 30]
         
         # Set up lookup keys
-        pop_inc['KEY'] = pop_inc['START_AGE'].astype(str) + '_' + pop_inc['END_AGE'].astype(str) + '_' + pop_inc['NAME'].astype(str) + '_' + pop_inc['RACE'].astype(str)
+        pop_inc['KEY'] = (pop_inc['START_AGE'].astype(str) + '_' +
+                        pop_inc['END_AGE'].astype(str) + '_' +
+                        pop_inc['NAME'].astype(str) + '_' +
+                        pop_inc['RACE'].astype(str))
         
-        # Create a smaller incidence lookup tables for merging
+        # Build incidence lookup dictionaries
         keys = pop_inc[['KEY']].drop_duplicates()
         lookups = self.incidence_by_age(incidence, population)
         lookup_dict = self.make_incidence_lookup(incidence, keys, lookups)
-        
-        # Map values from the lookup_dict
         pop_inc['INCIDENCE'] = pop_inc['KEY'].map(lookup_dict)
         pop_inc['ALL CAUSE INC'] = pop_inc['INCIDENCE'].str[0]
         pop_inc['ISCHEMIC HEART DISEASE INC'] = pop_inc['INCIDENCE'].str[1]
         pop_inc['LUNG CANCER INC'] = pop_inc['INCIDENCE'].str[2]
         
-        # Clean up
-        pop_inc = pop_inc[['ISRM_ID', 'NAME', 'RACE', 'POPULATION','ALL CAUSE INC', 
-                           'ISCHEMIC HEART DISEASE INC','LUNG CANCER INC','geometry']]
+        # Aggregate numeric columns without geometry, then reattach geometry ---
+        numeric_cols = ['POPULATION', 'ALL CAUSE INC', 'ISCHEMIC HEART DISEASE INC', 'LUNG CANCER INC']
         
+        # Group by both ISRM_ID and RACE so that the race breakdown is preserved.
+        pop_inc_numeric = pop_inc.drop(columns='geometry').groupby(['ISRM_ID', 'RACE'], as_index=False)[numeric_cols].sum()
+        
+        # Create a lookup table for geometry by ISRM_ID (ensuring uniqueness).
+        geom_lookup = pop_inc[['ISRM_ID', 'geometry']].drop_duplicates(subset=['ISRM_ID'])
+        
+        # Merge the aggregated numeric data with the geometry lookup on ISRM_ID.
+        pop_inc = pd.merge(pop_inc_numeric, geom_lookup, on='ISRM_ID', how='left')
+        
+        # Convert the result into a GeoDataFrame with the proper CRS.
+        pop_inc = gpd.GeoDataFrame(pop_inc, geometry='geometry', crs=population.crs)
+
         return pop_inc

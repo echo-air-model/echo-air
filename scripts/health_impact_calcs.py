@@ -4,7 +4,9 @@
 Health Impact Functions
 
 @author: libbykoolik
-last modified: 2025-04-28
+
+last modified: 2025-04-29
+
 """
 
 # Import Libraries
@@ -119,12 +121,26 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
     
     # Get the population-incidence  and total concentration
     verboseprint(verbose, '- {} Creating dataframe to combine concentration data with {} mortality BenMAP inputs.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
-    conc_hia = conc.copy()
-    pop_inc = health_data_pop_inc.copy().to_crs(conc_hia.crs)
+
+     # Ensure conc is a GeoDataFrame by converting it explicitly.
+    # Here, 'conc' is assumed to have a 'geometry' column and a CRS stored in conc.crs
+    conc_hia = gpd.GeoDataFrame(conc.copy(), geometry='geometry', crs=conc.crs)
+
+    if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
+        if "geometry" in health_data_pop_inc.columns:
+            health_data_pop_inc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
+        else:
+            raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
+    elif "geometry" not in health_data_pop_inc.columns:
+        raise ValueError("health_data_pop_inc is missing a 'geometry' column, cannot convert to GeoDataFrame.")
+
+    # Now, convert the population-incidence data to the same CRS
+    if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
+        if "geometry" in health_data_pop_inc.columns:
+            pop_inc_conc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
     
     # Merge these on ISRM_ID
-    pop_inc_conc = pd.merge(pop_inc, conc_hia[['ISRM_ID','TOTAL_CONC_UG/M3']], on='ISRM_ID')
-    
+    pop_inc_conc = health_data_pop_inc.merge(conc_hia[['ISRM_ID', 'TOTAL_CONC_UG/M3']], on='ISRM_ID')
     verboseprint(verbose, '- {} Successfully merged concentrations and {} input data.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
     verboseprint(verbose, '- {} Estimating {} mortality for each ISRM grid cell.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
         
@@ -344,7 +360,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
       # Calculate area and fractions
       intersect['area_km2'] = intersect.geometry.area / 1e6
-      total_area = intersect.groupby('NAME').sum()['area_km2'].to_dict()
+      total_area = intersect.groupby('NAME').sum(numeric_only=True)['area_km2'].to_dict()
       intersect['area_total'] = intersect['NAME'].map(total_area)
       intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
 

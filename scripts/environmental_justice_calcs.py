@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+  #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 EJ Functions
 
 @author: libbykoolik
-last modified: 2024-01-29
+last modified: 2025-04-29
 """
 
 # Import Libraries
@@ -46,6 +46,9 @@ def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
     # Pull the total concentration from the conc object
     conc_gdf = conc.total_conc.copy()
     conc_gdf.columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
+
+    if not isinstance(conc_gdf, gpd.GeoDataFrame):
+      conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry="geometry", crs=conc.crs)
     
     # Pull only relevant columns from isrm_pop_alloc
     groups = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
@@ -353,7 +356,7 @@ def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mo
     fig, ax = plt.subplots(figsize=(10,8))
     sns.lineplot(data=pctl_melt, x='Percentile', y='PM25_UG_M3', hue='Racial/Ethnic Group', ci=None, 
                  linewidth=3, palette='deep', ax=ax)
-    ax.set(ylabel='PM$_{2.5}$ Exposure ($\mu$g/m$^3$)')
+    ax.set(ylabel=r'PM$_{2.5}$ Exposure ($\mu$g/m$^3$)')
     ax.set_xticks(ticks=[5,25,50,75,95], 
                   labels=['5th','25th','50th','75th','95th'])
     
@@ -443,11 +446,12 @@ def region_pwm_helper(name, group, full_dataset):
 def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out):
     ''' 
     Creates the exports for the population-weighted products requested when the 
-    user inputs an output resolution larger than the ISRM grid
+    user inputs an output resolution larger than the ISRM grid. In this step, 
+    dropping geometry occurs before aggregation and then is reused as needed.
     
     INPUTS:
         - pop_exp: a dataframe containing the population information without age-resolution
-        - conc: a concentration object
+        - conc: a concentration object (which contains the crosswalk with geometry)
         - output_dir: a filepath string of the location of the output directory
         - output_region: the geometry of the desired output region
         - f_out: the name of the file output category (will append additional information)
@@ -455,72 +459,78 @@ def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path,
         - shape_out: a filepath string of the location of the shapefile output directory
         
     OUTPUTS:
-        - None
-    
+        - output_res_geo: a GeoDataFrame with the aggregated population-weighted means.
     '''
     # Log statement
     logging.info('- [EJ] Creating population-weighted mean summaries at the output resolution requested.')
     
-    ## We will need to combine three geometries in order to do this properly
-    # Collect the necessary objects
-    crosswalk = conc.crosswalk[['NAME','ISRM_ID', 'TOTAL_CONC_UG/M3', 'geometry']].copy() #<-- output geometry to ISRM crosswalk
-    pop_exp = pop_exp[['POP_ID','TOTAL','ASIAN','BLACK','HISLA',
-                        'INDIG','PACIS','WHITE','OTHER','geometry']].copy() #<-- population data
+    # Collect the necessary objects:
+    # crosswalk: from the concentration object (with geometry)
+    crosswalk = conc.crosswalk[['NAME', 'ISRM_ID', 'TOTAL_CONC_UG/M3', 'geometry']].copy()
+    # Population data from pop_exp (with geometry)
+    pop_exp = pop_exp[['POP_ID', 'TOTAL', 'ASIAN', 'BLACK', 'HISLA', 
+                        'INDIG', 'PACIS', 'WHITE', 'OTHER', 'geometry']].copy()
     
-    ## Intersect these two dataframes and apportion population onto the crosswalk
-    ## by area
-    # Project to the same coordinates
+    # Project population data to the same CRS as crosswalk
     pop_exp = pop_exp.to_crs(crosswalk.crs)
     
-    # Create an intersection object and collect total area
-    intersect = gpd.overlay(pop_exp, crosswalk, how='union', keep_geom_type='False')
+    # Create an intersection object (union) between pop_exp and crosswalk
+    intersect = gpd.overlay(pop_exp, crosswalk, how='union', keep_geom_type=False)
     
     # Remove null matches
-    intersect = intersect[(~intersect['POP_ID'].isna())&(~intersect['ISRM_ID'].isna())]
+    intersect = intersect[(~intersect['POP_ID'].isna()) & (~intersect['ISRM_ID'].isna())]
     
-    # Estimate areas and collect total area
-    intersect['AREA_M2'] = intersect.geometry.area/(1000.*1000.)
-    pop_totalarea = intersect.groupby('POP_ID').sum(['AREA_M2'])[['AREA_M2']].to_dict()['AREA_M2']
+    # Estimate area (in km²)
+    intersect['AREA_M2'] = intersect.geometry.area / (1000.0 * 1000.0)
     
-    # Add the fractional areas as temporary columns
+    # --- Drop geometry before aggregation ---
+    numeric_intersect = intersect.drop(columns='geometry')
+    
+    # Aggregate total area by POP_ID
+    pop_totalarea = (numeric_intersect.groupby('POP_ID', as_index=False)['AREA_M2']
+                     .sum()
+                     .set_index('POP_ID')['AREA_M2']
+                     .to_dict())
+    
+    # Map total area back onto intersect and calculate area fraction
     intersect['AREA_POP_TOTAL'] = intersect['POP_ID'].map(pop_totalarea)
-    intersect['AREA_FRAC'] = intersect['AREA_M2']/intersect['AREA_POP_TOTAL']
+    intersect['AREA_FRAC'] = intersect['AREA_M2'] / intersect['AREA_POP_TOTAL']
     
-    # Apportion population from each group into the intersect
-    # Concentration should be preserved
-    total_pop = pop_exp['TOTAL'].sum()
+    # Apportion population for each group using the area fraction
     for group in ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']:
-        intersect[group] = intersect[group]*intersect['AREA_FRAC']
+        intersect[group] = intersect[group] * intersect['AREA_FRAC']
     
-    ## Get the output resolution names and geometries
-    # Dissolve the crosswalk dataframe
-    output_res_geo = crosswalk[['NAME','geometry']].dissolve(by='NAME').reset_index()
+    # Get the output resolution names and geometries by dissolving the crosswalk (geometry is preserved here)
+    output_res_geo = crosswalk[['NAME', 'geometry']].dissolve(by='NAME').reset_index()
     
-    # Estimate the PWM per group
+    # Estimate the population-weighted mean (PWM) per group using your helper function.
+    # (This function will internally slice intersect for the given NAME.)
     for group in ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']:
-        output_res_geo[group+'_PWM'] = output_res_geo.apply(lambda x: region_pwm_helper(x['NAME'], group, intersect), axis=1)
-        
-    ## Plot this as a map
+        output_res_geo[group + '_PWM'] = output_res_geo.apply(
+            lambda x: region_pwm_helper(x['NAME'], group, intersect), axis=1)
+    
+    # Export the map of population-weighted concentrations.
     logging.info('- [EJ] Exporting map of population-weighted mean summaries at the output resolution requested.')
     visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path)
     
-    ## Create a shapefile to output, too
-    to_shp = output_res_geo[['NAME','TOTAL_PWM','geometry']].copy()
+    # Create a shapefile to output, using only the relevant columns.
+    to_shp = output_res_geo[['NAME', 'TOTAL_PWM', 'geometry']].copy()
     to_shp.columns = ['NAME', 'PWM_UG_M3', 'geometry']
-    to_shp.to_file(path.join(output_dir, 'shapes', f_out + '_pwm_concentration.shp'))
+    to_shp.to_file(os.path.join(output_dir, 'shapes', f_out + '_pwm_concentration.shp'))
     
-    ## Finally, output a CSV file with the data
-    # Grab just the relevant columns as a dataframe
-    to_csv = output_res_geo[['NAME', 'TOTAL_PWM', 'ASIAN_PWM', 'BLACK_PWM', 'HISLA_PWM', 
-                             'INDIG_PWM', 'PACIS_PWM', 'WHITE_PWM', 'OTHER_PWM']].copy()
+    # --- Aggregate population by region ---
+    # Drop geometry from intersect before grouping.
+    numeric_intersect = intersect.drop(columns='geometry')
+    pop_by_name = numeric_intersect.groupby('NAME', as_index=False)[['TOTAL', 'ASIAN', 'BLACK', 
+                            'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']].sum()
     
-    # Get total population by region as its own dataframe
-    pop_by_name = intersect.groupby(['NAME'])[['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']].sum().reset_index()
+    # Merge the aggregated population data with the output resolution GeoDataFrame.
+    to_csv = pd.merge(pop_by_name, 
+                      output_res_geo[['NAME', 'TOTAL_PWM', 'ASIAN_PWM', 'BLACK_PWM', 'HISLA_PWM', 
+                                      'INDIG_PWM', 'PACIS_PWM', 'WHITE_PWM', 'OTHER_PWM']], 
+                      on='NAME')
+    to_csv.to_csv(os.path.join(output_dir, f_out + '_aggregated_exposure_concentrations.csv'), index=False)
     
-    # Merge and export
-    to_csv = pd.merge(pop_by_name, to_csv, on='NAME')
-    to_csv.to_csv(path.join(output_dir, f_out + '_aggregated_exposure_concentrations.csv'), index=False)
-
     return output_res_geo
 
 def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path):
