@@ -153,10 +153,24 @@ if __name__ == "__main__":
             # Open the ThreadPoolExecutor
             file_reader_pool = concurrent.futures.ThreadPoolExecutor()
             
-            # Start reading in files in parallel
-            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, units=units, name=name, load_file=True, verbose=verbose)
-            isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
-            pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            # Start reading emissions first, then ISRM & population
+            emis_future = file_reader_pool.submit(
+                emissions,
+                emissions_path, output_dir, f_out,
+                debug_mode=debug_mode, units=units,
+                name=name, load_file=True, verbose=verbose
+            )
+            # block until emissions are loaded
+            emis = emis_future.result()
+
+            # now launch ISRM and population reads in parallel
+            isrm_future = file_reader_pool.submit(
+                isrm,
+                isrm_path, output_region, region_of_interest,
+                run_parallel, debug_mode=debug_mode,
+                load_file=True, verbose=verbose)
+            pop_future = file_reader_pool.submit(population,population_path,
+                                                 debug_mode=debug_mode, load_file=True, verbose=verbose)
       
             # To run multiple computations at once, we need to create multiple
             # processes instead of threads. Processes take longer to create, but
