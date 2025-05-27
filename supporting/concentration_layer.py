@@ -96,19 +96,19 @@ class concentration_layer:
             # Estimate concentrations
             verboseprint(self.verbose, '   - [CONCENTRATION] Calculating concentrations of PM25 from each pollutant.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pPM25 = self.get_concentration(self.PM25e, self.isrm.get_pollutant_layer('PM25'), self.layer)
+            self.pPM25 = self.get_concentration(self.PM25e,self.isrm.get_pollutant_layer('PM25')[self.layer])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from primary PM2.5.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pNH4 = self.get_concentration(self.NH3e, self.isrm.get_pollutant_layer('NH3'), self.layer)
+            self.pNH4  = self.get_concentration(self.NH3e,self.isrm.get_pollutant_layer('NH3')[self.layer])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from NH3.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pVOC = self.get_concentration(self.VOCe, self.isrm.get_pollutant_layer('VOC'), self.layer)
+            self.pVOC  = self.get_concentration(self.VOCe,self.isrm.get_pollutant_layer('VOC')[self.layer])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from VOCs.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pNO3 = self.get_concentration(self.NOXe, self.isrm.get_pollutant_layer('NOX'), self.layer)
+            self.pNO3  = self.get_concentration(self.NOXe,self.isrm.get_pollutant_layer('NOX')[self.layer])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from NOx.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pSO4 = self.get_concentration(self.SOXe, self.isrm.get_pollutant_layer('SOX'), self.layer)
+            self.pSO4  = self.get_concentration(self.SOXe,self.isrm.get_pollutant_layer('SOX')[self.layer])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from SOx.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
     
@@ -403,20 +403,20 @@ class concentration_layer:
             
         return aloc_emis
     
-    def get_concentration(self, pol_emis, pol_isrm, layer):
-        ''' For a given pollutant layer, get the resulting PM25 concentration '''
-        # Slice off just the appropriate layer of the ISRM
-        pol_isrm_slice = pol_isrm[layer, :, :]
+    def get_concentration(self, pol_emis, pol_isrm):
+        """
+        Given:
+          - pol_emis: GeoDataFrame with 'EMISSIONS_UG/S' and geometry/index
+          - pol_isrm: 2-D numpy array (n_receptors × n_sources)
+        Returns a GeoDataFrame of concentrations at each receptor.
+        """
+        # dot product of (EMISSIONS_UG/S as vector) with the ISRM matrix
+        conc = np.dot(pol_emis['EMISSIONS_UG/S'].values, pol_isrm)
         
-        # Concentration is the dot product of emissions and ISRM
-        conc = np.dot(pol_emis['EMISSIONS_UG/S'], pol_isrm_slice)
-        
-        # Convert into a geodataframe
-        conc_df = pd.DataFrame(conc, columns=['CONC_UG/M3'], index=self.receptor_id)#pol_emis.index)
-        conc_gdf = pol_emis.merge(conc_df, left_index=True, right_index=True)
-        conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry='geometry', crs=self.crs)
-        
-        return conc_gdf
+        # build output GeoDataFrame
+        conc_df = pd.DataFrame({'CONC_UG/M3': conc}, index=pol_emis.index)
+        out = pol_emis.join(conc_df)
+        return gpd.GeoDataFrame(out, geometry='geometry', crs=self.crs)
     
     def combine_concentrations(self, pPM25, pNH4, pVOC, pNO3, pSO4):
         ''' Combines concentration from each pollutant into one geodataframe '''
