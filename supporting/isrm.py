@@ -187,7 +187,7 @@ class isrm:
         if self.region_of_interest != 'CA':
             # Make a copy of the output_region geodataframe
             output_region = self.output_region.copy()
-            output_region_prj = output_region.to_crs(self.geodata.crs)
+            output_region_prj = output_region.to_crs(self.crs)
             
             # Select rows of isrm_geodata that are within the output_region
             isrm_geodata = self.geodata.copy()

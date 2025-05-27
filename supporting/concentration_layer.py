@@ -178,7 +178,7 @@ class concentration_layer:
         emis['EMIS_ID'] = 'EMIS_' + emis.index.astype(str)
         
         # Re-project the emissions layer into the ISRM coordinate reference system
-        emis = emis.to_crs(isrm_geography.crs)
+        emis = emis.to_crs(self.crs)
 
         # Get total area of each emissions cell
         emis['area_km2'] = emis.geometry.area / (1000 * 1000)
@@ -203,10 +203,10 @@ class concentration_layer:
         pollutants = ['PM25', 'NH3', 'VOC', 'NOX', 'SOX']
 
         # Define height_min and height_max for each layer
-        height_bounds_dict = {0:(0.0, 57.0),
-                              1:(57.0, 140.0),
-                              2:(760.0, 99999.0),
-                              'hole':(140.0, 760.0)}
+        height_bounds_dict = {0:(0.0, 51.8),
+                              1:(51.8, 95.0),
+                              2:(95.0, 99999.0),
+                              }
         height_min = height_bounds_dict[self.layer][0]
         height_max = height_bounds_dict[self.layer][1]
 
@@ -391,7 +391,7 @@ class concentration_layer:
             
         # Add the geodata back in
         aloc_emis = pd.merge(aloc_emis, geodata, on='ISRM_ID')
-        aloc_emis = gpd.GeoDataFrame(aloc_emis, geometry=aloc_emis.geometry, crs=geodata.crs)
+        aloc_emis = gpd.GeoDataFrame(aloc_emis, geometry=aloc_emis.geometry, crs=self.crs)
             
         # Create a file name
         fname_tmp = '{}_layer{}_allocated_emis.shp'.format(self.name, self.layer)
@@ -406,10 +406,7 @@ class concentration_layer:
     def get_concentration(self, pol_emis, pol_isrm, layer):
         ''' For a given pollutant layer, get the resulting PM25 concentration '''
         # Slice off just the appropriate layer of the ISRM
-        if layer == 'hole': # Create the hole intermediate if needed
-            pol_isrm_slice = np.mean(np.array([pol_isrm[1, :, :],pol_isrm[2, :, :]]), axis=0)
-        else:
-            pol_isrm_slice = pol_isrm[layer, :, :]
+        pol_isrm_slice = pol_isrm[layer, :, :]
         
         # Concentration is the dot product of emissions and ISRM
         conc = np.dot(pol_emis['EMISSIONS_UG/S'], pol_isrm_slice)

@@ -59,6 +59,9 @@ class health_data:
         self.population = pop_alloc
         self.incidence_fp = incidence_fp
         
+        # Standardize the CRS
+        self.crs = pop_alloc.crs
+        
         # Initialize object by loading the health data
         self.incidence = self.load_data()
         verboseprint(self.verbose, '- [HEALTH] Population data successfully imported.',
@@ -206,7 +209,7 @@ class health_data:
         incidence = self.update_inc(incidence)
         
         # Re-project incidence onto population
-        incidence = incidence.to_crs(population.crs)
+        incidence = incidence.to_crs(self.crs)
         
         ## Create intersect of just the geometries
         # Grab just the incidence geometry
@@ -252,6 +255,8 @@ class health_data:
         pop_inc = pd.merge(pop_inc_numeric, geom_lookup, on='ISRM_ID', how='left')
         
         # Convert the result into a GeoDataFrame with the proper CRS.
-        pop_inc = gpd.GeoDataFrame(pop_inc, geometry='geometry', crs=population.crs)
+        pop_inc = gpd.GeoDataFrame(pop_inc, geometry='geometry', crs=self.crs)
 
         return pop_inc
+
+# %%

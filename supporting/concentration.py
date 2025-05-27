@@ -132,10 +132,9 @@ class concentration:
         conc_layers = []
         
         # Run each layer if the layer flag is True
-        if self.emissions.L0_flag: conc_layers.append(self.run_layer(0))
-        if self.emissions.L1_flag: conc_layers.append(self.run_layer(1))
-        if self.emissions.L2_flag: conc_layers.append(self.run_layer(2))
-        if self.emissions.isrm_hole_flag: conc_layers.append(self.run_layer('hole'))
+        if self.emissions.LA_flag: conc_layers.append(self.run_layer(0))
+        if self.emissions.LB_flag: conc_layers.append(self.run_layer(1))
+        if self.emissions.LC_flag: conc_layers.append(self.run_layer(2))
         
         # Concatenate these detailed concentration dataframes
         detailed_concentration = pd.concat(conc_layers)
