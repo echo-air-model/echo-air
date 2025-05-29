@@ -29,16 +29,8 @@ sys.path.append('./supporting')
 from health_data import health_data
 from matplotlib_scalebar.scalebar import ScaleBar
 
-class HealthImpact:
-    def __init__(self, conc):
-        """
-        conc: a concentration object that has .crs and .total_conc (a GeoDataFrame or DF+geom)
-        """
-        self.conc = conc
-        self.crs = conc.crs
-
     #%% Health Calculation Helper Functions
-    def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
+def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
                           incidence_fp: str, debug_mode:bool):
         """ Creates the hia_inputs object.
         
@@ -60,7 +52,7 @@ class HealthImpact:
         hia_pop_alloc = pop.allocate_pop(pop.pop_all, geodata, True)
         return health_data(hia_pop_alloc, incidence_fp, verbose=verbose, race_stratified=False, debug_mode=debug_mode)
 
-    def krewski(conc, inc, pop, endpoint):
+def krewski(conc, inc, pop, endpoint):
         ''' 
         Estimates excess mortality from all causes using the Krewski (2009) function 
         
@@ -86,7 +78,7 @@ class HealthImpact:
         
         return (1 - (1/np.exp(beta*conc)))*inc*pop
 
-    def create_logging_code():
+def create_logging_code():
         ''' Makes a global logging code for easier updating 
         
         INPUTS: None
@@ -99,8 +91,8 @@ class HealthImpact:
                         'LUNG CANCER':'[LCM]'}
         return logging_code
 
-    #%% Main Calculation Functions
-    def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, function, verbose, debug_mode):
+#%% Main Calculation Functions
+def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, function, verbose, debug_mode):
         ''' 
         Calculate Excess Mortality 
         
@@ -132,7 +124,7 @@ class HealthImpact:
 
         # Ensure conc is a GeoDataFrame by converting it explicitly.
         # Here, 'conc' is assumed to have a 'geometry' column and a CRS stored in conc.crs
-        conc_hia = gpd.GeoDataFrame(conc.copy(), geometry='geometry', crs=self.crs)
+        conc_hia = gpd.GeoDataFrame(conc.copy(), geometry='geometry', crs=conc.crs)
 
         if not isinstance(health_data_pop_inc, gpd.GeoDataFrame):
             if "geometry" in health_data_pop_inc.columns:
@@ -202,8 +194,8 @@ class HealthImpact:
         return pop_inc_conc
 
 
-    #%% Formatting and Exporting Functions
-    def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode):
+#%% Formatting and Exporting Functions
+def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode):
         ''' 
         Plots mortality maps and exports as a png. 
         
@@ -242,7 +234,7 @@ class HealthImpact:
         
         # Read in CA boundary and project hia_df to same coordinates (meters)
         ca_shp = gpd.read_feather(ca_shp_fp)
-        hia_df = hia_df.to_crs(self.crs)
+        hia_df = hia_df.to_crs(ca_shp.crs)
         
         # Clip dataframe to California
         hia_df = gpd.clip(hia_df, ca_shp)
@@ -318,13 +310,13 @@ class HealthImpact:
         center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
 
         # Calculate the north arrow angle 
-        angle_to_north = calculate_true_north_angle(center_lon, center_lat, self.crs)
+        angle_to_north = calculate_true_north_angle(center_lon, center_lat, hia_df.crs)
         
         # Calculates the longitude and latitude of the center
         center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
 
         # Calculates the angle of the north arrow 
-        angle_to_north = calculate_true_north_angle(center_lon, center_lat, self.crs)
+        angle_to_north = calculate_true_north_angle(center_lon, center_lat, ca_shp.crs)
 
         for ax in [ax0, ax1, ax2, ax3]:
             ca_shp.dissolve().plot(edgecolor='black', facecolor='none', linewidth=1, ax=ax)
@@ -357,8 +349,8 @@ class HealthImpact:
         if output_resolution in ['AB', 'AD', 'C']:
         
           # Ensure CRS match
-          if boundary.crs != self.crs:
-              boundary = boundary.to_crs(self.crs)
+          if boundary.crs != hia_df.crs:
+              boundary = boundary.to_crs(hia_df.crs)
 
           #Create a hia_df copy? 
           hia_df2 = hia_df.copy()
@@ -472,7 +464,7 @@ class HealthImpact:
         
         return fname, fname_aggregated if output_resolution in ['AB', 'AD', 'C'] else fname
 
-    def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, debug_mode):
+def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, debug_mode):
         ''' 
         Plots mortality as a shapefile. 
         
@@ -534,7 +526,7 @@ class HealthImpact:
         
         return fname
 
-    def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debug_mode):
+def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debug_mode):
         ''' 
         Exports total mortality as a csv file. 
         
@@ -593,7 +585,7 @@ class HealthImpact:
         
         return hia_summary
 
-    def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
+def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
         ''' 
         Creates a summary table of health impacts by racial/ethnic group 
         
@@ -647,7 +639,7 @@ class HealthImpact:
         
         return hia_summary
 
-    def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, shape_out, output_resolution, boundary, verbose, debug_mode):
+def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, shape_out, output_resolution, boundary, verbose, debug_mode):
         ''' 
         Automates this process a bit.
         
@@ -684,7 +676,7 @@ class HealthImpact:
             
         return hia_summary
 
-    def combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose):
+def combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose):
         '''
         Combines the three endpoint summary tables into one export file
         
@@ -721,7 +713,7 @@ class HealthImpact:
         
         return
 
-    def create_rename_dict():
+def create_rename_dict():
         ''' 
         Makes a global rename code dictionary for easier updating
         

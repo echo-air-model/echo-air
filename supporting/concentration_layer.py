@@ -87,7 +87,7 @@ class concentration_layer:
         
         # Run concentration calculations
         if run_calcs:
-            
+            layers = ['LA','LB','LC']
             # Allocate emissions to the ISRM grid
             verboseprint(self.verbose, '   - [CONCENTRATION] Reallocating emissions to the ISRM grid.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -96,19 +96,19 @@ class concentration_layer:
             # Estimate concentrations
             verboseprint(self.verbose, '   - [CONCENTRATION] Calculating concentrations of PM25 from each pollutant.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pPM25 = self.get_concentration(self.PM25e,self.isrm.get_pollutant_layer('PM25')[self.layer])
+            self.pPM25 = self.get_concentration(self.PM25e,self.isrm.get_pollutant_layer()[layers[self.layer]]['PM25'])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from primary PM2.5.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pNH4  = self.get_concentration(self.NH3e,self.isrm.get_pollutant_layer('NH3')[self.layer])
+            self.pNH4  = self.get_concentration(self.NH3e,self.isrm.get_pollutant_layer()[layers[self.layer]]['NH3'])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from NH3.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pVOC  = self.get_concentration(self.VOCe,self.isrm.get_pollutant_layer('VOC')[self.layer])
+            self.pVOC  = self.get_concentration(self.VOCe,self.isrm.get_pollutant_layer()[layers[self.layer]]['VOC'])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from VOCs.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pNO3  = self.get_concentration(self.NOXe,self.isrm.get_pollutant_layer('NOX')[self.layer])
+            self.pNO3  = self.get_concentration(self.NOXe,self.isrm.get_pollutant_layer()[layers[self.layer]]['NOX'])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from NOx.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.pSO4  = self.get_concentration(self.SOXe,self.isrm.get_pollutant_layer('SOX')[self.layer])
+            self.pSO4  = self.get_concentration(self.SOXe,self.isrm.get_pollutant_layer()[layers[self.layer]]['SOX'])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from SOx.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
     
@@ -164,7 +164,6 @@ class concentration_layer:
         assert np.isclose(reallocated_emis['EMISSIONS_UG/S'].sum(), old_total)
         
         return reallocated_emis
-
     @staticmethod
     def intersect_geometries(emis_layer, isrm_geography, verbose, debug_mode):
         ''' 
@@ -178,7 +177,8 @@ class concentration_layer:
         emis['EMIS_ID'] = 'EMIS_' + emis.index.astype(str)
         
         # Re-project the emissions layer into the ISRM coordinate reference system
-        emis = emis.to_crs(self.crs)
+        isrm_crs = isrm_geography.crs
+        emis = emis.to_crs(isrm_crs)
 
         # Get total area of each emissions cell
         emis['area_km2'] = emis.geometry.area / (1000 * 1000)

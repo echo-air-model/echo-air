@@ -168,6 +168,9 @@ if __name__ == "__main__":
                 isrm,
                 isrm_path, output_region, region_of_interest,
                 run_parallel, debug_mode=debug_mode,
+                LA_flag = emis.LA_flag,
+                LB_flag = emis.LB_flag,
+                LC_flag = emis.LC_flag,
                 load_file=True, verbose=verbose)
             pop_future = file_reader_pool.submit(population,population_path,
                                                  debug_mode=debug_mode, load_file=True, verbose=verbose)
@@ -215,7 +218,7 @@ if __name__ == "__main__":
             emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, LA_flag = emis.LA_flag, LB_flag = emis.LB_flag, LC_flag = emis.LC_flag, load_file=True, verbose=verbose)
             # Create population object
             verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
             pop = population(population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)

@@ -25,14 +25,8 @@ from tool_utils import *
 import concurrent.futures
 from matplotlib_scalebar.scalebar import ScaleBar
 
-class EJ:
-    def __init__(self, conc):
-        self.conc = conc
-        self.crs  = conc.crs
-        return
-
 #%%
-    def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
+def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
         ''' 
         Create an exposure geodataframe from concentration and population.
         
@@ -54,7 +48,7 @@ class EJ:
         conc_gdf.columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
 
         if not isinstance(conc_gdf, gpd.GeoDataFrame):
-          conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry="geometry", crs=self.crs)
+          conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry="geometry", crs=conc.crs)
         
         # Pull only relevant columns from isrm_pop_alloc
         groups = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
@@ -73,7 +67,7 @@ class EJ:
 
 
 
-    def add_pwm_col(exposure_gdf, group):
+def add_pwm_col(exposure_gdf, group):
         ''' 
         Adds an intermediate column that multiplies population by exposure.
         
@@ -97,7 +91,7 @@ class EJ:
         
         return exposure_gdf
 
-    def get_pwm(exposure_gdf, group):
+def get_pwm(exposure_gdf, group):
         ''' 
         Estimates the population weighted mean exposure for a given group 
         
@@ -117,7 +111,7 @@ class EJ:
         
         return PWM_group
 
-    def get_overall_disparity(exposure_gdf):
+def get_overall_disparity(exposure_gdf):
         ''' 
         Returns a table of overall disparity metrics 
         
@@ -145,7 +139,7 @@ class EJ:
         
         return pwm_df
 
-    def estimate_exposure_percentile(exposure_gdf, verbose):
+def estimate_exposure_percentile(exposure_gdf, verbose):
         ''' 
         Creates a dataframe of percentiles
         
@@ -188,7 +182,7 @@ class EJ:
         
         return df_pctl
 
-    def run_exposure_calcs(conc, pop_alloc, verbose, debug_mode):
+def run_exposure_calcs(conc, pop_alloc, verbose, debug_mode):
         ''' 
         Run the exposure EJ calculations from one script 
         
@@ -216,7 +210,7 @@ class EJ:
         
         return exposure_gdf, exposure_pctl, exposure_disparity 
 
-    def export_exposure_gdf(exposure_gdf, shape_out, f_out):
+def export_exposure_gdf(exposure_gdf, shape_out, f_out):
         ''' 
         Exports the exposure_gdf dataframe as a shapefile 
         
@@ -249,7 +243,7 @@ class EJ:
 
         return fname #placeholder for parallelization
 
-    def export_exposure_csv(exposure_gdf, output_dir, f_out):
+def export_exposure_csv(exposure_gdf, output_dir, f_out):
         ''' 
         Exports the exposure_gdf dataframe as a CSV file 
         
@@ -288,7 +282,7 @@ class EJ:
         return fname #placeholder for parallelization
 
 
-    def export_exposure_disparity(exposure_disparity, output_dir, f_out):
+def export_exposure_disparity(exposure_disparity, output_dir, f_out):
         ''' 
         Exports the exposure_disparity dataframe as a CSV file 
         
@@ -327,7 +321,7 @@ class EJ:
 
         return fname
 
-    def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode):
+def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode):
         ''' 
         Creates a percentile plot by group 
         
@@ -376,7 +370,7 @@ class EJ:
         
         return fname
 
-    def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode):
+def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode):
         ''' 
         Calls each of the exposure output functions in parallel
         
@@ -429,7 +423,7 @@ class EJ:
 
         return
 
-    def region_pwm_helper(name, group, full_dataset):
+def region_pwm_helper(name, group, full_dataset):
         ''' 
         Estimates population-weighted mean for a subset of the full_dataset
         
@@ -451,7 +445,7 @@ class EJ:
 
         return pwm
 
-    def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out):
+def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out):
         ''' 
         Creates the exports for the population-weighted products requested when the 
         user inputs an output resolution larger than the ISRM grid. In this step, 
@@ -541,7 +535,7 @@ class EJ:
         
         return output_res_geo
 
-    def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path):
+def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path):
         ''' 
         Creates map of PWM concentrations using simple chloropleth 
         
@@ -620,7 +614,7 @@ class EJ:
             
         return 
 
-    def create_rename_dict():
+def create_rename_dict():
         ''' 
         Makes a global rename code dictionary for easier updating
         

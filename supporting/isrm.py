@@ -89,7 +89,7 @@ class isrm:
         self.LC_flag = LC_flag
 
         self.valid_file, self.valid_geo_file = self.check_path()
-        self.pollutants = self.load_isrm()
+
 
         # Return a starting statement
         verboseprint(self.verbose, '- [ISRM] Loading a new ISRM object.',
@@ -118,6 +118,7 @@ class isrm:
 
             # Import numeric ISRM layers - if running in parallel, this will occur 
             # while the geodata file is also loading. 
+            self.pollutants = self.load_isrm()
             verboseprint(self.verbose, '- [ISRM] ISRM data imported. Five pollutant variables created',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
             
@@ -233,9 +234,10 @@ class isrm:
                 if flag:
                     arr = self.load_and_cut(layer_path)
                 else:
-                    arr = np.zeros(sample_shape, dtype=float)
+                    arr = np.array([], dtype=float)
                 pollutants.append(arr)
-        
+        for pol in pollutants:
+            print(pol.shape)
         return pollutants
     
     def load_geodata(self):
@@ -287,7 +289,6 @@ class isrm:
             for l_idx, lvl in enumerate(layer_names):
                 idx = p_idx * 3 + l_idx
                 layers[lvl][pol] = flat[idx]
-
         return layers
 
     
