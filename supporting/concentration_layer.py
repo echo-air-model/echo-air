@@ -414,7 +414,7 @@ class concentration_layer:
         conc = np.dot(pol_emis['EMISSIONS_UG/S'].values, pol_isrm)
         
         # build output GeoDataFrame
-        conc_df = pd.DataFrame({'CONC_UG/M3': conc}, index=pol_emis.index)
+        conc_df = pd.DataFrame({'CONC_UG/M3': conc}, index=self.receptor_id)
         out = pol_emis.join(conc_df)
         return gpd.GeoDataFrame(out, geometry='geometry', crs=self.crs)
     
