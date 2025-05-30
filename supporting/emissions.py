@@ -200,10 +200,9 @@ class emissions:
         else:
             raise ValueError('Emissions file is of an unknown type. Cannot proceed')
         
-        # Project to the desired CRS if not already in that CRS
-        desired_crs = 'epsg:3310'  # California NAD83 Albers (m)
-        if crs != desired_crs:
-            geometry = geometry.to_crs(desired_crs)
+        # # Check if crs is in meters, if not project to a crs that is in meters
+        if not geometry.crs.is_projected:
+            geometry = geometry.to_crs('EPSG:3310')
 
         return geometry, emissions_data, crs
     

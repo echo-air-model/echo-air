@@ -206,7 +206,7 @@ class isrm:
         if self.region_of_interest != 'CA':
             # Trim the columns of each ISRM layer to just the necessary IDs
             indices = self.receptor_IDs.values
-            pollutant = pollutant[:,:,indices]
+            pollutant = pollutant[:,indices]
         
         return pollutant
 
@@ -252,7 +252,7 @@ class isrm:
         if self.region_of_interest != 'CA':
             # Make a copy of the output_region geodataframe
             output_region = self.output_region.copy()
-            output_region_prj = output_region.to_crs(self.crs)
+            output_region_prj = output_region.to_crs(self.geodata.crs)
             
             # Select rows of isrm_geodata that are within the output_region
             isrm_geodata = self.geodata.copy()
