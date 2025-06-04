@@ -411,12 +411,15 @@ class concentration_layer:
         Returns a GeoDataFrame of concentrations at each receptor.
         """
         # dot product of (EMISSIONS_UG/S as vector) with the ISRM matrix
-        conc = np.dot(pol_emis['EMISSIONS_UG/S'].values, pol_isrm)
+        print(pol_isrm.shape)
+        conc = np.dot(pol_emis['EMISSIONS_UG/S'], pol_isrm)
         
         # build output GeoDataFrame
-        conc_df = pd.DataFrame({'CONC_UG/M3': conc}, index=self.receptor_id)
-        out = pol_emis.join(conc_df)
-        return gpd.GeoDataFrame(out, geometry='geometry', crs=self.crs)
+        conc_df = pd.DataFrame(conc, columns=['CONC_UG/M3'], index=self.receptor_id)
+        conc_gdf = pol_emis.merge(conc_df, left_index=True, right_index=True)
+        conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry='geometry', crs=self.crs)
+
+        return conc_gdf
     
     def combine_concentrations(self, pPM25, pNH4, pVOC, pNO3, pSO4):
         ''' Combines concentration from each pollutant into one geodataframe '''

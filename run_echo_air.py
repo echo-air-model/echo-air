@@ -231,7 +231,7 @@ if __name__ == "__main__":
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
         conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
-
+        print(conc.detailed_conc_clean.shape)
         ## Create plots and export results
         # Parallelizing this process resulted in errors. This is an area for improvement in
         # future versions
