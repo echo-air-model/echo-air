@@ -110,7 +110,9 @@ class control_file:
                 file_exists = path.isfile(self.file_path)
             else:
                 missing = []
-                for f in ['ISRM_NH3.npy', 'ISRM_NOX.npy', 'ISRM_PM25.npy','ISRM_SOX.npy', 'ISRM_VOC.npy', 'isrm_geo.feather']:
+                for f in ['ISRM_NH3_LA.npy', 'ISRM_NH3_LB.npy', 'ISRM_NH3_LC.npy', 'ISRM_NOX_LA.npy', 
+                      'ISRM_NOX_LB.npy', 'ISRM_NOX_LC.npy', 'ISRM_PM25_LA.npy', 'ISRM_PM25_LB.npy', 'ISRM_PM25_LC.npy',
+                      'ISRM_SOX_LA.npy', 'ISRM_SOX_LB.npy', 'ISRM_SOX_LC.npy', 'ISRM_VOC_LA.npy', 'ISRM_VOC_LB.npy', 'ISRM_VOC_LC.npy', 'isrm_geo.feather']:
                     if not(path.isfile(path.join(self.isrm_path, f))):
                         missing.append(f)
                         logging.info('* Issue finding {} in the provided ISRM directory'.format(f))
@@ -121,7 +123,9 @@ class control_file:
                 file_exists = path.isfile(file)
             else:
                 missing = []
-                for f in ['ISRM_NH3.npy', 'ISRM_NOX.npy', 'ISRM_PM25.npy','ISRM_SOX.npy', 'ISRM_VOC.npy', 'isrm_geo.feather']:
+                for f in ['ISRM_NH3_LA.npy', 'ISRM_NH3_LB.npy', 'ISRM_NH3_LC.npy', 'ISRM_NOX_LA.npy', 
+                      'ISRM_NOX_LB.npy', 'ISRM_NOX_LC.npy', 'ISRM_PM25_LA.npy', 'ISRM_PM25_LB.npy', 'ISRM_PM25_LC.npy',
+                      'ISRM_SOX_LA.npy', 'ISRM_SOX_LB.npy', 'ISRM_SOX_LC.npy', 'ISRM_VOC_LA.npy', 'ISRM_VOC_LB.npy', 'ISRM_VOC_LC.npy', 'isrm_geo.feather']:
                     if not(path.isfile(path.join(self.isrm_path, f))):
                         missing.append(f)
                         logging.info('* Issue finding {} in the provided ISRM directory'.format(f))
