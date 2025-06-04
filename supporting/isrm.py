@@ -225,9 +225,6 @@ class isrm:
         # Run clip_isrm to get the appendices
         self.receptor_IDs, self.receptor_geometry = self.clip_isrm()
 
-        # figure out the array shape once so zeros() matches
-        sample_shape = np.load(self.pm25_LA_path).shape
-
         # for each pollutant, for each of the 3 layers, load-or-zero
         for paths in pollutant_paths:
             for layer_path, flag in zip(paths, (self.LA_flag, self.LB_flag, self.LC_flag)):
@@ -279,7 +276,7 @@ class isrm:
 
         # assume you saved your 15 arrays in self.pollutants
         flat = self.pollutants  
-        assert len(flat) == 5 * 3, "expected 15 arrays in self.pollutants"
+        assert len(flat) == 5 * 3, "* [ISRM] Expected 15 arrays in self.pollutants"
 
         # build the empty outer dict
         layers = { lvl: {} for lvl in layer_names }

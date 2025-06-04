@@ -538,9 +538,9 @@ class emissions:
         heights = self.emissions_data_clean['HEIGHT_M'].unique()
         
         # Test the bounds of each layer
-        LA_flag = sum(heights<51.8) > 0
-        LB_flag = sum((heights>=51.8)&(heights<=95.0)) > 0
-        LC_flag = sum(heights>=95.0) > 0
+        LA_flag = sum(heights <= 51.8) > 0
+        LB_flag = sum((heights > 51.8)&(heights <= 95.0)) > 0
+        LC_flag = sum(heights > 95.0) > 0
         
         return LA_flag, LB_flag, LC_flag
     
