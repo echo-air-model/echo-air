@@ -114,8 +114,9 @@ def check_setup():
         print('- No CA_ISRM file found in the data directory. Be sure to supply the currect filepath of your ISRM directory when running the tool.')
         
     else:
-        isrm_files = ['isrm_geo.feather', 'ISRM_NH3.npy', 'ISRM_NOX.npy', 'ISRM_PM25.npy',
-                      'ISRM_SOX.npy', 'ISRM_VOC.npy']
+        isrm_files = ['isrm_geo.feather', 'ISRM_NH3_LA.npy', 'ISRM_NH3_LB.npy', 'ISRM_NH3_LC.npy', 'ISRM_NOX_LA.npy', 
+                      'ISRM_NOX_LB.npy', 'ISRM_NOX_LC.npy', 'ISRM_PM25_LA.npy', 'ISRM_PM25_LB.npy', 'ISRM_PM25_LC.npy',
+                      'ISRM_SOX_LA.npy', 'ISRM_SOX_LB.npy', 'ISRM_SOX_LC.npy', 'ISRM_VOC_LA.npy', 'ISRM_VOC_LB.npy', 'ISRM_VOC_LC.npy']
         for f in isrm_files:
             tmp_path = path.join(cwd, 'data', 'CA_ISRM', f)
             if not path.exists(tmp_path) or not path.isfile(tmp_path):
