@@ -233,8 +233,6 @@ class isrm:
                 else:
                     arr = np.array([], dtype=float)
                 pollutants.append(arr)
-        for pol in pollutants:
-            print(pol.shape)
         return pollutants
     
     def load_geodata(self):

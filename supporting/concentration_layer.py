@@ -178,7 +178,8 @@ class concentration_layer:
         
         # Re-project the emissions layer into the ISRM coordinate reference system
         isrm_crs = isrm_geography.crs
-        emis = emis.to_crs(isrm_crs)
+        if emis.crs != isrm_crs:
+            emis = emis.to_crs(isrm_crs)
 
         # Get total area of each emissions cell
         emis['area_km2'] = emis.geometry.area / (1000 * 1000)
