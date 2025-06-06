@@ -412,7 +412,6 @@ class concentration_layer:
         Returns a GeoDataFrame of concentrations at each receptor.
         """
         # dot product of (EMISSIONS_UG/S as vector) with the ISRM matrix
-        print(pol_isrm.shape)
         conc = np.dot(pol_emis['EMISSIONS_UG/S'], pol_isrm)
         
         # build output GeoDataFrame
