@@ -59,6 +59,7 @@ class isrm:
         self.isrm_path = isrm_path
         # inside isrm.__init__, after defining self.isrm_path:
         # Unpack all 15 pollutant‐layer paths plus the main file path
+        # The get_isrm_files() method returns a tuple of 16 strings in this exact order:
         (self.pm25_LA_path,
         self.pm25_LB_path,
         self.pm25_LC_path,
@@ -76,18 +77,24 @@ class isrm:
         self.voc_LC_path,
         self.geo_file_path
         ) = self.get_isrm_files()
-        self.output_region = output_region
-        self.region_of_interest = region_of_interest
-        self.run_parallel = run_parallel
         
-        self.debug_mode = debug_mode
-        self.load_file = load_file
-        self.verbose = verbose
+        # Store the region definitions and control flags for later use
+        self.output_region = output_region # GeoDataFrame defining where concentrations run
+        self.region_of_interest = region_of_interest # Name (e.g., 'SAN FRANCISCO BAY') used for logging/outputs
+        self.run_parallel = run_parallel  #Boolean: whether to parallelize inner loops
+        self.debug_mode = debug_mode # Boolean: print extra debug statements
+        self.load_file = load_file # Boolean: if False, skip loading .npy’s (just check existence)
+        self.verbose = verbose # Boolean: if True, log more progress messages
 
+        # Flags for which vertical layers to load
+        #   LA_flag: include layer A (ground level) in any concentration calculations
+        #   LB_flag: include layer B (mid level)
+        #   LC_flag: include layer C (upper level)
         self.LA_flag = LA_flag
         self.LB_flag = LB_flag
         self.LC_flag = LC_flag
 
+        # Validate that all file paths exist and can be opened
         self.valid_file, self.valid_geo_file = self.check_path()
 
 

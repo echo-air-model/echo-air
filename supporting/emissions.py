@@ -541,6 +541,9 @@ class emissions:
         LA_flag = sum(heights <= 51.8) > 0
         LB_flag = sum((heights > 51.8)&(heights <= 95.0)) > 0
         LC_flag = sum(heights > 95.0) > 0
+
+        verboseprint(self.verbose, '- [EMISSIONS] {} layers of the ISRM will be imported based on heights identified in the emissions data.'.format(sum(LA_flag, LB_flag, LC_flag)),
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         return LA_flag, LB_flag, LC_flag
     
