@@ -244,16 +244,14 @@ if __name__ == "__main__":
         conc.output_concentrations(output_region, output_dir, f_out, ca_shp_path, shape_out)
         logging.info("- [CONCENTRATION] Concentration files output into: {}.".format(output_dir))
 
-        ## Perform concentration-related EJ analyses
-        exp_pop_alloc = pop.allocate_pop(pop.pop_exp, isrmgrid.geodata, False)
-        verboseprint(verbose, '- [POPULATION] Population data is properly allocated to the ISRM grid and ready for EJ calculations.', debug_mode, frameinfo=getframeinfo(currentframe()))
-        
         ## Create the exposure dataframe and run EJ functions
         logging.info('\n<< Beginning Exposure EJ Calculations >>')
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [EJ].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
         
         # Estimate exposures and output them
+        if run_parallel:
+            exp_pop_alloc = exp_pop_alloc_future.result()
         exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, verbose, debug_mode=debug_mode)    
         
         if output_exposure: # Perform all exports in parallel

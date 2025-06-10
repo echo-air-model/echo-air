@@ -164,19 +164,19 @@ class population:
     def crosswalk(self,population_gdf,isrm_gdf,hia_flag):
         ''' Creates a crosswalk of the population cells and ISRM Grid cells. Returns a crosswalk geodataframe'''
         #Get unique geometries
-        unique_pop = population_gdf.drop_duplicates(subset=["POP_ID", "geometry"])[["POP_ID", "geometry"]]
+        unique_pop = population_gdf.drop_duplicates(subset=["POP_ID", "geometry"])[["POP_ID", "geometry"]].copy()
         unique_pop = unique_pop[unique_pop.geometry.notnull()]
         unique_pop = gpd.GeoDataFrame(unique_pop, geometry="geometry", crs=population_gdf.crs)
 
         #Intersect once
-        unique_pop = unique_pop.to_crs(isrm_gdf.crs)
-        selected_grids = isrm_gdf[isrm_gdf.geometry.intersects(unique_pop.unary_union)]
-        intersection = gpd.overlay(unique_pop, selected_grids, how="intersection")
+        if unique_pop.crs != isrm_gdf.crs:
+            unique_pop = unique_pop.to_crs(isrm_gdf.crs)
+        intersection = gpd.overlay(unique_pop, isrm_gdf, how="intersection")
 
         #Area calcs
         intersection["area_intersection"] = intersection.geometry.area
         intersection["area_pop"] = intersection["POP_ID"].map(unique_pop.set_index("POP_ID").geometry.area.to_dict())
-        intersection["area_isrm"] = intersection["ISRM_ID"].map(selected_grids.set_index("ISRM_ID").geometry.area.to_dict())
+        intersection["area_isrm"] = intersection["ISRM_ID"].map(isrm_gdf.set_index("ISRM_ID").geometry.area.to_dict())
         intersection["fpop"] = intersection["area_intersection"] / intersection["area_pop"]
         intersection["fisrm"] = intersection["area_intersection"] / intersection["area_isrm"]
 
@@ -184,9 +184,9 @@ class population:
         if hia_flag:
             age_bins = population_gdf[["POP_ID", "AGE_BIN"]].drop_duplicates()
             crosswalk = intersection.merge(age_bins, on="POP_ID", how="left")
-            crosswalk = crosswalk[["POP_ID", "AGE_BIN", "ISRM_ID", "fpop", "fisrm", "geometry"]]
+            crosswalk = crosswalk[["POP_ID", "AGE_BIN", "ISRM_ID", "fpop", "fisrm", "geometry"]].copy()
         else:
-            crosswalk = intersection[["POP_ID", "ISRM_ID", "fpop", "fisrm", "geometry"]]
+            crosswalk = intersection[["POP_ID", "ISRM_ID", "fpop", "fisrm", "geometry"]].copy()
 
         # Note that the only ISRM Grid IDs in this dataframe are ones that intersect with a district
         return crosswalk
@@ -230,7 +230,7 @@ class population:
             isrm_group = gpd.GeoDataFrame(isrm_group, geometry="geometry", crs=isrm_gdf.crs)
         else:
             #Merge all data
-            merged_data = crosswalk_df.merge(population_gdf[ ['POP_ID', 'YEAR', 'TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID"] , how="left")
+            merged_data = crosswalk_df.merge(population_gdf[['POP_ID', 'YEAR', 'TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID"] , how="left")
             pop_columns = ['TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']
 
             # Calculate fractions and multiply by population counts
