@@ -4,7 +4,7 @@
 Emissions Data Object
 
 @author: libbykoolik
-last modified: 2024-10-17
+last modified: 2024-06-05
 """
 
 # Import Libraries
@@ -43,7 +43,7 @@ class emissions:
         - VOC: VOC compound emissions in each grid cell
         - NOX: NOx emissions in each grid cell
         - SOX: SOx emissions in each grid cell
-        - L0_flag, L1_flag, L2_flag, isrm_hole_flag: Booleans indicating whether 
+        - LA_flag, LB_flag, LC_flag: Booleans indicating whether 
           each layer should be calculated based on emissions release heights
           
     EXTERNAL FUNCTIONS:
@@ -130,7 +130,7 @@ class emissions:
                 self.SOX = self.split_pollutants(self.emissions_data_clean, 'SOX', self.details_to_keep)
                 
                 # Which ISRM layers are needed?
-                self.L0_flag, self.L1_flag, self.L2_flag, self.isrm_hole_flag = self.which_layers()
+                self.LA_flag, self.LB_flag, self.LC_flag = self.which_layers()
     
     def __str__(self):
         return 'Emissions object created from '+self.file_path
@@ -200,10 +200,9 @@ class emissions:
         else:
             raise ValueError('Emissions file is of an unknown type. Cannot proceed')
         
-        # Project to the desired CRS if not already in that CRS
-        desired_crs = 'epsg:3310'  # California NAD83 Albers (m)
-        if crs != desired_crs:
-            geometry = geometry.to_crs(desired_crs)
+        # # Check if crs is in meters, if not project to a crs that is in meters
+        if not geometry.crs.is_projected:
+            geometry = geometry.to_crs('EPSG:3310')
 
         return geometry, emissions_data, crs
     
@@ -539,21 +538,14 @@ class emissions:
         heights = self.emissions_data_clean['HEIGHT_M'].unique()
         
         # Test the bounds of each layer
-        L0_flag = sum(heights<57.0) > 0
-        L1_flag = sum((heights>=57.0)&(heights<=140.0)) > 0
-        L2_flag = sum(heights>=760.0) > 0
+        LA_flag = sum(heights <= 51.8) > 0
+        LB_flag = sum((heights > 51.8)&(heights <= 95.0)) > 0
+        LC_flag = sum(heights > 95.0) > 0
 
-        # Check for a hole
-        isrm_hole_flag = sum((heights>140.0)&(heights<760.0)) > 0 
+        verboseprint(self.verbose, '- [EMISSIONS] {} layers of the ISRM will be imported based on heights identified in the emissions data.'.format(sum([LA_flag, LB_flag, LC_flag])),
+                     self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
-        # If the hole exists, issue a warning
-        if isrm_hole_flag:
-            logging.info('* [EMISSIONS] Emissions were identified with release heights between 140 - 760 meters.')
-            logging.info('* The current version of the ISRM has not been trained on release heights in this range.')
-            logging.info('* As a short-term solution, concentrations from these emissions will be estimated using\n  the average of the middle and high release layers.')
-            logging.info('* For more information, please visit https://echo-air-model.github.io/docs/other_information/isrm_hole_patch.html.')
-        
-        return L0_flag, L1_flag, L2_flag, isrm_hole_flag
+        return LA_flag, LB_flag, LC_flag
     
     def visualize_emissions(self, emissions_object, pollutant_name=''):
         ''' Creates map of emissions using simple chloropleth '''

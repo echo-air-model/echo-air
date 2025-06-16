@@ -5,7 +5,7 @@ Main Run File
 
 @author: libbykoolik
 
-Last updated: 2025-04-29
+Last updated: 2025-06-05
 
 """
 #%% Import useful libraries, supporting objects, and scripts
@@ -153,10 +153,28 @@ if __name__ == "__main__":
             # Open the ThreadPoolExecutor
             file_reader_pool = concurrent.futures.ThreadPoolExecutor()
             
-            # Start reading in files in parallel
-            emis_future = file_reader_pool.submit(emissions, emissions_path, output_dir, f_out, debug_mode=debug_mode, units=units, name=name, load_file=True, verbose=verbose)
-            isrm_future = file_reader_pool.submit(isrm, isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
-            pop_future = file_reader_pool.submit(population, population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            # Start reading emissions & population first, then ISRM
+            emis_future = file_reader_pool.submit(
+                emissions,
+                emissions_path, output_dir, f_out,
+                debug_mode=debug_mode, units=units,
+                name=name, load_file=True, verbose=verbose
+            )
+
+            pop_future = file_reader_pool.submit(population,population_path,
+                                                 debug_mode=debug_mode, load_file=True, verbose=verbose)
+            # block until emissions are loaded
+            emis = emis_future.result()
+
+            # now launch ISRM and population reads in parallel
+            isrm_future = file_reader_pool.submit(
+                isrm,
+                isrm_path, output_region, region_of_interest,
+                run_parallel, debug_mode=debug_mode,
+                LA_flag = emis.LA_flag,
+                LB_flag = emis.LB_flag,
+                LC_flag = emis.LC_flag,
+                load_file=True, verbose=verbose)
       
             # To run multiple computations at once, we need to create multiple
             # processes instead of threads. Processes take longer to create, but
@@ -201,7 +219,7 @@ if __name__ == "__main__":
             emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, LA_flag = emis.LA_flag, LB_flag = emis.LB_flag, LC_flag = emis.LC_flag, load_file=True, verbose=verbose)
             # Create population object
             verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
             pop = population(population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
@@ -226,16 +244,14 @@ if __name__ == "__main__":
         conc.output_concentrations(output_region, output_dir, f_out, ca_shp_path, shape_out)
         logging.info("- [CONCENTRATION] Concentration files output into: {}.".format(output_dir))
 
-        ## Perform concentration-related EJ analyses
-        exp_pop_alloc = pop.allocate_pop(pop.pop_exp, isrmgrid.geodata, False)
-        verboseprint(verbose, '- [POPULATION] Population data is properly allocated to the ISRM grid and ready for EJ calculations.', debug_mode, frameinfo=getframeinfo(currentframe()))
-        
         ## Create the exposure dataframe and run EJ functions
         logging.info('\n<< Beginning Exposure EJ Calculations >>')
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [EJ].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
         
         # Estimate exposures and output them
+        if run_parallel:
+            exp_pop_alloc = exp_pop_alloc_future.result()
         exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, verbose, debug_mode=debug_mode)    
         
         if output_exposure: # Perform all exports in parallel

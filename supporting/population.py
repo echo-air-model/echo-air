@@ -4,9 +4,7 @@
 Population Data Object
 
 @author: libbykoolik
-
-last modified: 2025-04-29
-
+last modified: 2023-09-12
 """
 
 # Import Libraries
@@ -138,7 +136,7 @@ class population:
         # Sum across POP_ID and YEAR
         pop_exp = pop_exp.groupby(['POP_ID','YEAR'])[['TOTAL', 'ASIAN', 'BLACK', 
                                                       'HISLA', 'INDIG', 'PACIS', 
-                                                      'WHITE', 'OTHER']].sum(numeric_only=True).reset_index()
+                                                      'WHITE', 'OTHER']].sum().reset_index()
         
         # Add geometry back in
         pop_exp = pd.merge(self.pop_geo, pop_exp, on='POP_ID')
@@ -162,59 +160,33 @@ class population:
     
         return pop_obj_prj  
     
+    
     def crosswalk(self,population_gdf,isrm_gdf,hia_flag):
         ''' Creates a crosswalk of the population cells and ISRM Grid cells. Returns a crosswalk geodataframe'''
-        if hia_flag == True:
-            #Select relevant columns for Health Analysis
-            omit = population_gdf[population_gdf["geometry"] == None]["POP_ID"]
-            pop_tmp = population_gdf[["POP_ID","AGE_BIN","geometry"]]
+        #Get unique geometries
+        unique_pop = population_gdf.drop_duplicates(subset=["POP_ID", "geometry"])[["POP_ID", "geometry"]].copy()
+        unique_pop = unique_pop[unique_pop.geometry.notnull()]
+        unique_pop = gpd.GeoDataFrame(unique_pop, geometry="geometry", crs=population_gdf.crs)
 
-            #Select Area, the POP_IDs omitted have no geometry
-            selected_districts = pop_tmp[~pop_tmp["POP_ID"].isin(omit)]
+        #Intersect once
+        if unique_pop.crs != isrm_gdf.crs:
+            unique_pop = unique_pop.to_crs(isrm_gdf.crs)
+        intersection = gpd.overlay(unique_pop, isrm_gdf, how="intersection")
 
-            #Return back to type gdf
-            selected_districts = gpd.GeoDataFrame(selected_districts, geometry="geometry", crs=population_gdf.crs)
+        #Area calcs
+        intersection["area_intersection"] = intersection.geometry.area
+        intersection["area_pop"] = intersection["POP_ID"].map(unique_pop.set_index("POP_ID").geometry.area.to_dict())
+        intersection["area_isrm"] = intersection["ISRM_ID"].map(isrm_gdf.set_index("ISRM_ID").geometry.area.to_dict())
+        intersection["fpop"] = intersection["area_intersection"] / intersection["area_pop"]
+        intersection["fisrm"] = intersection["area_intersection"] / intersection["area_isrm"]
 
-            #Fix CRS and intersect the ISRM with CENSUS
-            selected_districts = selected_districts.to_crs(isrm_gdf.crs)
-            selected_grids = isrm_gdf[isrm_gdf.geometry.intersects(selected_districts.unary_union)]
-            intersection = gpd.overlay(selected_districts, isrm_gdf, how="intersection")
-
-            #Calculate Area of each intersection, and the fractions using these areas
-            intersection["area_intersection"] = intersection.geometry.area
-            intersection["area_pop"] = intersection["POP_ID"].map(selected_districts.set_index("POP_ID").geometry.area.to_dict())
-            intersection["area_isrm"] = intersection["ISRM_ID"].map(selected_grids.set_index("ISRM_ID").geometry.area.to_dict())
-            intersection["fpop"] = intersection["area_intersection"] / intersection["area_pop"]
-            intersection["fisrm"] = intersection["area_intersection"] / intersection["area_isrm"]
-            
-            # Simplify the crosswalk for export
-            crosswalk = intersection[["POP_ID", "AGE_BIN","ISRM_ID", "fpop", "fisrm", "geometry"]]
-        
+        # Re-merge with age bins (if hia_flag is True)
+        if hia_flag:
+            age_bins = population_gdf[["POP_ID", "AGE_BIN"]].drop_duplicates()
+            crosswalk = intersection.merge(age_bins, on="POP_ID", how="left")
+            crosswalk = crosswalk[["POP_ID", "AGE_BIN", "ISRM_ID", "fpop", "fisrm", "geometry"]].copy()
         else:
-            #Select relevant columns
-            omit = population_gdf[population_gdf["geometry"] == None]["POP_ID"]
-            pop_tmp = population_gdf[["POP_ID","geometry"]]
-
-            #Select Area, the POP_IDs omitted have no geometry
-            selected_districts = pop_tmp[~pop_tmp["POP_ID"].isin(omit)]
-
-            #Return type back to type gdf
-            selected_districts = gpd.GeoDataFrame(selected_districts, geometry="geometry", crs=population_gdf.crs)
-
-            #Fix CRS and intersect the ISRM with CENSUS
-            selected_districts = selected_districts.to_crs(isrm_gdf.crs)
-            selected_grids = isrm_gdf[isrm_gdf.geometry.intersects(selected_districts.unary_union)]
-            intersection = gpd.overlay(selected_districts, selected_grids, how="intersection")
-
-            #Calculate Area of each intersection, and the fractions using these areas
-            intersection["area_intersection"] = intersection.geometry.area
-            intersection["area_pop"] = intersection["POP_ID"].map(selected_districts.set_index("POP_ID").geometry.area.to_dict())
-            intersection["area_isrm"] = intersection["ISRM_ID"].map(selected_grids.set_index("ISRM_ID").geometry.area.to_dict())
-            intersection["fpop"] = intersection["area_intersection"] / intersection["area_pop"]
-            intersection["fisrm"] = intersection["area_intersection"] / intersection["area_isrm"]
-            
-            # Simplify the crosswalk for export
-            crosswalk = intersection[["POP_ID","ISRM_ID", "fpop", "fisrm", "geometry"]]
+            crosswalk = intersection[["POP_ID", "ISRM_ID", "fpop", "fisrm", "geometry"]].copy()
 
         # Note that the only ISRM Grid IDs in this dataframe are ones that intersect with a district
         return crosswalk
@@ -223,12 +195,9 @@ class population:
         ''' Takes crosswalk and reallocates popualtion into the ISRM grid cells'''
         total_population = population_gdf["TOTAL"].sum()
         crosswalk_df = self.crosswalk(population_gdf, isrm_gdf, hia_flag)
-        
         if hia_flag == True:
-            
             #Merge all data
-            merged_data = crosswalk_df.merge(population_gdf[ ['POP_ID', 'YEAR', 'AGE_BIN', 'START_AGE', 'END_AGE', 'TOTAL', 
-                                                              'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID","AGE_BIN"] , how="left")
+            merged_data = crosswalk_df.merge(population_gdf[ ['POP_ID', 'YEAR', 'AGE_BIN', 'START_AGE', 'END_AGE', 'TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID","AGE_BIN"] , how="left")
             pop_columns = ['TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']
 
             #Multiply population counts by respective fractions
@@ -236,16 +205,7 @@ class population:
                 merged_data[f"{col}_adjusted"] = merged_data[col] * merged_data["fpop"]
 
             #aggregate by ISRM ID and AGE BIN
-            '''<< LIKELY TO BREAK >>'''
-            isrm_group = merged_data.groupby(["ISRM_ID","AGE_BIN"])[['geometry','START_AGE', 'END_AGE','TOTAL_adjusted', 
-                                                                     'ASIAN_adjusted','BLACK_adjusted', 'HISLA_adjusted', 
-                                                                     'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted', 
-                                                                     'OTHER_adjusted']].agg({'geometry':'first', 'START_AGE':'first', 
-                                                                                             'END_AGE':'first','TOTAL_adjusted':'sum', 
-                                                                                             'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 
-                                                                                             'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 
-                                                                                             'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 
-                                                                                             'OTHER_adjusted':'sum'}).reset_index()
+            isrm_group = merged_data.groupby(["ISRM_ID","AGE_BIN"])[['geometry','START_AGE', 'END_AGE','TOTAL_adjusted', 'ASIAN_adjusted','BLACK_adjusted', 'HISLA_adjusted', 'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted', 'OTHER_adjusted']].agg({'geometry':'first', 'START_AGE':'first', 'END_AGE':'first','TOTAL_adjusted':'sum', 'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 'OTHER_adjusted':'sum'}).reset_index()
 
             #Create a list of all ISRM_ID, START_AGE, END_AGE options
             isrm_ids = isrm_gdf[['ISRM_ID']].drop_duplicates()
@@ -270,7 +230,7 @@ class population:
             isrm_group = gpd.GeoDataFrame(isrm_group, geometry="geometry", crs=isrm_gdf.crs)
         else:
             #Merge all data
-            merged_data = crosswalk_df.merge(population_gdf[ ['POP_ID', 'YEAR', 'TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID"] , how="left")
+            merged_data = crosswalk_df.merge(population_gdf[['POP_ID', 'YEAR', 'TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID"] , how="left")
             pop_columns = ['TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']
 
             # Calculate fractions and multiply by population counts
@@ -278,17 +238,8 @@ class population:
                 merged_data[f"{col}_adjusted"] = merged_data[col] * merged_data["fpop"]
 
             #Aggregate by ISRM ID
-            '''<< LIKELY TO BREAK >>'''
-            isrm_group = merged_data.groupby(["ISRM_ID"])[['geometry','TOTAL_adjusted', 'ASIAN_adjusted','BLACK_adjusted',
-                                                           'HISLA_adjusted', 'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted',
-                                                           'OTHER_adjusted']].agg({'geometry':'first', 'TOTAL_adjusted':'sum', 
-                                                                                   'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 
-                                                                                   'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 
-                                                                                   'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 
-                                                                                   'OTHER_adjusted':'sum'}).reset_index()
-            isrm_group = isrm_group.rename(columns={'TOTAL_adjusted':'TOTAL', 'ASIAN_adjusted':'ASIAN','BLACK_adjusted':'BLACK', 
-                                                    'HISLA_adjusted':'HISLA', 'INDIG_adjusted':'INDIG', 'PACIS_adjusted':'PACIS',
-                                                    'WHITE_adjusted':'WHITE', 'OTHER_adjusted':"OTHER"})
+            isrm_group = merged_data.groupby(["ISRM_ID"])[['geometry','TOTAL_adjusted', 'ASIAN_adjusted','BLACK_adjusted', 'HISLA_adjusted', 'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted', 'OTHER_adjusted']].agg({'geometry':'first', 'TOTAL_adjusted':'sum', 'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 'OTHER_adjusted':'sum'}).reset_index()
+            isrm_group = isrm_group.rename(columns={'TOTAL_adjusted':'TOTAL', 'ASIAN_adjusted':'ASIAN','BLACK_adjusted':'BLACK', 'HISLA_adjusted':'HISLA', 'INDIG_adjusted':'INDIG', 'PACIS_adjusted':'PACIS', 'WHITE_adjusted':'WHITE', 'OTHER_adjusted':"OTHER"})
             isrm_group = isrm_group.drop(columns = "geometry")
 
             #Remerge with ISRM Grid so that all ISRMs are present
@@ -298,8 +249,6 @@ class population:
             cols.insert(1, last_col)
             isrm_group = isrm_group[cols]
             isrm_group[cols] = isrm_group[cols].fillna(0)
-            
-            # Convert to a GeoDataFrame
             isrm_group = gpd.GeoDataFrame(isrm_group, geometry="geometry", crs=isrm_gdf.crs)
 
         final_population = isrm_group["TOTAL"].sum()
