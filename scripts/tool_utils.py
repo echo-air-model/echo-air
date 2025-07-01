@@ -4,7 +4,7 @@
 Tool Utils
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2025-06-05
 """
 
 #%% Import useful libraries
@@ -114,8 +114,17 @@ def check_setup():
         print('- No CA_ISRM file found in the data directory. Be sure to supply the currect filepath of your ISRM directory when running the tool.')
         
     else:
-        isrm_files = ['isrm_geo.feather', 'ISRM_NH3.npy', 'ISRM_NOX.npy', 'ISRM_PM25.npy',
-                      'ISRM_SOX.npy', 'ISRM_VOC.npy']
+        all_files = [f for f in os.listdir(isrm_root) if path.isfile(path.join(isrm_root, f))]
+        if len(all_files) == 5:
+            errors += 1
+            print("In Summer 2025, the ECHO-AIR was updated to incorporate a new ISRM for California. "
+                  "This ISRM should have fifteen accompanying files. "
+                  "Please visit the documentation website for more information.")
+            return False
+        
+        isrm_files = ['isrm_geo.feather', 'ISRM_NH3_LA.npy', 'ISRM_NH3_LB.npy', 'ISRM_NH3_LC.npy', 'ISRM_NOX_LA.npy', 
+                      'ISRM_NOX_LB.npy', 'ISRM_NOX_LC.npy', 'ISRM_PM25_LA.npy', 'ISRM_PM25_LB.npy', 'ISRM_PM25_LC.npy',
+                      'ISRM_SOX_LA.npy', 'ISRM_SOX_LB.npy', 'ISRM_SOX_LC.npy', 'ISRM_VOC_LA.npy', 'ISRM_VOC_LB.npy', 'ISRM_VOC_LC.npy']
         for f in isrm_files:
             tmp_path = path.join(cwd, 'data', 'CA_ISRM', f)
             if not path.exists(tmp_path) or not path.isfile(tmp_path):
@@ -195,7 +204,7 @@ def report_version():
 
     logging.info('╔════════════════════════════════╗')
     logging.info('║ ECHO-AIR Model                 ║')
-    logging.info('║ Version 1.0.0                  ║')
+    logging.info('║ Version 1.0.1                  ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return

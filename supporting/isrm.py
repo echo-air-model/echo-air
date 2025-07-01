@@ -4,7 +4,7 @@
 ISRM Data Object
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2025-06-05
 """
 
 # Import Libraries
@@ -51,23 +51,53 @@ class isrm:
         - map_isrm: simple function for mapping the ISRM grid cells
     
     '''
-    def __init__(self, isrm_path, output_region, region_of_interest, run_parallel, debug_mode, load_file=True, verbose=False):
+    def __init__(self, isrm_path, output_region, region_of_interest, run_parallel, debug_mode, LA_flag=True, LB_flag=True, LC_flag=True, load_file=True, verbose=False):
         ''' Initializes the ISRM object'''        
         
         # Initialize paths and check that they are valid
         sys.path.append(os.path.realpath('..'))
         self.isrm_path = isrm_path
-        self.nh3_path, self.nox_path, self.pm25_path, self.sox_path, self.voc_path, self.geo_file_path = self.get_isrm_files()
-        self.output_region = output_region
-        self.region_of_interest = region_of_interest
-        self.run_parallel = run_parallel
+        # inside isrm.__init__, after defining self.isrm_path:
+        # Unpack all 15 pollutant‐layer paths plus the main file path
+        # The get_isrm_files() method returns a tuple of 16 strings in this exact order:
+        (self.pm25_LA_path,
+        self.pm25_LB_path,
+        self.pm25_LC_path,
+        self.nh3_LA_path,
+        self.nh3_LB_path,
+        self.nh3_LC_path,
+        self.nox_LA_path,
+        self.nox_LB_path,
+        self.nox_LC_path,
+        self.sox_LA_path,
+        self.sox_LB_path,
+        self.sox_LC_path,
+        self.voc_LA_path,
+        self.voc_LB_path,
+        self.voc_LC_path,
+        self.geo_file_path
+        ) = self.get_isrm_files()
+        
+        # Store the region definitions and control flags for later use
+        self.output_region = output_region # GeoDataFrame defining where concentrations run
+        self.region_of_interest = region_of_interest # Name (e.g., 'SAN FRANCISCO BAY') used for logging/outputs
+        self.run_parallel = run_parallel  #Boolean: whether to parallelize inner loops
+        self.debug_mode = debug_mode # Boolean: print extra debug statements
+        self.load_file = load_file # Boolean: if False, skip loading .npy’s (just check existence)
+        self.verbose = verbose # Boolean: if True, log more progress messages
+
+        # Flags for which vertical layers to load
+        #   LA_flag: include layer A (ground level) in any concentration calculations
+        #   LB_flag: include layer B (mid level)
+        #   LC_flag: include layer C (upper level)
+        self.LA_flag = LA_flag
+        self.LB_flag = LB_flag
+        self.LC_flag = LC_flag
+
+        # Validate that all file paths exist and can be opened
         self.valid_file, self.valid_geo_file = self.check_path()
-        
-        # Grab other meta-parameters
-        self.debug_mode = debug_mode
-        self.load_file = load_file
-        self.verbose = verbose
-        
+
+
         # Return a starting statement
         verboseprint(self.verbose, '- [ISRM] Loading a new ISRM object.',
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -95,7 +125,7 @@ class isrm:
 
             # Import numeric ISRM layers - if running in parallel, this will occur 
             # while the geodata file is also loading. 
-            self.PM25, self.NH3, self.NOX, self.SOX, self.VOC = self.load_isrm()
+            self.pollutants = self.load_isrm()
             verboseprint(self.verbose, '- [ISRM] ISRM data imported. Five pollutant variables created',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
             
@@ -115,35 +145,65 @@ class isrm:
     
     def get_isrm_files(self):
         ''' Defines ISRM file paths from the ISRM_Path input '''
-        nh3_path = path.join(self.isrm_path,'ISRM_NH3.npy')
-        nox_path = path.join(self.isrm_path,'ISRM_NOX.npy')
-        pm25_path = path.join(self.isrm_path,'ISRM_PM25.npy')
-        sox_path = path.join(self.isrm_path,'ISRM_SOX.npy')
-        voc_path = path.join(self.isrm_path,'ISRM_VOC.npy')
+        # for each pollutant, three files:
+        # PM2.5
+        pm25_LA = path.join(self.isrm_path, 'ISRM_PM25_LA.npy')
+        pm25_LB = path.join(self.isrm_path, 'ISRM_PM25_LB.npy')
+        pm25_LC = path.join(self.isrm_path, 'ISRM_PM25_LC.npy')
+        # NH3
+        nh3_LA  = path.join(self.isrm_path, 'ISRM_NH3_LA.npy')
+        nh3_LB  = path.join(self.isrm_path, 'ISRM_NH3_LB.npy')
+        nh3_LC  = path.join(self.isrm_path, 'ISRM_NH3_LC.npy')
+        # NOx
+        nox_LA  = path.join(self.isrm_path, 'ISRM_NOX_LA.npy')
+        nox_LB  = path.join(self.isrm_path, 'ISRM_NOX_LB.npy')
+        nox_LC  = path.join(self.isrm_path, 'ISRM_NOX_LC.npy')
+        # SOx
+        sox_LA  = path.join(self.isrm_path, 'ISRM_SOX_LA.npy')
+        sox_LB  = path.join(self.isrm_path, 'ISRM_SOX_LB.npy')
+        sox_LC  = path.join(self.isrm_path, 'ISRM_SOX_LC.npy')
+        # VOC
+        voc_LA  = path.join(self.isrm_path, 'ISRM_VOC_LA.npy')
+        voc_LB  = path.join(self.isrm_path, 'ISRM_VOC_LB.npy')
+        voc_LC  = path.join(self.isrm_path, 'ISRM_VOC_LC.npy')
         geo_file_path = path.join(self.isrm_path, 'isrm_geo.feather')
         
-        return nh3_path, nox_path, pm25_path, sox_path, voc_path, geo_file_path
+        return (pm25_LA, pm25_LB, pm25_LC, nh3_LA,  nh3_LB,  nh3_LC, nox_LA,  nox_LB,  
+                nox_LC, sox_LA,  sox_LB,  sox_LC, voc_LA,  voc_LB,  voc_LC,geo_file_path)
 
     def check_path(self):
-        ''' Checks if file exists at the path specified '''
+        ''' Checks if ISRM layer files and geo file exist at the paths specified '''
         # Use the os library to check the path and the file
         # First, check ISRM layers exist
         good_paths = 0
         good_files = 0
-        
-        for f in [self.nh3_path, self.nox_path, self.pm25_path, self.sox_path, self.voc_path]:            
+
+        # List out all 15 pollutant–layer paths
+        pollutant_files = [
+            self.pm25_LA_path, self.pm25_LB_path, self.pm25_LC_path,
+            self.nh3_LA_path,  self.nh3_LB_path,  self.nh3_LC_path,
+            self.nox_LA_path,  self.nox_LB_path,  self.nox_LC_path,
+            self.sox_LA_path,  self.sox_LB_path,  self.sox_LC_path,
+            self.voc_LA_path,  self.voc_LB_path,  self.voc_LC_path,
+        ]
+
+        # Count how many of those exist and are files
+        for f in pollutant_files:
             good_paths += path.exists(f)
             good_files += path.isfile(f)
-        
-        # Get Boolean path_exists and file_exists
-        path_exists = good_paths == 5
-        file_exists = good_files == 5
-        
+
+        # We expect exactly 15 layer files
+        path_exists = (good_paths == 15)
+        file_exists = (good_files == 15)
+
         # Second, check ISRM geodata exists
         geo_path_exists = path.exists(self.geo_file_path)
         geo_file_exists = path.isfile(self.geo_file_path)
-            
-        return (path_exists and file_exists, geo_path_exists and geo_file_exists)
+
+        # Return a tuple: (all pollutant layers OK?, geo-file OK?)
+        return (path_exists and file_exists,
+                geo_path_exists and geo_file_exists)
+
     
     def load_and_cut(self, path):
         ''' Loads and cuts the ISRM numeric layer '''
@@ -153,26 +213,33 @@ class isrm:
         if self.region_of_interest != 'CA':
             # Trim the columns of each ISRM layer to just the necessary IDs
             indices = self.receptor_IDs.values
-            pollutant = pollutant[:,:,indices]
+            pollutant = pollutant[:,indices]
         
         return pollutant
-    
+
     def load_isrm(self):
-        ''' Loads ISRM from numpy files '''
-        # Route to pollutant paths
-        pollutant_paths = [self.pm25_path, self.nh3_path, self.nox_path,
-                           self.sox_path, self.voc_path]
- 
-        # Create a storage list
+        ''' Loads ISRM from numpy files, but only for flagged layers '''
+        # now each pollutant has 3 layer‐paths
+        pollutant_paths = [
+            [self.pm25_LA_path, self.pm25_LB_path, self.pm25_LC_path],
+            [self.nh3_LA_path,  self.nh3_LB_path,  self.nh3_LC_path],
+            [self.nox_LA_path,  self.nox_LB_path,  self.nox_LC_path],
+            [self.sox_LA_path,  self.sox_LB_path,  self.sox_LC_path],
+            [self.voc_LA_path,  self.voc_LB_path,  self.voc_LC_path]]
+            # Create a storage list
         pollutants = []
-        
+            
         # Run clip_isrm to get the appendices
         self.receptor_IDs, self.receptor_geometry = self.clip_isrm()
-        
-        # Iterate through each path
-        for path in pollutant_paths:
-            pollutants.append(self.load_and_cut(path))
-        
+
+        # for each pollutant, for each of the 3 layers, load-or-zero
+        for paths in pollutant_paths:
+            for layer_path, flag in zip(paths, (self.LA_flag, self.LB_flag, self.LC_flag)):
+                if flag:
+                    arr = self.load_and_cut(layer_path)
+                else:
+                    arr = np.array([], dtype=float)
+                pollutants.append(arr)
         return pollutants
     
     def load_geodata(self):
@@ -203,20 +270,29 @@ class isrm:
         
         return receptor_IDs, receptor_geometry
     
-    def get_pollutant_layer(self, pol_name):
-        ''' Returns pollutant layer '''
-        # Define a pollutant dictionary for convenience
-        pollutant_dict = {'PM25':self.PM25,
-                         'NH3':self.NH3,
-                         'VOC':self.VOC,
-                         'NOX':self.NOX,
-                         'SOX':self.SOX}
-        
-        # Confirm pol_name is valid
-        assert pol_name in pollutant_dict.keys()
-        
-        # Return pollutant layer
-        return pollutant_dict[pol_name]
+    def get_pollutant_layer(self):
+        """
+        Return a nested dict of ISRM layers:
+        """
+
+        # the order you built your flat pollutants list in load_isrm()
+        pollutant_names = ['PM25', 'NH3', 'NOX', 'SOX', 'VOC']
+        layer_names     = ['LA',   'LB',   'LC']
+
+        # assume you saved your 15 arrays in self.pollutants
+        flat = self.pollutants  
+        assert len(flat) == 5 * 3, "* [ISRM] Expected 15 arrays in self.pollutants"
+
+        # build the empty outer dict
+        layers = { lvl: {} for lvl in layer_names }
+
+        # p_idx goes 0…4, l_idx goes 0…2
+        for p_idx, pol in enumerate(pollutant_names):
+            for l_idx, lvl in enumerate(layer_names):
+                idx = p_idx * 3 + l_idx
+                layers[lvl][pol] = flat[idx]
+        return layers
+
     
     def map_isrm(self):
         ''' Creates map of ISRM grid  '''
