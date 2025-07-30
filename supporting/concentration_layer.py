@@ -185,7 +185,7 @@ class concentration_layer:
         emis['area_km2'] = emis.geometry.area / (1000 * 1000)
         
         # Create intersect object between emis and ISRM grid
-        intersect = gpd.overlay(emis, isrm_geography, how='intersection')
+        intersect = gpd.overlay(emis, isrm_geography, how='intersection', keep_geom_type=False)
         emis_totalarea = intersect.drop(columns="geometry", errors="ignore").groupby('EMIS_ID')['area_km2'].first().to_dict()
         
         #emis_totalarea = intersect.groupby('EMIS_ID')['area_km2'].first().to_dict()
@@ -412,7 +412,7 @@ class concentration_layer:
         Returns a GeoDataFrame of concentrations at each receptor.
         """
         # dot product of (EMISSIONS_UG/S as vector) with the ISRM matrix
-        conc = np.dot(pol_emis['EMISSIONS_UG/S'], pol_isrm)
+        conc = np.dot(pol_isrm.T, pol_emis['EMISSIONS_UG/S'])
         
         # build output GeoDataFrame
         conc_df = pd.DataFrame(conc, columns=['CONC_UG/M3'], index=self.receptor_id)

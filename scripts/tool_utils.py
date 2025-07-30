@@ -114,6 +114,7 @@ def check_setup():
         print('- No CA_ISRM file found in the data directory. Be sure to supply the currect filepath of your ISRM directory when running the tool.')
         
     else:
+        isrm_root = path.join(cwd, 'data', 'CA_ISRM')
         all_files = [f for f in os.listdir(isrm_root) if path.isfile(path.join(isrm_root, f))]
         if len(all_files) == 5:
             errors += 1
@@ -204,7 +205,7 @@ def report_version():
 
     logging.info('╔════════════════════════════════╗')
     logging.info('║ ECHO-AIR Model                 ║')
-    logging.info('║ Version 1.0.1                  ║')
+    logging.info('║ Version 1.0.2                  ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return
