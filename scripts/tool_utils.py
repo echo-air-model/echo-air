@@ -114,6 +114,7 @@ def check_setup():
         print('- No CA_ISRM file found in the data directory. Be sure to supply the currect filepath of your ISRM directory when running the tool.')
         
     else:
+        isrm_root = path.join(cwd, 'data', 'CA_ISRM')
         all_files = [f for f in os.listdir(isrm_root) if path.isfile(path.join(isrm_root, f))]
         if len(all_files) == 5:
             errors += 1

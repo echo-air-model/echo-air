@@ -555,6 +555,12 @@ def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debu
         fpath = os.path.join(output_dir, fname)
         logging_code = create_logging_code()[endpoint]
         
+        # Create the output file directory and name string for the summary file
+        summary_fname = f_out + '_' + endpoint + '_excess_mortality_summary.csv'
+        summary_fname = str.lower(summary_fname)
+        summary_fpath = os.path.join(output_dir, summary_fname)
+
+        
         # Get endpoint shortlabel
         endpoint_nice = endpoint.title()
         endpoint_labels = {'ALL CAUSE':'ACM_',
@@ -581,6 +587,7 @@ def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debu
         
         # Export
         hia_df.to_csv(fpath, index=False)
+        hia_summary.to_csv(summary_fpath, index=False)
         logging.info('- {} Excess {} mortality from PM2.5 exposure output as a CSV as {}'.format(logging_code, endpoint.lower(), fname))
         
         return hia_summary
