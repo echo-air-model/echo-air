@@ -85,7 +85,7 @@ class population:
         return '< Population object for year '+str(self.year)+ '>'
 
     def __repr__(self):
-        return '< Emissions object created from '+self.file_path + '>'
+        return '< Population object created from '+self.file_path + '>'
 
     def check_path(self):
         ''' Checks if file exists at the path specified '''
