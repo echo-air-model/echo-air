@@ -262,40 +262,44 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
         # Initialize the figure as four panes
         fig, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, figsize=(22, 6))
-
-        ## Pane 0: Population Density
+        
+        # Check for negative bounds that will break the LogNorm
+        if hia_df['TOTAL_CONC_UG/M3'].min() < 0:
+            logging.info('* {} Negative concentrations and outcomes detected for {}. Health outcome plots may not represent true outcome distributions in space.'.format(logging_code, fname))
+            
+        ## Panel 0: Population Density
         hia_df.plot(column='POP_AREA_NORM', legend=True,
                     legend_kwds={'label': r'Population Density (population/km$^2$)'},
                     edgecolor='none', cmap='mako_r',
                     norm=matplotlib.colors.LogNorm(vmin=hia_pop_area_min,
-                                                    vmax=hia_df['POP_AREA_NORM'].max()),
+                                                   vmax=hia_df['POP_AREA_NORM'].max()),
                     antialiased=False,
                     ax=ax0)
         
-        ## Pane 1: PM2.5 Exposure Concentration
+        ## Panel 1: PM2.5 Exposure Concentration
         hia_df.plot(column='TOTAL_CONC_UG/M3', legend=True,
                     legend_kwds={'label': r'PM$_{2.5}$ Concentration ($\mu$g/m$^3$)'},
                     edgecolor='none', cmap='mako_r',
-                    norm=matplotlib.colors.LogNorm(vmin=hia_df['TOTAL_CONC_UG/M3'].min(),
-                                                    vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
+                    norm=matplotlib.colors.LogNorm(vmin=max(hia_df['TOTAL_CONC_UG/M3'].min(),1e-9),
+                                                   vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
                     antialiased=False,
                     ax=ax1)
         
-        ## Pane 2: Excess Mortality per Area
+        ## Panel 2: Excess Mortality per Area
         hia_df.plot(column='MORT_AREA_NORM', legend=True,
                     legend_kwds={'label': r'Excess Mortality (mortality/km$^2$)'},
                     edgecolor='none', cmap='mako_r',
                     norm=matplotlib.colors.LogNorm(vmin=hia_mort_area_min,
-                                                    vmax=hia_df['MORT_AREA_NORM'].max()),
+                                                   vmax=hia_df['MORT_AREA_NORM'].max()),
                     antialiased=False,
                     ax=ax2)
         
-        ## Pane 3: Excess Mortality per Population
+        ## Panel 3: Excess Mortality per Population
         hia_df.plot(column='MORT_OVER_POP', legend=True,
                     legend_kwds={'label': r'Mortality per Population (mortality/100 K people)'},
                     edgecolor='none', cmap='mako_r',
-                    norm=matplotlib.colors.LogNorm(vmin=hia_df['MORT_OVER_POP'].min(),
-                                                    vmax=hia_df['MORT_OVER_POP'].max()),
+                    norm=matplotlib.colors.LogNorm(vmin=max(hia_df['MORT_OVER_POP'].min(),1e-9),
+                                                   vmax=hia_df['MORT_OVER_POP'].max()),
                     antialiased=False,
                     ax=ax3)
 
@@ -396,7 +400,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
           hia_df.plot(column='POP_AREA_NORM', legend=True,
                       legend_kwds={'label': r'Population Density (population/km$^2$)'},
                       edgecolor='none', cmap='mako_r',
-                      norm=matplotlib.colors.LogNorm(vmin=hia_df['POP_AREA_NORM'].min(), 
+                      norm=matplotlib.colors.LogNorm(vmin=max(hia_df['POP_AREA_NORM'].min(),1e-9), 
                                                       vmax=hia_df['POP_AREA_NORM'].max()),
                       antialiased=False,
                       ax=ax0)
@@ -405,7 +409,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
           hia_df.plot(column='TOTAL_CONC_UG/M3', legend=True,
                       legend_kwds={'label': r'Population-Weighted PM$_{2.5}$ Concentration ($\mu$g/m$^3$)'},
                       edgecolor='none', cmap='mako_r',
-                      norm=matplotlib.colors.LogNorm(vmin=hia_df['TOTAL_CONC_UG/M3'].min(), 
+                      norm=matplotlib.colors.LogNorm(vmin=max(hia_df['TOTAL_CONC_UG/M3'].min(),1e-9), 
                                                       vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
                       antialiased=False,
                       ax=ax1)
@@ -414,7 +418,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
           hia_df.plot(column='MORT_AREA_NORM', legend=True,
                       legend_kwds={'label': r'Excess Mortality (mortality/km$^2$)'},
                       edgecolor='none', cmap='mako_r',
-                      norm=matplotlib.colors.LogNorm(vmin=hia_df['MORT_AREA_NORM'].min(),
+                      norm=matplotlib.colors.LogNorm(vmin=max(hia_df['MORT_AREA_NORM'].min(),1e-9),
                                                       vmax=hia_df['MORT_AREA_NORM'].max()),
                       antialiased=False,
                       ax=ax2)
@@ -423,7 +427,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
           hia_df.plot(column='MORT_OVER_POP', legend=True,
                       legend_kwds={'label': r'Mortality per Population (mortality/100 K people)'},
                       edgecolor='none', cmap='mako_r',
-                      norm=matplotlib.colors.LogNorm(vmin=hia_df['MORT_OVER_POP'].min(),
+                      norm=matplotlib.colors.LogNorm(vmin=max(hia_df['MORT_OVER_POP'].min(),1e-9),
                                                       vmax=hia_df['MORT_OVER_POP'].max()),
                       antialiased=False,
                       ax=ax3)
