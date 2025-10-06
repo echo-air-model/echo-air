@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2025-06-05
+last modified: 2025-04-29
 """
 
 # Import Libraries
@@ -370,7 +370,7 @@ def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mo
         
         return fname
 
-def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode):
+def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, debug_mode):
         ''' 
         Calls each of the exposure output functions in parallel
         
@@ -405,18 +405,24 @@ def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, 
                 gdf_export_future = ej_executor.submit(export_exposure_gdf, exposure_gdf, shape_out, f_out)
                 csv_export_future = ej_executor.submit(export_exposure_csv, exposure_gdf, output_dir, f_out)
                 disp_export_future = ej_executor.submit(export_exposure_disparity, exposure_disparity, output_dir, f_out)
-                plot_export_future = ej_executor.submit(plot_percentile_exposure, output_dir, f_out, exposure_pctl, verbose, 
+                if output_png_flag:
+                  plot_export_future = ej_executor.submit(plot_percentile_exposure, output_dir, f_out, exposure_pctl, verbose, 
                                                         debug_mode)
                 
                 # Wait for all to finish
-                (tmp, tmp, tmp, tmp) = (gdf_export_future.result(), csv_export_future.result(),
-                                        disp_export_future.result(), plot_export_future.result())
+                if output_png_flag: 
+                  (tmp, tmp, tmp, tmp) = (gdf_export_future.result(), csv_export_future.result(),
+                                          disp_export_future.result(), plot_export_future.result())
+                else:
+                  (tmp, tmp, tmp) = (gdf_export_future.result(), csv_export_future.result(),
+                                        disp_export_future.result())
         else:
             # Call export functions linearly
             export_exposure_gdf(exposure_gdf, shape_out, f_out)
             export_exposure_csv(exposure_gdf, output_dir, f_out)
             export_exposure_disparity(exposure_disparity, output_dir, f_out)
-            plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose,
+            if output_png_flag:
+              plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose,
                                     debug_mode)
         
         logging.info('- [EJ] All exposure outputs have been saved.')

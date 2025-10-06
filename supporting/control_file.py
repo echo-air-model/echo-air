@@ -63,12 +63,12 @@ class control_file:
                          'EMISSIONS_UNITS', 'POPULATION_FILENAME', 'RUN_HEALTH', 
                          'RACE_STRATIFIED_INCIDENCE', 'CHECK_INPUTS','VERBOSE',
                          'REGION_OF_INTEREST','REGION_CATEGORY','OUTPUT_RESOLUTION',
-                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS']
+                         'OUTPUT_EXPOSURE', 'DETAILED_CONC', 'OUTPUT_EMIS', 'OUTPUT_PNG']
         self.blanks_okay = [True, True, False, 
                             False, False, True, 
                             True, True, True,
                             True, True, True,
-                            True, True, True]
+                            True, True, True, True]
         
         # Run basic checks on control file
         if self.valid_file:
@@ -78,7 +78,7 @@ class control_file:
             
         # If checks are good, import values
         if self.valid_structure and self.no_incorrect_blanks and self.valid_file:
-            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis = self.get_all_inputs()
+            self.batch_name, self.run_name, self.emissions_path, self.emissions_units, self.isrm_path, self.population_path, self.run_health, self.race_stratified, self.check, self.verbose, self.region_of_interest, self.region_category, self.output_resolution, self.output_exposure, self.detailed_conc, self.output_emis, self.output_png = self.get_all_inputs()
             self.valid_inputs = self.check_inputs()
             if self.valid_inputs:
                 logging.info('\n << Control file was successfully imported and inputs are correct >>')
@@ -211,6 +211,7 @@ class control_file:
         output_exposure = self.get_input_value('OUTPUT_EXPOSURE', upper=True)
         detailed_conc = self.get_input_value('DETAILED_CONC', upper=True)
         output_emis = self.get_input_value('OUTPUT_EMIS', upper=True)
+        output_png = self.get_input_value('OUTPUT_PNG', upper=True)
         
         # For ISRM folder, assume CA ISRM if no value is given
         if isrm_path == '':
@@ -273,8 +274,13 @@ class control_file:
             output_emis = False
         else:
             output_emis = mapper[output_emis]
+        if output_png == '':
+            logging.info('* No value provided for the OUTPUT_PNG field. The tool will not output png files.')
+            output_png = False
+        else:
+            output_png = mapper[output_png]
         
-        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis
+        return batch_name, run_name, emissions_path, emissions_units, isrm_path, population_path, run_health, race_stratified, check, verbose, region_of_interest, region_category, output_resolution, output_exposure, detailed_conc, output_emis, output_png
     
     def get_region_dict(self):
         ''' Hard-coded dictionary of acceptable values for regions '''
@@ -475,14 +481,17 @@ class control_file:
         
         ## Check the output_emis variable
         valid_output_emis = type(self.output_emis) == bool
-        logging.info('* The DETAILED_CONC provided is not valid. Use Y or N or leave blank.') if not valid_output_emis else ''
+        logging.info('* The OUTPUT_EMIS provided is not valid. Use Y or N or leave blank.') if not valid_output_emis else ''
         
+        ## Check the output_png variable
+        valid_output_png = type(self.output_png) == bool
+        logging.info('* The OUTPUT_PNG provided is not valid. Use Y or N or leave blank.') if not valid_output_emis else ''
         
         ## Output only one time
         valid_inputs = valid_batch_name and valid_run_name and valid_emissions_path and \
             valid_emissions_units and valid_isrm_path and valid_population_path and valid_run_health and \
                 valid_inc_choice and valid_check and valid_verbose and valid_region_category and \
                     valid_region_of_interest and valid_output_resolution and valid_output_exp and valid_detailed_conc and \
-                        valid_output_emis
+                        valid_output_emis and valid_output_png
 
         return valid_inputs
