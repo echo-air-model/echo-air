@@ -451,7 +451,7 @@ def region_pwm_helper(name, group, full_dataset):
 
         return pwm
 
-def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out):
+def export_pwm_map(pop_exp, conc, output_dir, output_region, output_png_flag, f_out, ca_shp_path, shape_out):
         ''' 
         Creates the exports for the population-weighted products requested when the 
         user inputs an output resolution larger than the ISRM grid. In this step, 
@@ -519,7 +519,8 @@ def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path,
         
         # Export the map of population-weighted concentrations.
         logging.info('- [EJ] Exporting map of population-weighted mean summaries at the output resolution requested.')
-        visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path)
+        if output_png_flag:
+          visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path)
         
         # Create a shapefile to output, using only the relevant columns.
         to_shp = output_res_geo[['NAME', 'TOTAL_PWM', 'geometry']].copy()
