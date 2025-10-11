@@ -52,3 +52,4 @@
 - OUTPUT_EXPOSURE: #Y (*)
 - DETAILED_CONC: #Y (*)
 - OUTPUT_EMIS: #N (*)
+- OUTPUT_PNG: #N (*)
