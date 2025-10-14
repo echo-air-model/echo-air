@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2025-06-05
+last modified: 2025-10-13
 """
 
 # Import Libraries
@@ -370,7 +370,7 @@ def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mo
         
         return fname
 
-def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode):
+def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, debug_mode):
         ''' 
         Calls each of the exposure output functions in parallel
         
@@ -405,18 +405,24 @@ def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, 
                 gdf_export_future = ej_executor.submit(export_exposure_gdf, exposure_gdf, shape_out, f_out)
                 csv_export_future = ej_executor.submit(export_exposure_csv, exposure_gdf, output_dir, f_out)
                 disp_export_future = ej_executor.submit(export_exposure_disparity, exposure_disparity, output_dir, f_out)
-                plot_export_future = ej_executor.submit(plot_percentile_exposure, output_dir, f_out, exposure_pctl, verbose, 
+                if output_png_flag:
+                  plot_export_future = ej_executor.submit(plot_percentile_exposure, output_dir, f_out, exposure_pctl, verbose, 
                                                         debug_mode)
                 
                 # Wait for all to finish
-                (tmp, tmp, tmp, tmp) = (gdf_export_future.result(), csv_export_future.result(),
-                                        disp_export_future.result(), plot_export_future.result())
+                if output_png_flag: 
+                  (tmp, tmp, tmp, tmp) = (gdf_export_future.result(), csv_export_future.result(),
+                                          disp_export_future.result(), plot_export_future.result())
+                else:
+                  (tmp, tmp, tmp) = (gdf_export_future.result(), csv_export_future.result(),
+                                        disp_export_future.result())
         else:
             # Call export functions linearly
             export_exposure_gdf(exposure_gdf, shape_out, f_out)
             export_exposure_csv(exposure_gdf, output_dir, f_out)
             export_exposure_disparity(exposure_disparity, output_dir, f_out)
-            plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose,
+            if output_png_flag:
+              plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose,
                                     debug_mode)
         
         logging.info('- [EJ] All exposure outputs have been saved.')
@@ -445,7 +451,7 @@ def region_pwm_helper(name, group, full_dataset):
 
         return pwm
 
-def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out):
+def export_pwm_map(pop_exp, conc, output_dir, output_region, output_png_flag, f_out, ca_shp_path, shape_out):
         ''' 
         Creates the exports for the population-weighted products requested when the 
         user inputs an output resolution larger than the ISRM grid. In this step, 
@@ -513,7 +519,8 @@ def export_pwm_map(pop_exp, conc, output_dir, output_region, f_out, ca_shp_path,
         
         # Export the map of population-weighted concentrations.
         logging.info('- [EJ] Exporting map of population-weighted mean summaries at the output resolution requested.')
-        visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path)
+        if output_png_flag:
+          visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path)
         
         # Create a shapefile to output, using only the relevant columns.
         to_shp = output_res_geo[['NAME', 'TOTAL_PWM', 'geometry']].copy()

@@ -1,6 +1,6 @@
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  ECHO-AIR MODEL CONTROL FILE  		                               ║
-║  last modified: 2023-07-11                                                   ║
+║  last modified: 2025-10-13                                                   ║
 ║                                                                              ║
 ║  Instructions: Replace the commented out sample inputs with your own inputs. ║
 ║  		 Do not change the keywords or anything inside the boxes.      ║
@@ -52,3 +52,4 @@
 - OUTPUT_EXPOSURE: #Y (*)
 - DETAILED_CONC: #Y (*)
 - OUTPUT_EMIS: #N (*)
+- OUTPUT_PNG: #N (*)

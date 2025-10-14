@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2025-06-05
+last modified: 2025-10-13
 """
 
 # Import Libraries
@@ -56,7 +56,7 @@ class concentration_layer:
           contribution to the total ground-level PM2.5 concentrations
         
     '''
-    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, run_parallel, shp_path, output_region, debug_mode,  run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, output_png_flag, run_parallel, shp_path, output_region, debug_mode,  run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         # Initialize concentration object by reading in the emissions and isrm 
         self.emissions = emis_obj
@@ -66,6 +66,7 @@ class concentration_layer:
         self.layer = layer
         self.output_dir = output_dir
         self.output_emis_flag = output_emis_flag
+        self.output_png_flag = output_png_flag
         self.run_parallel = run_parallel
         self.debug_mode = debug_mode
         self.verbose = verbose
@@ -264,7 +265,8 @@ class concentration_layer:
         # Output the emissions, if specified by the user
         if output_emis_flag:
             aloc_emis = self.save_allocated_emis(tmp_dct, output_dir, verbose)
-            self.visualize_individual_emissions(aloc_emis)
+            if self.output_png_flag:
+                self.visualize_individual_emissions(aloc_emis)
             
         return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
     

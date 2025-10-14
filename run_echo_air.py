@@ -5,7 +5,7 @@ Main Run File
 
 @author: libbykoolik
 
-Last updated: 2025-06-05
+Last updated: 2025-10-13
 
 """
 #%% Import useful libraries, supporting objects, and scripts
@@ -93,6 +93,7 @@ if __name__ == "__main__":
         output_exposure = cf.output_exposure
         detailed_conc_flag = cf.detailed_conc
         output_emis_flag = cf.output_emis
+        output_png_flag = cf.output_png
 
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
@@ -231,7 +232,7 @@ if __name__ == "__main__":
         logging.info('\n<< Estimating concentrations. >>')        
         verboseprint(verbose, '- Notes about this step will be preceded by the tag [CONCENTRATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
         logging.info('\n')
-        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
+        conc = concentration(emis, isrmgrid, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, output_png_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution, run_calcs=True, verbose=verbose)
 
         ## Create plots and export results
         # Parallelizing this process resulted in errors. This is an area for improvement in
@@ -255,14 +256,14 @@ if __name__ == "__main__":
         exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, verbose, debug_mode=debug_mode)    
         
         if output_exposure: # Perform all exports in parallel
-            export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, debug_mode=debug_mode)
+            export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, debug_mode=debug_mode)
             
-        else: # Just export the EJ figure
+        elif output_png_flag: # Just export the EJ figure
             plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode=debug_mode)
             
         # Finally, if larger output resolution, export population-weighted map that matches the area-weighted map
         if output_resolution != 'ISRM':
-            export_pwm_map(pop.pop_exp, conc, output_dir, output_region, f_out, ca_shp_path, shape_out)
+            export_pwm_map(pop.pop_exp, conc, output_dir, output_region, output_png_flag, f_out, ca_shp_path, shape_out)
         
         ### HEALTH MODULE
         if run_health:
@@ -325,9 +326,9 @@ if __name__ == "__main__":
                     logging.info('<< Exporting Health Impact Outputs >>')
                     
                     # Start exporting files as futures
-                    allcause_ve_future = health_executor.submit(visualize_and_export_hia, allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                    ihd_ve_future = health_executor.submit(visualize_and_export_hia, ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                    lungcancer_ve_future = health_executor.submit(visualize_and_export_hia, lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                    allcause_ve_future = health_executor.submit(visualize_and_export_hia, allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                    ihd_ve_future = health_executor.submit(visualize_and_export_hia, ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                    lungcancer_ve_future = health_executor.submit(visualize_and_export_hia, lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
                     logging.info('- [HEALTH] Waiting for visualizations and exports to complete...')
                     
                     # We don't actually need anything stored, we just need the program to wait until
@@ -356,9 +357,9 @@ if __name__ == "__main__":
                 
                 # Plot and export
                 logging.info('<< Exporting Health Impact Outputs >>')
-                visualize_and_export_hia(allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                visualize_and_export_hia(ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, conc.boundary,  verbose=verbose, debug_mode=debug_mode)
+                visualize_and_export_hia(allcause, ca_shp_path, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                visualize_and_export_hia(ihd, ca_shp_path, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                visualize_and_export_hia(lungcancer, ca_shp_path, 'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode)
             
             # Return that everything is done
             logging.info('- [HEALTH] All outputs have been exported!')

@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2025-06-05
+last modified: 2025-10-13
 """
 
 # Import Libraries
@@ -63,7 +63,7 @@ class concentration:
 
     '''
     
-    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution='ISRM', run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, detailed_conc_flag, run_parallel, output_dir, output_emis_flag, output_png_flag, debug_mode, ca_shp_path, output_region, output_geometry_fps, output_resolution='ISRM', run_calcs=True, verbose=False):
 
         ''' Initializes the Concentration object'''        
         
@@ -87,6 +87,7 @@ class concentration:
         self.run_calcs = run_calcs
         self.output_dir = output_dir
         self.output_emis_flag = output_emis_flag
+        self.output_png_flag = output_png_flag
         if self.output_resolution != 'ISRM':
             self.boundary = gpd.read_feather(self.output_geometry_fps[self.output_resolution]).to_crs(self.crs)
         else:
@@ -114,7 +115,7 @@ class concentration:
     def run_layer(self, layer):
         ''' Estimates concentratiton for a single layer '''
         # Creates a concentration_layer object for the given layer
-        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.output_dir, self.output_emis_flag, self.run_parallel, self.shp_path, self.output_region, run_calcs=True, debug_mode = self.debug_mode, verbose=self.verbose)
+        conc_layer = concentration_layer(self.emissions, self.isrm, layer, self.output_dir, self.output_emis_flag, self.output_png_flag, self.run_parallel, self.shp_path, self.output_region, run_calcs=True, debug_mode = self.debug_mode, verbose=self.verbose)
         
         # Copies out just the detailed_conc object and adds the LAYER column
         detailed_conc_layer = conc_layer.detailed_conc.copy()
@@ -160,7 +161,7 @@ class concentration:
         
         return detailed_concentration, detailed_concentration_clean, total_concentration
     
-    def visualize_concentrations(self, var, output_region, output_dir, f_out, ca_shp_fp, export=False):
+    def visualize_concentrations(self, var, output_region, output_dir, f_out, ca_shp_fp, export = True):
         ''' Creates map of concentrations using simple chloropleth '''
         # Note to build this out further at some point in the future, works for now
         if self.verbose:
@@ -376,7 +377,8 @@ class concentration:
         ''' Function for outputting concentration data '''
     
         # Draw the map
-        self.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
+        if self.output_png_flag:
+            self.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
         
         # Export the shapefiles
         self.export_concentrations(shape_out, f_out)

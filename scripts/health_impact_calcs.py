@@ -5,7 +5,7 @@ Health Impact Functions
 
 @author: libbykoolik
 
-last modified: 2025-06-05
+last modified: 2025-10-13
 
 """
 
@@ -262,17 +262,17 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
         # Initialize the figure as four panes
         fig, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, figsize=(22, 6))
-        
+
         # Check for negative bounds that will break the LogNorm
         if hia_df['TOTAL_CONC_UG/M3'].min() < 0:
             logging.info('* {} Negative concentrations and outcomes detected for {}. Health outcome plots may not represent true outcome distributions in space.'.format(logging_code, fname))
-            
+
         ## Panel 0: Population Density
         hia_df.plot(column='POP_AREA_NORM', legend=True,
                     legend_kwds={'label': r'Population Density (population/km$^2$)'},
                     edgecolor='none', cmap='mako_r',
                     norm=matplotlib.colors.LogNorm(vmin=hia_pop_area_min,
-                                                   vmax=hia_df['POP_AREA_NORM'].max()),
+                                                    vmax=hia_df['POP_AREA_NORM'].max()),
                     antialiased=False,
                     ax=ax0)
         
@@ -281,7 +281,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
                     legend_kwds={'label': r'PM$_{2.5}$ Concentration ($\mu$g/m$^3$)'},
                     edgecolor='none', cmap='mako_r',
                     norm=matplotlib.colors.LogNorm(vmin=max(hia_df['TOTAL_CONC_UG/M3'].min(),1e-9),
-                                                   vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
+                                                    vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
                     antialiased=False,
                     ax=ax1)
         
@@ -290,7 +290,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
                     legend_kwds={'label': r'Excess Mortality (mortality/km$^2$)'},
                     edgecolor='none', cmap='mako_r',
                     norm=matplotlib.colors.LogNorm(vmin=hia_mort_area_min,
-                                                   vmax=hia_df['MORT_AREA_NORM'].max()),
+                                                    vmax=hia_df['MORT_AREA_NORM'].max()),
                     antialiased=False,
                     ax=ax2)
         
@@ -299,7 +299,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
                     legend_kwds={'label': r'Mortality per Population (mortality/100 K people)'},
                     edgecolor='none', cmap='mako_r',
                     norm=matplotlib.colors.LogNorm(vmin=max(hia_df['MORT_OVER_POP'].min(),1e-9),
-                                                   vmax=hia_df['MORT_OVER_POP'].max()),
+                                                    vmax=hia_df['MORT_OVER_POP'].max()),
                     antialiased=False,
                     ax=ax3)
 
@@ -564,7 +564,6 @@ def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debu
         summary_fname = str.lower(summary_fname)
         summary_fpath = os.path.join(output_dir, summary_fname)
 
-        
         # Get endpoint shortlabel
         endpoint_nice = endpoint.title()
         endpoint_labels = {'ALL CAUSE':'ACM_',
@@ -650,7 +649,7 @@ def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
         
         return hia_summary
 
-def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, shape_out, output_resolution, boundary, verbose, debug_mode):
+def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, shape_out, output_resolution, output_png_flag, boundary, verbose, debug_mode):
         ''' 
         Automates this process a bit.
         
@@ -679,7 +678,8 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_o
         logging.info('- {} Visualizing and exporting excess {} mortality.'.format(logging_code, endpoint.lower()))
         
         # Plot the map of mortality
-        fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode)
+        if output_png_flag:
+          fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode)
         
         # Export the shapefile
         fname = export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)

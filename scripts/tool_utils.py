@@ -4,7 +4,7 @@
 Tool Utils
 
 @author: libbykoolik
-last modified: 2025-08-20
+last modified: 2025-10-13
 """
 
 #%% Import useful libraries
@@ -205,7 +205,7 @@ def report_version():
 
     logging.info('╔════════════════════════════════╗')
     logging.info('║ ECHO-AIR Model                 ║')
-    logging.info('║ Version 1.0.3                  ║')
+    logging.info('║ Version 1.0.4                  ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return
