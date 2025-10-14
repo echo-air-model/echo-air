@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2025-06-05
+last modified: 2025-10-13
 """
 
 # Import Libraries
