@@ -5,7 +5,7 @@ Main Run File
 
 @author: libbykoolik
 
-Last updated: 2025-10-13
+Last updated: 2025-06-05
 
 """
 #%% Import useful libraries, supporting objects, and scripts
@@ -94,6 +94,7 @@ if __name__ == "__main__":
         detailed_conc_flag = cf.detailed_conc
         output_emis_flag = cf.output_emis
         output_png_flag = cf.output_png
+        population_columns = cf.population_columns
 
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
@@ -122,7 +123,7 @@ if __name__ == "__main__":
             # Default to verbose since this mode is just for checking files
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=False, verbose=True)
             emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
-            pop = population(population_path, debug_mode=debug_mode, load_file=False, verbose=True)
+            pop = population(population_path, population_columns, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
 
         except:
@@ -162,8 +163,8 @@ if __name__ == "__main__":
                 name=name, load_file=True, verbose=verbose
             )
 
-            pop_future = file_reader_pool.submit(population,population_path,
-                                                 debug_mode=debug_mode, load_file=True, verbose=verbose)
+            pop_future = file_reader_pool.submit(population, population_path,
+                                                 population_columns, debug_mode=debug_mode, load_file=True, verbose=verbose)
             # block until emissions are loaded
             emis = emis_future.result()
 
@@ -223,7 +224,7 @@ if __name__ == "__main__":
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, LA_flag = emis.LA_flag, LB_flag = emis.LB_flag, LC_flag = emis.LC_flag, load_file=True, verbose=verbose)
             # Create population object
             verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            pop = population(population_path, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            pop = population(population_path, population_columns, debug_mode=debug_mode, load_file=True, verbose=verbose)
             logging.info('- [POPULATION] Re-allocating population data to the ISRM grid.')
             exp_pop_alloc = pop.allocate_pop(pop.pop_exp, isrmgrid.geodata, False)
             
