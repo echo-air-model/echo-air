@@ -44,7 +44,7 @@ class health_data:
           data based on the requested geographies
         
     '''
-    def __init__(self, pop_alloc, incidence_fp, verbose, race_stratified, debug_mode):
+    def __init__(self, pop_alloc, population_columns, incidence_fp, verbose, race_stratified, debug_mode):
         ''' Initializes the Health Input object'''   
         logging.info('- [HEALTH] Loading BenMAP health inputs.')
         
@@ -58,6 +58,7 @@ class health_data:
         # Add input data
         self.population = pop_alloc
         self.incidence_fp = incidence_fp
+        self.population_columns = population_columns
         
         # Standardize the CRS
         self.crs = pop_alloc.crs
@@ -94,8 +95,7 @@ class health_data:
         ''' Performs a few population dataset updates before combining '''
         # Un-pivot the population data to have separate columns for RACE and POPULATION
         population = population.melt(id_vars=['ISRM_ID','START_AGE', 'END_AGE','geometry'], 
-                                     value_vars=['ASIAN','BLACK','HISLA','INDIG', 'PACIS',
-                                                 'WHITE','TOTAL', 'OTHER'], 
+                                     value_vars=self.population_columns, 
                                      var_name='RACE', value_name='POPULATION', 
                                      ignore_index=False)
         

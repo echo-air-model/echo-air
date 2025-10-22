@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2025-10-13
+last modified: 2025-06-05
 """
 
 # Import Libraries
@@ -26,7 +26,7 @@ import concurrent.futures
 from matplotlib_scalebar.scalebar import ScaleBar
 
 #%%
-def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
+def create_exposure_df(conc, isrm_pop_alloc, population_columns, verbose, debug_mode):
         ''' 
         Create an exposure geodataframe from concentration and population.
         
@@ -44,6 +44,7 @@ def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
         
         '''
         # Pull the total concentration from the conc object
+        population_columns = population_columns
         conc_gdf = conc.total_conc.copy()
         conc_gdf.columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
 
@@ -51,8 +52,7 @@ def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
           conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry="geometry", crs=conc.crs)
         
         # Pull only relevant columns from isrm_pop_alloc
-        groups = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
-        isrm_pop_alloc = isrm_pop_alloc[['ISRM_ID']+groups].copy()
+        isrm_pop_alloc = isrm_pop_alloc[['ISRM_ID']+ population_columns].copy()
         
         # Merge concentration and population data based on ISRM_ID
         exposure_gdf = pd.merge(conc_gdf, isrm_pop_alloc, left_on='ISRM_ID', right_on='ISRM_ID')
@@ -60,7 +60,7 @@ def create_exposure_df(conc, isrm_pop_alloc, verbose, debug_mode):
         # Get PWM columns per group
         verboseprint(verbose, '- [EJ] Estimating population weighted mean exposure for each demographic group.', 
                     debug_mode, frameinfo=getframeinfo(currentframe()))
-        for group in groups:
+        for group in population_columns:
             exposure_gdf = add_pwm_col(exposure_gdf, group)
             
         return exposure_gdf
@@ -111,7 +111,7 @@ def get_pwm(exposure_gdf, group):
         
         return PWM_group
 
-def get_overall_disparity(exposure_gdf):
+def get_overall_disparity(exposure_gdf, population_columns):
         ''' 
         Returns a table of overall disparity metrics 
         
@@ -124,11 +124,10 @@ def get_overall_disparity(exposure_gdf):
               of each group
         
         '''
-        # Define racial/ethnic groups of interest
-        groups = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
-        
+
+
         # Create a dataframe to store information
-        pwm_df = pd.DataFrame({'Group':groups}, columns=['Group'])
+        pwm_df = pd.DataFrame({'Group':population_columns}, columns=['Group'])
         
         # Use predefined function to get the group PWMs
         pwm_df['Group PWM'] = pwm_df.apply(lambda x: get_pwm(exposure_gdf, x['Group']), axis=1)
@@ -139,7 +138,7 @@ def get_overall_disparity(exposure_gdf):
         
         return pwm_df
 
-def estimate_exposure_percentile(exposure_gdf, verbose):
+def estimate_exposure_percentile(exposure_gdf, population_columns, verbose):
         ''' 
         Creates a dataframe of percentiles
         
@@ -155,9 +154,7 @@ def estimate_exposure_percentile(exposure_gdf, verbose):
         '''
         if verbose:
             logging.info('- Estimating the exposure level for each percentile of each demographic group population.')
-        
-        # Define racial/ethnic groups of interest
-        groups = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
+      
         
         # Create a copy to avoid overwriting, then sort based on PM25 concentration
         df_pctl = exposure_gdf.copy()
@@ -165,7 +162,7 @@ def estimate_exposure_percentile(exposure_gdf, verbose):
         df_pctl.reset_index(drop=True, inplace=True)
         
         # Iterate through each group to estimate the percentile of exposure
-        for group in groups:
+        for group in population_columns:
             # Create a slice of the percentile dataframe
             df_slice = df_pctl[['PM25_UG_M3',group]].copy()
             
@@ -182,7 +179,7 @@ def estimate_exposure_percentile(exposure_gdf, verbose):
         
         return df_pctl
 
-def run_exposure_calcs(conc, pop_alloc, verbose, debug_mode):
+def run_exposure_calcs(conc, pop_alloc, population_columns, verbose, debug_mode):
         ''' 
         Run the exposure EJ calculations from one script 
         
@@ -204,13 +201,13 @@ def run_exposure_calcs(conc, pop_alloc, verbose, debug_mode):
         
         '''
         # Call each of the functions in series
-        exposure_gdf = create_exposure_df(conc, pop_alloc, verbose, debug_mode)
-        exposure_disparity = get_overall_disparity(exposure_gdf)
-        exposure_pctl = estimate_exposure_percentile(exposure_gdf, verbose)
+        exposure_gdf = create_exposure_df(conc, pop_alloc, population_columns, verbose, debug_mode)
+        exposure_disparity = get_overall_disparity(exposure_gdf, population_columns)
+        exposure_pctl = estimate_exposure_percentile(exposure_gdf, population_columns, verbose)
         
         return exposure_gdf, exposure_pctl, exposure_disparity 
 
-def export_exposure_gdf(exposure_gdf, shape_out, f_out):
+def export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out):
         ''' 
         Exports the exposure_gdf dataframe as a shapefile 
         
@@ -233,9 +230,7 @@ def export_exposure_gdf(exposure_gdf, shape_out, f_out):
         fpath = os.path.join(shape_out, fname)
         
         # Update the columns slightly
-        exposure_gdf = exposure_gdf[['ISRM_ID', 'PM25_UG_M3', 'TOTAL', 'ASIAN', 'BLACK',
-                                    'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER',
-                                    'geometry']].copy()
+        exposure_gdf = exposure_gdf[['ISRM_ID', 'PM25_UG_M3'] + population_columns + ['geometry']].copy()
 
         # Export to file
         exposure_gdf.to_file(fpath)
@@ -243,7 +238,7 @@ def export_exposure_gdf(exposure_gdf, shape_out, f_out):
 
         return fname #placeholder for parallelization
 
-def export_exposure_csv(exposure_gdf, output_dir, f_out):
+def export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out):
         ''' 
         Exports the exposure_gdf dataframe as a CSV file 
         
@@ -266,8 +261,7 @@ def export_exposure_csv(exposure_gdf, output_dir, f_out):
         fpath = os.path.join(output_dir, fname)
         
         # Update the columns slightly
-        exposure_gdf = exposure_gdf[['ISRM_ID', 'PM25_UG_M3', 'TOTAL', 'ASIAN', 'BLACK',
-                                    'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']].copy()
+        exposure_gdf = exposure_gdf[['ISRM_ID', 'PM25_UG_M3'] + population_columns + ['geometry']].copy()
 
         # Change column names
         rename_dict = create_rename_dict()
@@ -321,7 +315,7 @@ def export_exposure_disparity(exposure_disparity, output_dir, f_out):
 
         return fname
 
-def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mode):
+def plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl, verbose, debug_mode):
         ''' 
         Creates a percentile plot by group 
         
@@ -341,11 +335,10 @@ def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mo
         verboseprint(verbose, '- [EJ] Drawing plot of exposure by percentile of each racial/ethnic group.', 
                     debug_mode, frameinfo=getframeinfo(currentframe()))
         # Define racial/ethnic groups of interest
-        groups = ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE','OTHER']
         
         # Melt the dataframe for easier use of seaborn
         pctl_melt = pd.melt(exposure_pctl, id_vars='PM25_UG_M3',
-                            value_vars=groups,var_name='Racial/Ethnic Group', 
+                            value_vars=population_columns,var_name='Racial/Ethnic Group', 
                             value_name='Percentile')
         
         # Adjust formatting for a prettier plot
@@ -370,7 +363,7 @@ def plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose, debug_mo
         
         return fname
 
-def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, debug_mode):
+def export_exposure(population_columns, exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, debug_mode):
         ''' 
         Calls each of the exposure output functions in parallel
         
@@ -402,11 +395,11 @@ def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, 
             with concurrent.futures.ProcessPoolExecutor(max_workers=5) as ej_executor:
                 
                 # Submit each export function to the executor
-                gdf_export_future = ej_executor.submit(export_exposure_gdf, exposure_gdf, shape_out, f_out)
-                csv_export_future = ej_executor.submit(export_exposure_csv, exposure_gdf, output_dir, f_out)
+                gdf_export_future = ej_executor.submit(export_exposure_gdf, population_columns, exposure_gdf, shape_out, f_out)
+                csv_export_future = ej_executor.submit(export_exposure_csv, population_columns, exposure_gdf, output_dir, f_out)
                 disp_export_future = ej_executor.submit(export_exposure_disparity, exposure_disparity, output_dir, f_out)
                 if output_png_flag:
-                  plot_export_future = ej_executor.submit(plot_percentile_exposure, output_dir, f_out, exposure_pctl, verbose, 
+                  plot_export_future = ej_executor.submit(plot_percentile_exposure, population_columns, output_dir, f_out, exposure_pctl, verbose, 
                                                         debug_mode)
                 
                 # Wait for all to finish
@@ -418,11 +411,11 @@ def export_exposure(exposure_gdf, exposure_disparity, exposure_pctl, shape_out, 
                                         disp_export_future.result())
         else:
             # Call export functions linearly
-            export_exposure_gdf(exposure_gdf, shape_out, f_out)
-            export_exposure_csv(exposure_gdf, output_dir, f_out)
+            export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out)
+            export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out)
             export_exposure_disparity(exposure_disparity, output_dir, f_out)
             if output_png_flag:
-              plot_percentile_exposure(output_dir, f_out, exposure_pctl, verbose,
+              plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl, verbose,
                                     debug_mode)
         
         logging.info('- [EJ] All exposure outputs have been saved.')
@@ -451,7 +444,7 @@ def region_pwm_helper(name, group, full_dataset):
 
         return pwm
 
-def export_pwm_map(pop_exp, conc, output_dir, output_region, output_png_flag, f_out, ca_shp_path, shape_out):
+def export_pwm_map(population_columns, pop_exp, conc, output_dir, output_region, output_png_flag, f_out, ca_shp_path, shape_out):
         ''' 
         Creates the exports for the population-weighted products requested when the 
         user inputs an output resolution larger than the ISRM grid. In this step, 
@@ -476,8 +469,7 @@ def export_pwm_map(pop_exp, conc, output_dir, output_region, output_png_flag, f_
         # crosswalk: from the concentration object (with geometry)
         crosswalk = conc.crosswalk[['NAME', 'ISRM_ID', 'TOTAL_CONC_UG/M3', 'geometry']].copy()
         # Population data from pop_exp (with geometry)
-        pop_exp = pop_exp[['POP_ID', 'TOTAL', 'ASIAN', 'BLACK', 'HISLA', 
-                            'INDIG', 'PACIS', 'WHITE', 'OTHER', 'geometry']].copy()
+        pop_exp = pop_exp[['POP_ID'] + population_columns + ['geometry']].copy()
         
         # Project population data to the same CRS as crosswalk
         pop_exp = pop_exp.to_crs(crosswalk.crs)
@@ -505,7 +497,7 @@ def export_pwm_map(pop_exp, conc, output_dir, output_region, output_png_flag, f_
         intersect['AREA_FRAC'] = intersect['AREA_M2'] / intersect['AREA_POP_TOTAL']
         
         # Apportion population for each group using the area fraction
-        for group in ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']:
+        for group in population_columns:
             intersect[group] = intersect[group] * intersect['AREA_FRAC']
         
         # Get the output resolution names and geometries by dissolving the crosswalk (geometry is preserved here)
@@ -513,7 +505,7 @@ def export_pwm_map(pop_exp, conc, output_dir, output_region, output_png_flag, f_
         
         # Estimate the population-weighted mean (PWM) per group using your helper function.
         # (This function will internally slice intersect for the given NAME.)
-        for group in ['TOTAL', 'ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']:
+        for group in population_columns:
             output_res_geo[group + '_PWM'] = output_res_geo.apply(
                 lambda x: region_pwm_helper(x['NAME'], group, intersect), axis=1)
         
@@ -530,13 +522,12 @@ def export_pwm_map(pop_exp, conc, output_dir, output_region, output_png_flag, f_
         # --- Aggregate population by region ---
         # Drop geometry from intersect before grouping.
         numeric_intersect = intersect.drop(columns='geometry')
-        pop_by_name = numeric_intersect.groupby('NAME', as_index=False)[['TOTAL', 'ASIAN', 'BLACK', 
-                                'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']].sum()
+        pop_by_name = numeric_intersect.groupby('NAME', as_index=False)[population_columns].sum()
         
         # Merge the aggregated population data with the output resolution GeoDataFrame.
+        pwm_cols = [f"{col}_PWM" for col in population_columns]
         to_csv = pd.merge(pop_by_name, 
-                          output_res_geo[['NAME', 'TOTAL_PWM', 'ASIAN_PWM', 'BLACK_PWM', 'HISLA_PWM', 
-                                          'INDIG_PWM', 'PACIS_PWM', 'WHITE_PWM', 'OTHER_PWM']], 
+                          output_res_geo[['NAME'] + pwm_cols], 
                           on='NAME')
         to_csv.to_csv(os.path.join(output_dir, f_out + '_aggregated_exposure_concentrations.csv'), index=False)
         

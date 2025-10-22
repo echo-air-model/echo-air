@@ -112,7 +112,11 @@ class population:
             f"Available columns: {list(pop_all.columns)}")
             sys.exit()
             
-        # Create a variable that is just geometry and IDs
+        #Drop population columns that are not specified
+        # keep_cols = ['POP_ID', 'geometry', 'YEAR'] + self.population_columns
+        # pop_all = pop_all[keep_cols]
+
+         # Create a variable that is just geometry and IDs
         pop_geo = pop_all[['POP_ID','geometry']].copy().drop_duplicates()
         pop_crs = pop_geo.crs
         

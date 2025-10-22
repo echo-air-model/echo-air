@@ -5,7 +5,7 @@ Health Impact Functions
 
 @author: libbykoolik
 
-last modified: 2025-10-13
+last modified: 2025-06-05
 
 """
 
@@ -30,7 +30,7 @@ from health_data import health_data
 from matplotlib_scalebar.scalebar import ScaleBar
 
     #%% Health Calculation Helper Functions
-def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
+def create_hia_inputs(pop, population_columns, load_file: bool, verbose: bool, geodata:pd.DataFrame,
                           incidence_fp: str, debug_mode:bool):
         """ Creates the hia_inputs object.
         
@@ -50,7 +50,7 @@ def create_hia_inputs(pop, load_file: bool, verbose: bool, geodata:pd.DataFrame,
         
         """
         hia_pop_alloc = pop.allocate_pop(pop.pop_all, geodata, True)
-        return health_data(hia_pop_alloc, incidence_fp, verbose=verbose, race_stratified=False, debug_mode=debug_mode)
+        return health_data(hia_pop_alloc, population_columns, incidence_fp, verbose=verbose, race_stratified=False, debug_mode=debug_mode)
 
 def krewski(conc, inc, pop, endpoint):
         ''' 
@@ -92,7 +92,7 @@ def create_logging_code():
         return logging_code
 
 #%% Main Calculation Functions
-def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, function, verbose, debug_mode):
+def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, pop, endpoint, function, verbose, debug_mode):
         ''' 
         Calculate Excess Mortality 
         
@@ -164,14 +164,8 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
         pop_inc_conc = gpd.GeoDataFrame(pop_inc_conc, geometry='geometry')
         
         # Update column names
-        col_rename_dict = {'ASIAN':endpoint+'_ASIAN',
-                            'BLACK':endpoint+'_BLACK',
-                            'HISLA':endpoint+'_HISLA',
-                            'INDIG':endpoint+'_INDIG',
-                            'PACIS':endpoint+'_PACIS',
-                            'TOTAL':endpoint+'_TOTAL',
-                            'WHITE':endpoint+'_WHITE',
-                            'OTHER':endpoint+'_OTHER'}
+        col_rename_dict = {col: f"{endpoint}_{col}" for col in population_columns}
+              
         pop_inc_conc.rename(columns=col_rename_dict, inplace=True)
         
         # Merge the population back in
@@ -183,10 +177,8 @@ def calculate_excess_mortality(conc, health_data_pop_inc, pop, endpoint, functio
         # Final Clean Up
         verboseprint(verbose, '- {} Performing final clean up.'.format(logging_code), debug_mode, frameinfo=getframeinfo(currentframe()))
 
-        pop_inc_conc = pop_inc_conc[['ISRM_ID', 'TOTAL_CONC_UG/M3', 'ASIAN', 'BLACK', 'HISLA',
-                                    'INDIG', 'PACIS', 'WHITE', 'TOTAL', 'OTHER', endpoint+'_ASIAN', endpoint+'_BLACK', 
-                                    endpoint+'_HISLA', endpoint+'_INDIG',endpoint+'_TOTAL', 
-                                    endpoint+'_WHITE', endpoint+'_PACIS', endpoint+'_OTHER', 'geometry']]
+        col_endpoint = [f"{endpoint}_{col}" for col in population_columns]
+        pop_inc_conc = pop_inc_conc[['ISRM_ID', 'TOTAL_CONC_UG/M3'] + population_columns + col_endpoint +  ['geometry']]
         
         # Print statement
         logging.info('- {} {} health impacts calculated.'.format(logging_code, endpoint.title()))
@@ -468,7 +460,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         
         return fname, fname_aggregated if output_resolution in ['AB', 'AD', 'C'] else fname
 
-def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, debug_mode):
+def export_health_impacts(hia_df, population_columns, group, endpoint, output_dir, f_out, verbose, debug_mode):
         ''' 
         Plots mortality as a shapefile. 
         
@@ -505,23 +497,11 @@ def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, d
         l = endpoint_labels[endpoint]
         
         # Update column names
-        col_name_dict = {'TOTAL_CONC_UG/M3':'CONC_UG/M3', 
-                        'ASIAN':'POP_ASIAN', 
-                        'BLACK':'POP_BLACK',
-                        'HISLA':'POP_HISLA',
-                        'INDIG':'POP_INDIG',
-                        'PACIS':'POP_PACIS',
-                        'WHITE':'POP_WHITE',
-                        'TOTAL':'POP_TOTAL',
-                        'OTHER':'POP_OTHER',
-                        endpoint+'_ASIAN':l+'ASIAN',
-                        endpoint+'_BLACK':l+'BLACK',
-                        endpoint+'_HISLA':l+'HISLA',
-                        endpoint+'_INDIG':l+'INDIG',
-                        endpoint+'_PACIS':l+'PACIS',
-                        endpoint+'_TOTAL':l+'TOTAL',
-                        endpoint+'_WHITE':l+'WHITE',
-                        endpoint+'_OTHER':l+'OTHER'}
+        col_name_dict = {'TOTAL_CONC_UG/M3':'CONC_UG/M3'}
+        col_name_dict.update({col: f"POP_{col}" for col in population_columns})
+        endpoint_cols = [f"{endpoint}_{col}" for col in population_columns]
+        col_name_dict.update({col: l + col.replace(endpoint + "_", "") for col in endpoint_cols})
+             
         hia_df.rename(columns=col_name_dict, inplace=True)
         
         # Export
@@ -530,7 +510,7 @@ def export_health_impacts(hia_df, group, endpoint, output_dir, f_out, verbose, d
         
         return fname
 
-def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debug_mode):
+def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, f_out, verbose, debug_mode):
         ''' 
         Exports total mortality as a csv file. 
         
@@ -572,7 +552,7 @@ def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debu
         l = endpoint_labels[endpoint]
         
         # Create the summary HIA
-        hia_summary = create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode)
+        hia_summary = create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoint_nice, debug_mode)
         
         ## Update column names
         # Import the rename dictionary and make a few edits
@@ -595,7 +575,7 @@ def export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debu
         
         return hia_summary
 
-def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
+def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
         ''' 
         Creates a summary table of health impacts by racial/ethnic group 
         
@@ -620,7 +600,7 @@ def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
         verboseprint(verbose, '- {} Creating a summary table of {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
 
         # Set up a few useful variables
-        groups = ['ASIAN', 'BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'TOTAL', 'OTHER']
+        groups = population_columns
         pop_cols = ['POP_'+grp for grp in groups]
         hia_cols = [l+grp for grp in groups]
             
@@ -649,7 +629,7 @@ def create_summary_hia(hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
         
         return hia_summary
 
-def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_out, shape_out, output_resolution, output_png_flag, boundary, verbose, debug_mode):
+def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpoint, output_dir, f_out, shape_out, output_resolution, output_png_flag, boundary, verbose, debug_mode):
         ''' 
         Automates this process a bit.
         
@@ -682,8 +662,8 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, group, endpoint, output_dir, f_o
           fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode)
         
         # Export the shapefile
-        fname = export_health_impacts(hia_df, group, endpoint, shape_out, f_out, verbose, debug_mode)
-        hia_summary = export_health_impacts_csv(hia_df, endpoint, output_dir, f_out, verbose, debug_mode)
+        fname = export_health_impacts(hia_df, population_columns, group, endpoint, shape_out, f_out, verbose, debug_mode)
+        hia_summary = export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, f_out, verbose, debug_mode)
             
         return hia_summary
 
