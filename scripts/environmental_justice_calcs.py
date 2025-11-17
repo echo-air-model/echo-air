@@ -264,8 +264,10 @@ def export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out):
         exposure_gdf = exposure_gdf[['ISRM_ID', 'PM25_UG_M3'] + population_columns + ['geometry']].copy()
 
         # Change column names
-        rename_dict = create_rename_dict()
-        rename_dict = {k: v + ' (# People)' for k, v in rename_dict.items()} # Add units to population
+        # rename_dict = create_rename_dict()
+        # rename_dict = {k: v + ' (# People)' for k, v in rename_dict.items()} # Add units to population
+
+        rename_dict = {k : k + ' (# People)' for k in population_columns}
         exposure_gdf.rename(columns=rename_dict, inplace=True)
         exposure_gdf.rename(columns={'PM25_UG_M3':'PM2.5 Concentration (ug/m3)'}, inplace=True)
 
@@ -299,8 +301,8 @@ def export_exposure_disparity(exposure_disparity, output_dir, f_out):
         fpath = os.path.join(output_dir, fname)
         
         # Update the values slightly
-        rename_dict = create_rename_dict()
-        exposure_disparity['Group'] = exposure_disparity['Group'].map(rename_dict)
+        # rename_dict = create_rename_dict()
+        # exposure_disparity['Group'] = exposure_disparity['Group'].map(rename_dict)
         exposure_disparity['Relative Disparity'] = exposure_disparity['Relative Disparity'] * 100.0
         
         # Fix the columns for clarity of units
@@ -343,8 +345,8 @@ def plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pct
         
         # Adjust formatting for a prettier plot
         pctl_melt['Percentile'] = pctl_melt['Percentile']*100
-        rename_dict = create_rename_dict()
-        pctl_melt['Racial/Ethnic Group'] = pctl_melt['Racial/Ethnic Group'].map(rename_dict)
+        # rename_dict = create_rename_dict()
+        # pctl_melt['Racial/Ethnic Group'] = pctl_melt['Racial/Ethnic Group'].map(rename_dict)
         sns.set_theme(context="notebook", style="whitegrid", font_scale=1.75)
 
         # Initialize the figure

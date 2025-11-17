@@ -105,6 +105,7 @@ class population:
         if self.file_type == 'feather':
             pop_all = self.load_feather()
 
+        #Check to make sure requested columns are in dataset
         missing_cols = [col for col in self.population_columns if col not in pop_all.columns]
         if missing_cols:
             logging.info(

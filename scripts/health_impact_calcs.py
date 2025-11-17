@@ -556,9 +556,9 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
         
         ## Update column names
         # Import the rename dictionary and make a few edits
-        rename_dict = create_rename_dict()
-        pop_rename_dict = {'POP_'+k: v + ' (# People)' for k, v in rename_dict.items()} # Add units to population
-        hia_rename_dict = {l+'_'+k:endpoint_nice+' - '+v+' (excess deaths)' for k,v in rename_dict.items()}
+        # rename_dict = create_rename_dict()
+        pop_rename_dict = {'POP_'+k: k + ' (# People)' for k in population_columns} # Add units to population
+        hia_rename_dict = {l+'_'+k:endpoint_nice+' - '+k+' (excess deaths)' for k in population_columns}
 
         # Rename the columns in series
         hia_df.rename(columns=pop_rename_dict, inplace=True)
@@ -624,8 +624,8 @@ def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoin
         hia_summary['Mortality Rate (per 100000)'] = hia_summary[endpoint_nice+' Mortality (# Excess Deaths)']/hia_summary['Population (# People)'] * 100000.0
         
         # Revise the Group column for clarity
-        rename_dict = create_rename_dict()
-        hia_summary['Group'] = hia_summary['Group'].map(rename_dict)
+        # rename_dict = create_rename_dict()
+        # hia_summary['Group'] = hia_summary['Group'].map(rename_dict)
         
         return hia_summary
 
