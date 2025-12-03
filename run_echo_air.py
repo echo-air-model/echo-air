@@ -94,7 +94,7 @@ if __name__ == "__main__":
         detailed_conc_flag = cf.detailed_conc
         output_emis_flag = cf.output_emis
         output_png_flag = cf.output_png
-        population_columns = cf.population_columns
+        population_columns = [item.upper() for item in cf.population_columns]
 
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)

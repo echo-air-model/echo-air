@@ -28,6 +28,7 @@
 ║  POPULATION DATA  ║
 ╙───────────────────╜
 - POPULATION_FILENAME: #example.shp
+- POPULATION_COLUMNS: #TOTAL, Group 1, etc.
 
 ╓─────────────────────────────────╖
 ║  HEALTH RUN CONTROLS            ║

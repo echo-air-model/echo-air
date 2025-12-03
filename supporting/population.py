@@ -60,7 +60,9 @@ class population:
         self.verbose = verbose
         self.debug_mode = debug_mode
         self.population_columns = population_columns
-        verboseprint(self.verbose,f'- [POPULATION] Using race columns: {self.population_columns}',self.debug_mode, frameinfo=getframeinfo(currentframe()))
+
+        #Print columns being used
+        verboseprint(self.verbose,f'- [POPULATION] Using population columns: {self.population_columns}',self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Return a starting statement
         verboseprint(self.verbose, '- [POPULATION] Creating a new population object from {}'.format(self.file_path),
@@ -105,6 +107,10 @@ class population:
         if self.file_type == 'feather':
             pop_all = self.load_feather()
 
+        #Force uppercase all columns names for robustness
+        for col in pop_all.columns:
+            if col != "geometry":
+                pop_all = pop_all.rename(columns={col:col.upper()})
         #Check to make sure requested columns are in dataset
         missing_cols = [col for col in self.population_columns if col not in pop_all.columns]
         if missing_cols:
@@ -112,10 +118,6 @@ class population:
             f"[POPULATION] The following population columns were not found in the dataset: {missing_cols}\n"
             f"Available columns: {list(pop_all.columns)}")
             sys.exit()
-            
-        #Drop population columns that are not specified
-        # keep_cols = ['POP_ID', 'geometry', 'YEAR'] + self.population_columns
-        # pop_all = pop_all[keep_cols]
 
          # Create a variable that is just geometry and IDs
         pop_geo = pop_all[['POP_ID','geometry']].copy().drop_duplicates()
@@ -283,3 +285,5 @@ class population:
 
         return isrm_group
 
+
+# %%

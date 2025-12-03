@@ -40,6 +40,7 @@ def create_hia_inputs(pop, population_columns, load_file: bool, verbose: bool, g
         
         INPUTS:
             - pop: the population object input
+            - population_columns: a list of population columns to use from the population input file
             - load_file: a boolean telling program to load or not
             - verbose: a boolean telling program to return additional log statements or not
             - geodata: the geographic data from the ISRM 
@@ -97,6 +98,7 @@ def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, po
         Calculate Excess Mortality 
         
         INPUTS:
+            - population_columns: a list of population columns to use from the population input file
             - conc: a float with the exposure concentration for a given geography
             - health_data_pop_inc: a `health_data` object's pop_inc member as defined in the `health_data.py` 
               supporting script
@@ -467,6 +469,7 @@ def export_health_impacts(hia_df, population_columns, group, endpoint, output_di
         INPUTS:
             - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
               `function` provided
+            - population_columns: a list of population columns to use from the population input file
             - group: the racial/ethnic group name
             - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
               'LUNG CANCER'
@@ -503,8 +506,8 @@ def export_health_impacts(hia_df, population_columns, group, endpoint, output_di
         col_name_dict.update({col: l + col.replace(endpoint + "_", "") for col in endpoint_cols})
              
         hia_df.rename(columns=col_name_dict, inplace=True)
-        
-        # Export
+        hia_df = rename_for_shapefile(hia_df, endpoint)
+          
         hia_df.to_file(fpath)
         logging.info('- {} Excess {} mortality from PM2.5 exposure output as a shapefile as {}'.format(logging_code, endpoint.lower(), fname))
         
@@ -517,6 +520,7 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
         INPUTS:
             - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
               `function` provided
+            - population_columns: a list of population columns to use from the population input file
             - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
               'LUNG CANCER'
             - output_dir: a filepath string of the location of the output directory
@@ -580,6 +584,7 @@ def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoin
         Creates a summary table of health impacts by racial/ethnic group 
         
         INPUTS:
+            - population_columns: a list of population columns to use from the population input file
             - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
               `function` provided
             - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
@@ -623,10 +628,6 @@ def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoin
         hia_summary = pd.merge(pop_df, exm_df, on='Group')
         hia_summary['Mortality Rate (per 100000)'] = hia_summary[endpoint_nice+' Mortality (# Excess Deaths)']/hia_summary['Population (# People)'] * 100000.0
         
-        # Revise the Group column for clarity
-        # rename_dict = create_rename_dict()
-        # hia_summary['Group'] = hia_summary['Group'].map(rename_dict)
-        
         return hia_summary
 
 def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpoint, output_dir, f_out, shape_out, output_resolution, output_png_flag, boundary, verbose, debug_mode):
@@ -637,6 +638,7 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpo
             - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
               `function` provided
             - ca_shp_fp: a filepath string of the California state boundary shapefile
+            - population_columns: a list of population columns to use from the population input file
             - group: the racial/ethnic group name
             - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
               'LUNG CANCER'
@@ -721,3 +723,34 @@ def create_rename_dict():
                       'PACIS':'Pacific Islander', 'WHITE':'White', 'OTHER':'Other'}
         
         return rename_dict
+
+def rename_for_shapefile(df, endpoint, max_len=10):
+    """
+    Truncate column names to <= 10 chars.
+    If duplicates occur, rename duplicates to POP_01, POP_02, ...
+    """
+
+    new_names = {}
+    used = set()
+    pop_counter = 1
+
+    for col in df.columns:
+        # Truncate to max_len
+        if len(col) > max_len:    
+          truncated = col[:max_len]
+          # If this truncated name is unique, keep it
+          if truncated not in used:
+            new_names[col] = truncated
+            used.add(truncated)
+          else:
+            # Duplicate → use POP_XX
+            replacement = f"POP_{pop_counter:02d}"
+            new_names[col] = replacement
+            used.add(replacement)
+            pop_counter += 1
+          logging_code = create_logging_code()[endpoint]
+    changes = ", ".join([f"{old}→{new}" for old, new in new_names.items()])
+    logging.info("  - {} Columns too long for shapefile renamed: {}".format(logging_code, changes))
+
+    # Apply renaming
+    return df.rename(columns=new_names)
