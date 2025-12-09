@@ -1,6 +1,6 @@
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  ECHO-AIR MODEL CONTROL FILE  		                               ║
-║  last modified: 2025-10-13                                                   ║
+║  last modified: 2025-12-09                                                   ║
 ║                                                                              ║
 ║  Instructions: Replace the commented out sample inputs with your own inputs. ║
 ║  		 Do not change the keywords or anything inside the boxes.      ║
@@ -47,7 +47,7 @@
 ╓──────────────────╖
 ║  OUTPUT OPTIONS  ║
 ╙──────────────────╜
-- REGION_OF_INTEREST: #San Francisco Bay Area (*)
+- REGION_OF_INTEREST: #Bay Area (*)
 - REGION_CATEGORY: #AD (*)
 - OUTPUT_RESOLUTION: #ISRM, C, AB, AD, or DACS (*)
 - OUTPUT_EXPOSURE: #Y (*)

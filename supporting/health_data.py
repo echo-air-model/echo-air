@@ -4,7 +4,7 @@
 Health Impact Function Meta Data Object
 
 @author: libbykoolik
-last modified: 2025-08-20
+last modified: 2025-12-09
 """
 
 # Import Libraries
