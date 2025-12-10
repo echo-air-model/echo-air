@@ -5,7 +5,7 @@ Health Impact Functions
 
 @author: libbykoolik
 
-last modified: 2025-12-09
+last modified: 2025-06-05
 
 """
 
@@ -559,8 +559,8 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
         hia_summary = create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoint_nice, debug_mode)
         
         ## Update column names
-        # Import the rename dictionary and make a few edits
-        # rename_dict = create_rename_dict()
+        # Create the rename dictionary and make a few edits
+  
         pop_rename_dict = {'POP_'+k: k + ' (# People)' for k in population_columns} # Add units to population
         hia_rename_dict = {l+'_'+k:endpoint_nice+' - '+k+' (excess deaths)' for k in population_columns}
 
@@ -705,24 +705,6 @@ def combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_o
         hia_summary.to_csv(fpath, index=False)
         
         return
-
-def create_rename_dict():
-        ''' 
-        Makes a global rename code dictionary for easier updating
-        
-        INPUTS: None
-        
-        OUTPUTS: 
-            - rename_dict: a dictionary that maps demographic group names to codes
-            
-        '''
-        
-        # Set rename dictionary one time
-        rename_dict = {'TOTAL':'Total', 'ASIAN':'Asian','BLACK':'Black',
-                      'HISLA':'Hispanic/Latino', 'INDIG':'Native American', 
-                      'PACIS':'Pacific Islander', 'WHITE':'White', 'OTHER':'Other'}
-        
-        return rename_dict
 
 def rename_for_shapefile(df, endpoint, max_len=10):
     """

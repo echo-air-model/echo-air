@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2025-12-09
+last modified: 2025-06-05
 """
 
 # Import Libraries
@@ -236,6 +236,7 @@ def export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out):
         
         # Update the columns slightly
         exposure_gdf = exposure_gdf[['ISRM_ID', 'PM25_UG_M3'] + population_columns + ['geometry']].copy()
+        exposure_gdf = rename_for_shapefile(exposure_gdf)
 
         # Export to file
         exposure_gdf.to_file(fpath)
@@ -622,20 +623,32 @@ def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_
             
         return 
 
-def create_rename_dict():
-        ''' 
-        Makes a global rename code dictionary for easier updating
-        
-        INPUTS: None
-        
-        OUTPUTS: 
-            - rename_dict: a dictionary that maps demographic group names to codes
-            
-        '''
-        
-        # Set rename dictionary one time
-        rename_dict = {'TOTAL':'Total', 'ASIAN':'Asian','BLACK':'Black',
-                      'HISLA':'Hispanic/Latino', 'INDIG':'Native American', 
-                      'PACIS':'Pacific Islander', 'WHITE':'White', 'OTHER':'Other'}
-        
-        return rename_dict
+def rename_for_shapefile(df, max_len=10):
+    """
+    Truncate column names to <= 10 chars.
+    If duplicates occur, rename duplicates to POP_01, POP_02, ...
+    """
+
+    new_names = {}
+    used = set()
+    pop_counter = 1
+
+    for col in df.columns:
+        # Truncate to max_len
+        if len(col) > max_len:    
+          truncated = col[:max_len]
+          # If this truncated name is unique, keep it
+          if truncated not in used:
+            new_names[col] = truncated
+            used.add(truncated)
+          else:
+            # Duplicate → use POP_XX
+            replacement = f"POP_{pop_counter:02d}"
+            new_names[col] = replacement
+            used.add(replacement)
+            pop_counter += 1
+    changes = ", ".join([f"{old}→{new}" for old, new in new_names.items()])
+    logging.info("   - [EJ] Columns too long for shapefile renamed: {}".format(changes))
+
+    # Apply renaming
+    return df.rename(columns=new_names)
