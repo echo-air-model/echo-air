@@ -4,7 +4,7 @@
 Population Data Object
 
 @author: libbykoolik
-last modified: 2023-09-12
+last modified: 2025-12-09
 """
 
 # Import Libraries
@@ -50,7 +50,7 @@ class population:
           spatial intersect
         
     '''
-    def __init__(self, file_path, debug_mode, load_file=True, verbose=False):
+    def __init__(self, file_path, population_columns, debug_mode, load_file=True, verbose=False):
         ''' Initializes the Population object'''        
         
         # Gather meta data
@@ -59,6 +59,10 @@ class population:
         self.load_file = load_file
         self.verbose = verbose
         self.debug_mode = debug_mode
+        self.population_columns = population_columns
+
+        #Print columns being used
+        verboseprint(self.verbose,f'- [POPULATION] Using population columns: {self.population_columns}',self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Return a starting statement
         verboseprint(self.verbose, '- [POPULATION] Creating a new population object from {}'.format(self.file_path),
@@ -102,8 +106,20 @@ class population:
         
         if self.file_type == 'feather':
             pop_all = self.load_feather()
-            
-        # Create a variable that is just geometry and IDs
+
+        #Force uppercase all columns names for robustness
+        for col in pop_all.columns:
+            if col != "geometry":
+                pop_all = pop_all.rename(columns={col:col.upper()})
+        #Check to make sure requested columns are in dataset
+        missing_cols = [col for col in self.population_columns if col not in pop_all.columns]
+        if missing_cols:
+            logging.info(
+            f"[POPULATION] The following population columns were not found in the dataset: {missing_cols}\n"
+            f"Available columns: {list(pop_all.columns)}")
+            sys.exit()
+
+         # Create a variable that is just geometry and IDs
         pop_geo = pop_all[['POP_ID','geometry']].copy().drop_duplicates()
         pop_crs = pop_geo.crs
         
@@ -130,13 +146,10 @@ class population:
         
         ## Create the exposure calculation population object
         # For the exposure calculations, we do not need the age bins
-        pop_exp = pop_tmp[['POP_ID', 'YEAR', 'TOTAL', 'ASIAN', 'BLACK', 'HISLA', 
-                           'INDIG', 'PACIS', 'WHITE', 'OTHER']].copy()
+        pop_exp = pop_tmp[['POP_ID', 'YEAR']+ self.population_columns].copy()
         
         # Sum across POP_ID and YEAR
-        pop_exp = pop_exp.groupby(['POP_ID','YEAR'])[['TOTAL', 'ASIAN', 'BLACK', 
-                                                      'HISLA', 'INDIG', 'PACIS', 
-                                                      'WHITE', 'OTHER']].sum().reset_index()
+        pop_exp = pop_exp.groupby(['POP_ID','YEAR'])[self.population_columns].sum().reset_index()
         
         # Add geometry back in
         pop_exp = pd.merge(self.pop_geo, pop_exp, on='POP_ID')
@@ -197,16 +210,23 @@ class population:
         crosswalk_df = self.crosswalk(population_gdf, isrm_gdf, hia_flag)
         if hia_flag == True:
             #Merge all data
-            merged_data = crosswalk_df.merge(population_gdf[ ['POP_ID', 'YEAR', 'AGE_BIN', 'START_AGE', 'END_AGE', 'TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID","AGE_BIN"] , how="left")
-            pop_columns = ['TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']
+            merged_data = crosswalk_df.merge(population_gdf[ ['POP_ID', 'YEAR', 'AGE_BIN', 'START_AGE', 'END_AGE'] + self.population_columns], on=["POP_ID","AGE_BIN"] , how="left")
+            pop_columns = self.population_columns
 
             #Multiply population counts by respective fractions
             for col in pop_columns:
                 merged_data[f"{col}_adjusted"] = merged_data[col] * merged_data["fpop"]
+           
+           # List of all adjusted columns
+            adjusted_cols = [f"{col}_adjusted" for col in self.population_columns]
 
-            #aggregate by ISRM ID and AGE BIN
-            isrm_group = merged_data.groupby(["ISRM_ID","AGE_BIN"])[['geometry','START_AGE', 'END_AGE','TOTAL_adjusted', 'ASIAN_adjusted','BLACK_adjusted', 'HISLA_adjusted', 'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted', 'OTHER_adjusted']].agg({'geometry':'first', 'START_AGE':'first', 'END_AGE':'first','TOTAL_adjusted':'sum', 'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 'OTHER_adjusted':'sum'}).reset_index()
+            # Build aggregation dictionary dynamically
+            agg_dict = {col: 'sum' for col in adjusted_cols}
+            agg_dict.update({'geometry': 'first', 'START_AGE': 'first', 'END_AGE': 'first'})
 
+            # Aggregate by ISRM ID and AGE BIN
+            isrm_group = (merged_data.groupby(["ISRM_ID", "AGE_BIN"])[['geometry', 'START_AGE', 'END_AGE'] + adjusted_cols].agg(agg_dict).reset_index())
+        
             #Create a list of all ISRM_ID, START_AGE, END_AGE options
             isrm_ids = isrm_gdf[['ISRM_ID']].drop_duplicates()
             age_bins = population_gdf[['AGE_BIN', 'START_AGE', 'END_AGE']].drop_duplicates()
@@ -219,7 +239,8 @@ class population:
             isrm_group = isrm_group.merge(isrm_gdf, on = "ISRM_ID", how = 'right')
             isrm_group = isrm_group.drop(columns = {"AGE_BIN","geometry_x", "START_AGE_y", "END_AGE_y"})
             isrm_group = isrm_group.rename(columns={"START_AGE_x":"START_AGE","END_AGE_x":"END_AGE","geometry_y" : "geometry"})
-            isrm_group = isrm_group.rename(columns={'TOTAL_adjusted':'TOTAL', 'ASIAN_adjusted':'ASIAN','BLACK_adjusted':'BLACK', 'HISLA_adjusted':'HISLA', 'INDIG_adjusted':'INDIG', 'PACIS_adjusted':'PACIS', 'WHITE_adjusted':'WHITE', 'OTHER_adjusted':"OTHER"})
+            rename_dict = {f"{col}_adjusted": col for col in self.population_columns}
+            isrm_group = isrm_group.rename(columns=rename_dict)
 
             #Reorganize column order
             cols = isrm_group.columns.tolist()  # Get column names as a list
@@ -230,16 +251,24 @@ class population:
             isrm_group = gpd.GeoDataFrame(isrm_group, geometry="geometry", crs=isrm_gdf.crs)
         else:
             #Merge all data
-            merged_data = crosswalk_df.merge(population_gdf[['POP_ID', 'YEAR', 'TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']], on=["POP_ID"] , how="left")
-            pop_columns = ['TOTAL', 'ASIAN','BLACK', 'HISLA', 'INDIG', 'PACIS', 'WHITE', 'OTHER']
+            merged_data = crosswalk_df.merge(population_gdf[['POP_ID', 'YEAR'] + self.population_columns], on=["POP_ID"] , how="left")
+            pop_columns = self.population_columns
 
-            # Calculate fractions and multiply by population counts
+            #Multiply population counts by respective fractions
             for col in pop_columns:
                 merged_data[f"{col}_adjusted"] = merged_data[col] * merged_data["fpop"]
+           
+           # List of all adjusted columns
+            adjusted_cols = [f"{col}_adjusted" for col in self.population_columns]
+
+            # Build aggregation dictionary dynamically
+            agg_dict = {col: 'sum' for col in adjusted_cols}
+            agg_dict.update({'geometry': 'first'})
 
             #Aggregate by ISRM ID
-            isrm_group = merged_data.groupby(["ISRM_ID"])[['geometry','TOTAL_adjusted', 'ASIAN_adjusted','BLACK_adjusted', 'HISLA_adjusted', 'INDIG_adjusted', 'PACIS_adjusted', 'WHITE_adjusted', 'OTHER_adjusted']].agg({'geometry':'first', 'TOTAL_adjusted':'sum', 'ASIAN_adjusted':'sum','BLACK_adjusted':'sum', 'HISLA_adjusted':'sum', 'INDIG_adjusted':'sum', 'PACIS_adjusted':'sum', 'WHITE_adjusted':'sum', 'OTHER_adjusted':'sum'}).reset_index()
-            isrm_group = isrm_group.rename(columns={'TOTAL_adjusted':'TOTAL', 'ASIAN_adjusted':'ASIAN','BLACK_adjusted':'BLACK', 'HISLA_adjusted':'HISLA', 'INDIG_adjusted':'INDIG', 'PACIS_adjusted':'PACIS', 'WHITE_adjusted':'WHITE', 'OTHER_adjusted':"OTHER"})
+            isrm_group = merged_data.groupby(["ISRM_ID"])[['geometry'] + adjusted_cols].agg(agg_dict).reset_index()
+            rename_dict = {f"{col}_adjusted": col for col in self.population_columns}
+            isrm_group = isrm_group.rename(columns=rename_dict)
             isrm_group = isrm_group.drop(columns = "geometry")
 
             #Remerge with ISRM Grid so that all ISRMs are present
@@ -256,3 +285,5 @@ class population:
 
         return isrm_group
 
+
+# %%
