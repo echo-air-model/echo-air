@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2025-12-10
+last modified: 2025-06-05
 """
 
 # Import Libraries
@@ -26,7 +26,7 @@ import concurrent.futures
 from matplotlib_scalebar.scalebar import ScaleBar
 
 #%%
-def create_exposure_df(conc, isrm_pop_alloc, population_columns, verbose, debug_mode):
+def create_exposure_df(conc, isrm_pop_alloc, population_columns, verbose, debug_mode, dpm, nox_conc):
         ''' 
         Create an exposure geodataframe from concentration and population.
         
@@ -47,7 +47,14 @@ def create_exposure_df(conc, isrm_pop_alloc, population_columns, verbose, debug_
         # Pull the total concentration from the conc object
         population_columns = population_columns
         conc_gdf = conc.total_conc.copy()
-        conc_gdf.columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
+        relevant_columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
+
+        if dpm:
+             relevant_columns.append('DPM_UG_M3')
+        if nox_conc:
+             relevant_columns.append('NOX_CONC_PPB')
+
+        conc_gdf.columns = relevant_columns
 
         if not isinstance(conc_gdf, gpd.GeoDataFrame):
           conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry="geometry", crs=conc.crs)
@@ -62,13 +69,13 @@ def create_exposure_df(conc, isrm_pop_alloc, population_columns, verbose, debug_
         verboseprint(verbose, '- [EJ] Estimating population weighted mean exposure for each demographic group.', 
                     debug_mode, frameinfo=getframeinfo(currentframe()))
         for group in population_columns:
-            exposure_gdf = add_pwm_col(exposure_gdf, group)
+            exposure_gdf = add_pwm_col(exposure_gdf, group, dpm, nox_conc)
             
         return exposure_gdf
 
 
 
-def add_pwm_col(exposure_gdf, group):
+def add_pwm_col(exposure_gdf, group, dpm, nox_conc):
         ''' 
         Adds an intermediate column that multiplies population by exposure.
         
@@ -86,13 +93,20 @@ def add_pwm_col(exposure_gdf, group):
         '''
         # Create a string for the PWM column name
         pwm_col = group+'_PWM'
+
+        if dpm:
+             dpm_pwm_col = group+'_DPM_PWM'
+             exposure_gdf[dpm_pwm_col] = exposure_gdf[group]*exposure_gdf['DPM_UG_M3']
+        if nox_conc:
+              nox_conc_pwm_col = group+'_NOX_CONC_PWM'
+              exposure_gdf[nox_conc_pwm_col] = exposure_gdf[group]*exposure_gdf['NOX_CONC_PPB']
         
         # Create a column for each ISRM cell that is the group total exposure
         exposure_gdf[pwm_col] = exposure_gdf[group]*exposure_gdf['PM25_UG_M3']
         
         return exposure_gdf
 
-def get_pwm(exposure_gdf, group):
+def get_pwm(exposure_gdf, group, dpm, nox_conc):
         ''' 
         Estimates the population weighted mean exposure for a given group 
         
@@ -109,10 +123,24 @@ def get_pwm(exposure_gdf, group):
         
         # Estimate the total group-level PWM
         PWM_group = exposure_gdf[pwm_col].sum()/exposure_gdf[group].sum()
-        
-        return PWM_group
 
-def get_overall_disparity(exposure_gdf, population_columns):
+        if dpm:
+            dpm_pwm_col = group+'_DPM_PWM'
+            DPM_PWM_group = exposure_gdf[dpm_pwm_col].sum()/exposure_gdf[group].sum()
+        else:
+            DPM_PWM_group = 0
+
+        if nox_conc:
+            nox_conc_pwm_col = group+'_NOX_CONC_PWM'
+            NOX_CONC_PWM_group = exposure_gdf[nox_conc_pwm_col].sum()/exposure_gdf[group].sum()
+        else:
+             NOX_CONC_PWM_group = 0
+             
+             
+        
+        return PWM_group, DPM_PWM_group, NOX_CONC_PWM_group
+
+def get_overall_disparity(exposure_gdf, population_columns, dpm, nox_conc):
         ''' 
         Returns a table of overall disparity metrics 
         
@@ -132,15 +160,27 @@ def get_overall_disparity(exposure_gdf, population_columns):
         pwm_df = pd.DataFrame({'Group':population_columns}, columns=['Group'])
         
         # Use predefined function to get the group PWMs
-        pwm_df['Group PWM'] = pwm_df.apply(lambda x: get_pwm(exposure_gdf, x['Group']), axis=1)
+        pwm_df['Group PWM (PM2.5)'] = pwm_df.apply(lambda x: get_pwm(exposure_gdf, x['Group'], dpm, nox_conc)[0], axis=1)
         
         # Calculate Absolute and Relative Disparities 
-        pwm_df['Absolute Disparity'] = pwm_df['Group PWM'] - pwm_df.loc[0,'Group PWM']
-        pwm_df['Relative Disparity'] = pwm_df['Absolute Disparity']/pwm_df.loc[0,'Group PWM']
-        
+        pwm_df['Absolute Disparity (PM2.5)'] = pwm_df['Group PWM (PM2.5)'] - pwm_df.loc[0,'Group PWM (PM2.5)']
+        pwm_df['Relative Disparity (PM2.5)'] = pwm_df['Absolute Disparity (PM2.5)']/pwm_df.loc[0,'Group PWM (PM2.5)']
+
+        if dpm:
+            pwm_df['Group PWM (DPM)'] = pwm_df.apply(lambda x: get_pwm(exposure_gdf, x['Group'], dpm, nox_conc)[1], axis=1)
+
+            pwm_df['Absolute Disparity (DPM)'] = pwm_df['Group PWM (DPM)'] - pwm_df.loc[0,'Group PWM (DPM)']
+            pwm_df['Relative Disparity (DPM)'] = pwm_df['Absolute Disparity (DPM)']/pwm_df.loc[0,'Group PWM (DPM)']
+
+        if nox_conc:
+            pwm_df['Group PWM (NOX_CONC)'] = pwm_df.apply(lambda x: get_pwm(exposure_gdf, x['Group'], dpm, nox_conc)[2], axis=1)
+
+            pwm_df['Absolute Disparity (NOX_CONC)'] = pwm_df['Group PWM (NOX_CONC)'] - pwm_df.loc[0,'Group PWM (NOX_CONC)']
+            pwm_df['Relative Disparity (NOX_CONC)'] = pwm_df['Absolute Disparity (NOX_CONC)']/pwm_df.loc[0,'Group PWM (NOX_CONC)']
+             
         return pwm_df
 
-def estimate_exposure_percentile(exposure_gdf, population_columns, verbose):
+def estimate_exposure_percentile(exposure_gdf, population_columns, verbose, dpm, nox_conc):
         ''' 
         Creates a dataframe of percentiles
         
@@ -157,32 +197,47 @@ def estimate_exposure_percentile(exposure_gdf, population_columns, verbose):
         '''
         if verbose:
             logging.info('- Estimating the exposure level for each percentile of each demographic group population.')
-      
-        
+        pollutant_map = {'PM25_UG_M3': 'PM25_UG_M3'}
+        if dpm:
+          pollutant_map['DPM_UG_M3'] = 'DPM_UG_M3'
+        if nox_conc:
+          pollutant_map['NOX_CONC_PPB'] = 'NOX_CONC_PPB'
+                  
         # Create a copy to avoid overwriting, then sort based on PM25 concentration
         df_pctl = exposure_gdf.copy()
-        df_pctl.sort_values(by='PM25_UG_M3', inplace=True)
-        df_pctl.reset_index(drop=True, inplace=True)
+
+        for pollutant_label, col_name in pollutant_map.items():
+            df_pctl.sort_values(by=col_name, inplace=True)
+            df_pctl.reset_index(drop=True, inplace=True)
+            for group in population_columns:
+              # Calculate cumulative sum for this specific pollutant sorting
+              cum_sum_col = df_pctl[group].cumsum()
+              total_pop = df_pctl[group].sum()
+              # Create a unique column name, e.g., 'Percentile_White_NOX_PPB'
+              new_col_name = f'Percentile_{group}_{pollutant_label}'
+              df_pctl[new_col_name] = cum_sum_col / total_pop
+              df_pctl.sort_values(by='PM25_UG_M3', inplace=True)
+              df_pctl.reset_index(drop=True, inplace=True)
         
-        # Iterate through each group to estimate the percentile of exposure
-        for group in population_columns:
-            # Create a slice of the percentile dataframe
-            df_slice = df_pctl[['PM25_UG_M3',group]].copy()
+        # # Iterate through each group to estimate the percentile of exposure
+        # for group in population_columns:
+        #     # Create a slice of the percentile dataframe
+        #     df_slice = df_pctl[['PM25_UG_M3',group]].copy()
             
-            # Add the cumulative sum of the population
-            df_slice.loc[:,'Cumulative_Sum_Pop'] = df_slice.loc[:, group].cumsum()
+        #     # Add the cumulative sum of the population
+        #     df_slice.loc[:,'Cumulative_Sum_Pop'] = df_slice.loc[:, group].cumsum()
             
-            # Estimate the total population in that group, then divide the cumulative sum
-            # to get the percentile
-            total_pop_group = df_slice[group].sum()
-            df_slice.loc[:, 'Percentile_'+group] = df_slice['Cumulative_Sum_Pop']/total_pop_group
+        #     # Estimate the total population in that group, then divide the cumulative sum
+        #     # to get the percentile
+        #     total_pop_group = df_slice[group].sum()
+        #     df_slice.loc[:, 'Percentile_'+group] = df_slice['Cumulative_Sum_Pop']/total_pop_group
             
-            # Add the Percentile column into the main percentile dataframe
-            df_pctl.loc[:, group] = df_slice.loc[:, 'Percentile_'+group]
+        #     # Add the Percentile column into the main percentile dataframe
+        #     df_pctl.loc[:, group] = df_slice.loc[:, 'Percentile_'+group]
         
         return df_pctl
 
-def run_exposure_calcs(conc, pop_alloc, population_columns, verbose, debug_mode):
+def run_exposure_calcs(conc, pop_alloc, population_columns, verbose, debug_mode, dpm = True, nox_conc = True):
         ''' 
         Run the exposure EJ calculations from one script 
         
@@ -205,13 +260,13 @@ def run_exposure_calcs(conc, pop_alloc, population_columns, verbose, debug_mode)
         
         '''
         # Call each of the functions in series
-        exposure_gdf = create_exposure_df(conc, pop_alloc, population_columns, verbose, debug_mode)
-        exposure_disparity = get_overall_disparity(exposure_gdf, population_columns)
-        exposure_pctl = estimate_exposure_percentile(exposure_gdf, population_columns, verbose)
+        exposure_gdf = create_exposure_df(conc, pop_alloc, population_columns, verbose, debug_mode, dpm, nox_conc)
+        exposure_disparity = get_overall_disparity(exposure_gdf, population_columns, dpm, nox_conc)
+        exposure_pctl = estimate_exposure_percentile(exposure_gdf, population_columns, verbose, dpm, nox_conc)
         
         return exposure_gdf, exposure_pctl, exposure_disparity 
 
-def export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out):
+def export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out, dpm, nox_conc):
         ''' 
         Exports the exposure_gdf dataframe as a shapefile 
         
@@ -234,8 +289,15 @@ def export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out):
         fname = str.lower(f_out + '_exposure_concentrations.shp') # File Name
         fpath = os.path.join(shape_out, fname)
         
+        # Define relevant concentration columns
+        conc_columns = ['ISRM_ID', 'PM25_UG_M3']
+        if dpm:
+          conc_columns.append('DPM_UG_M3')
+        if nox_conc:
+             conc_columns.append('NOX_CONC_PPB')
+
         # Update the columns slightly
-        exposure_gdf = exposure_gdf[['ISRM_ID', 'PM25_UG_M3'] + population_columns + ['geometry']].copy()
+        exposure_gdf = exposure_gdf[conc_columns + population_columns + ['geometry']].copy()
         exposure_gdf = rename_for_shapefile(exposure_gdf)
 
         # Export to file
@@ -244,7 +306,7 @@ def export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out):
 
         return fname #placeholder for parallelization
 
-def export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out):
+def export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out, dpm, nox_conc):
         ''' 
         Exports the exposure_gdf dataframe as a CSV file 
         
@@ -266,14 +328,27 @@ def export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out):
         # Create the file name and path
         fname = str.lower(f_out + '_exposure_concentrations.csv') # File Name
         fpath = os.path.join(output_dir, fname)
+
+        # Define relevant concentration columns
+        conc_columns = ['ISRM_ID', 'PM25_UG_M3']
+        if dpm:
+          conc_columns.append('DPM_UG_M3')
+        if nox_conc:
+             conc_columns.append('NOX_CONC_PPB')
+
         
         # Update the columns slightly
-        exposure_gdf = exposure_gdf[['ISRM_ID', 'PM25_UG_M3'] + population_columns + ['geometry']].copy()
+        exposure_gdf = exposure_gdf[conc_columns + population_columns + ['geometry']].copy()
 
         # Change column names
         rename_dict = {k : k + ' (# People)' for k in population_columns}
         exposure_gdf.rename(columns=rename_dict, inplace=True)
         exposure_gdf.rename(columns={'PM25_UG_M3':'PM2.5 Concentration (ug/m3)'}, inplace=True)
+        
+        if dpm:
+            exposure_gdf.rename(columns={'DPM_UG_M3':'DPM Concentration (ug/m3)'}, inplace=True)
+        if nox_conc:
+            exposure_gdf.rename(columns={'NOX_CONC_PPB':'NOx Concentration (ppb)'}, inplace=True)
 
         # Export to file
         exposure_gdf.to_csv(fpath, index=False)
@@ -282,7 +357,7 @@ def export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out):
         return fname #placeholder for parallelization
 
 
-def export_exposure_disparity(exposure_disparity, output_dir, f_out):
+def export_exposure_disparity(exposure_disparity, output_dir, f_out, dpm, nox_conc):
         ''' 
         Exports the exposure_disparity dataframe as a CSV file 
         
@@ -304,14 +379,36 @@ def export_exposure_disparity(exposure_disparity, output_dir, f_out):
         fname = str.lower(f_out + '_exposure_disparity.csv') # File Name
         fpath = os.path.join(output_dir, fname)
         
-        # Update the values slightly
-        exposure_disparity['Relative Disparity'] = exposure_disparity['Relative Disparity'] * 100.0
-        
-        # Fix the columns for clarity of units
-        exposure_disparity.rename(columns={'Group PWM':'Group PWM (ug/m3)',
-                                          'Absolute Disparity':'Absolute Disparity (ug/m3)',
-                                          'Relative Disparity':'Relative Disparity (%)'},
-                                  inplace=True)
+        pollutant_suffixes = ['PM2.5']
+        if dpm:
+          pollutant_suffixes.append('DPM')
+        if nox_conc:
+          pollutant_suffixes.append('NOX_CONC')
+
+        for p in pollutant_suffixes:
+          # Construct the expected input column names
+          # Assuming the format is 'Column Name (Pollutant)'
+          rel_col = f'Relative Disparity ({p})'
+          pwm_col = f'Group PWM ({p})'
+          abs_col = f'Absolute Disparity ({p})'
+
+          # Update values slightly
+          exposure_disparity[rel_col] = exposure_disparity[rel_col] * 100.0
+
+          # Rename column names
+          if p == 'NOX_CONC':
+            exposure_disparity.rename(columns={
+            pwm_col: 'NOx Group PWM (ppb)',
+            abs_col: 'NOx Absolute Disparity (ppb)',
+            rel_col: 'NOx Relative Disparity (%)'
+            }, inplace=True)
+
+          else:
+            exposure_disparity.rename(columns={
+              pwm_col: f'{p} Group PWM (ug/m3)',
+              abs_col: f'{p} Absolute Disparity (ug/m3)',
+              rel_col: f'{p} Relative Disparity (%)'
+              }, inplace=True)
 
         # Export to file
         exposure_disparity.to_csv(fpath, index=False)
@@ -319,7 +416,7 @@ def export_exposure_disparity(exposure_disparity, output_dir, f_out):
 
         return fname
 
-def plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl, verbose, debug_mode):
+def plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl, verbose, debug_mode, dpm, nox_conc):
         ''' 
         Creates a percentile plot by group 
         
@@ -367,7 +464,7 @@ def plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pct
         
         return fname
 
-def export_exposure(population_columns, exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, debug_mode):
+def export_exposure(population_columns, exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, dpm, nox_conc, debug_mode):
         ''' 
         Calls each of the exposure output functions in parallel
         
@@ -400,12 +497,12 @@ def export_exposure(population_columns, exposure_gdf, exposure_disparity, exposu
             with concurrent.futures.ProcessPoolExecutor(max_workers=5) as ej_executor:
                 
                 # Submit each export function to the executor
-                gdf_export_future = ej_executor.submit(export_exposure_gdf, population_columns, exposure_gdf, shape_out, f_out)
-                csv_export_future = ej_executor.submit(export_exposure_csv, population_columns, exposure_gdf, output_dir, f_out)
-                disp_export_future = ej_executor.submit(export_exposure_disparity, exposure_disparity, output_dir, f_out)
+                gdf_export_future = ej_executor.submit(export_exposure_gdf, population_columns, exposure_gdf, shape_out, f_out, dpm, nox_conc)
+                csv_export_future = ej_executor.submit(export_exposure_csv, population_columns, exposure_gdf, output_dir, f_out, dpm, nox_conc)
+                disp_export_future = ej_executor.submit(export_exposure_disparity, exposure_disparity, output_dir, f_out, dpm, nox_conc)
                 if output_png_flag:
                   plot_export_future = ej_executor.submit(plot_percentile_exposure, population_columns, output_dir, f_out, exposure_pctl, verbose, 
-                                                        debug_mode)
+                                                        debug_mode, dpm, nox_conc)
                 
                 # Wait for all to finish
                 if output_png_flag: 
@@ -416,12 +513,12 @@ def export_exposure(population_columns, exposure_gdf, exposure_disparity, exposu
                                         disp_export_future.result())
         else:
             # Call export functions linearly
-            export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out)
-            export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out)
-            export_exposure_disparity(exposure_disparity, output_dir, f_out)
+            export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out, dpm, nox_conc)
+            export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out, dpm, nox_conc)
+            export_exposure_disparity(exposure_disparity, output_dir, f_out, dpm, nox_conc)
             if output_png_flag:
               plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl, verbose,
-                                    debug_mode)
+                                    debug_mode, dpm, nox_conc)
         
         logging.info('- [EJ] All exposure outputs have been saved.')
 
@@ -632,6 +729,8 @@ def rename_for_shapefile(df, max_len=10):
     new_names = {}
     used = set()
     pop_counter = 1
+
+    df.rename(columns={"NOX_CONC_PPB" : "NOXC_PPB"}, inplace = True)
 
     for col in df.columns:
         # Truncate to max_len

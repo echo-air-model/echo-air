@@ -4,7 +4,7 @@
 Concentration Layer Data Object
 
 @author: libbykoolik
-last modified: 2025-10-13
+last modified: 2025-06-05
 """
 
 # Import Libraries
@@ -56,7 +56,7 @@ class concentration_layer:
           contribution to the total ground-level PM2.5 concentrations
         
     '''
-    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, output_png_flag, run_parallel, shp_path, output_region, debug_mode,  run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, output_png_flag, run_parallel, shp_path, output_region, debug_mode, nox_conc = True, run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         # Initialize concentration object by reading in the emissions and isrm 
         self.emissions = emis_obj
@@ -79,6 +79,9 @@ class concentration_layer:
         self.isrm_geom = self.isrm.geometry
         self.crs = self.isrm.crs
         self.name = self.emissions.emissions_name
+        self.pollutants = emis_obj.get_pollutant_names()
+        self.dpm = 'DPM' in self.pollutants
+        self.nox_conc = nox_conc
         
         # Print a few things for logging purposes
         logging.info('- [CONCENTRATION] Estimating concentrations from layer {} of the ISRM.'.format(self.layer))
@@ -92,8 +95,10 @@ class concentration_layer:
             # Allocate emissions to the ISRM grid
             verboseprint(self.verbose, '   - [CONCENTRATION] Reallocating emissions to the ISRM grid.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            self.PM25e, self.NH3e, self.VOCe, self.NOXe, self.SOXe = self.process_emissions(self.emissions, self.isrm, self.verbose, self.output_dir, self.output_emis_flag)
-            
+            if self.dpm:
+                self.PM25e, self.NH3e, self.VOCe, self.NOXe, self.SOXe, self.DPMe = self.process_emissions(self.emissions, self.isrm, self.verbose, self.output_dir, self.output_emis_flag)
+            else:
+                self.PM25e, self.NH3e, self.VOCe, self.NOXe, self.SOXe = self.process_emissions(self.emissions, self.isrm, self.verbose, self.output_dir, self.output_emis_flag)
             # Estimate concentrations
             verboseprint(self.verbose, '   - [CONCENTRATION] Calculating concentrations of PM25 from each pollutant.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -112,13 +117,27 @@ class concentration_layer:
             self.pSO4  = self.get_concentration(self.SOXe,self.isrm.get_pollutant_layer()[layers[self.layer]]['SOX'])
             verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from SOx.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-    
+            if self.dpm:
+                self.pDPM  = self.get_concentration(self.DPMe,self.isrm.get_pollutant_layer()[layers[self.layer]]['DPM']) #CHECK
+                verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from DPM.',
+                            self.debug_mode, frameinfo=getframeinfo(currentframe()))
+            else:
+                self.pDPM = []
+
+            if self.nox_conc:
+                self.pNOX_CONC  = self.get_concentration(self.NOXe,self.isrm.get_pollutant_layer()[layers[self.layer]]['NOX_CONC'],ppb = True) #CHECK
+                verboseprint(self.verbose, '      - [CONCENTRATION] Concentrations estimated from NOx.',
+                            self.debug_mode, frameinfo=getframeinfo(currentframe()))
+            else:
+                self.pNOX_CONC = []
+
+
             # Add these together at each ISRM grid cell
             self.detailed_conc = self.combine_concentrations(self.pPM25,
                                                               self.pNH4,
                                                               self.pVOC,
                                                               self.pNO3,
-                                                              self.pSO4)
+                                                              self.pSO4,self.pDPM, self.pNOX_CONC)
             verboseprint(self.verbose, '   - [CONCENTRATION] Detailed concentrations are estimated from layer {}.'.format(self.layer),
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
             
@@ -202,7 +221,7 @@ class concentration_layer:
         ''' Processes emissions before calculating concentrations '''
 
         # Define pollutant names
-        pollutants = ['PM25', 'NH3', 'VOC', 'NOX', 'SOX']
+        pollutants = self.pollutants
 
         # Define height_min and height_max for each layer
         height_bounds_dict = {0:(0.0, 51.8),
@@ -267,9 +286,13 @@ class concentration_layer:
             aloc_emis = self.save_allocated_emis(tmp_dct, output_dir, verbose)
             if self.output_png_flag:
                 self.visualize_individual_emissions(aloc_emis)
-            
-        return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
-    
+        
+        # Return relevant processed emissions
+        if 'DPM' in pollutants:
+            return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX'], tmp_dct['DPM']
+        else:
+            return tmp_dct['PM25'], tmp_dct['NH3'], tmp_dct['VOC'], tmp_dct['NOX'], tmp_dct['SOX']
+        
     def visualize_individual_emissions(self, aloc_emis, pollutant_name=''):
         ''' Create a 5-panel plot of total emission fluxes for each individual pollutant and save as a PNG file '''
 
@@ -286,7 +309,7 @@ class concentration_layer:
         output_region = self.output_region.to_crs(self.crs)
 
         # Define the pollutant names
-        pollutants = ['PM25','NH3','VOC','NOX','SOX']
+        pollutants = self.pollutants
 
         # Clip the combined data to the output region
         combined_data = aloc_emis.copy()
@@ -381,7 +404,10 @@ class concentration_layer:
         aloc_emis.rename(columns={'EMISSIONS_UG/S':'PM25_UG/S'}, inplace=True)
         
         # Loop through other pollutants
-        for pol in ['NH3', 'VOC', 'NOX', 'SOX']:
+        pollutants = self.pollutants.copy()
+        pollutants.remove('PM25')
+        
+        for pol in pollutants:
             # Copy the geodataframe
             tmp = tmp_dct[pol].copy()
             
@@ -406,7 +432,7 @@ class concentration_layer:
             
         return aloc_emis
     
-    def get_concentration(self, pol_emis, pol_isrm):
+    def get_concentration(self, pol_emis, pol_isrm, ppb=False):
         """
         Given:
           - pol_emis: GeoDataFrame with 'EMISSIONS_UG/S' and geometry/index
@@ -417,13 +443,18 @@ class concentration_layer:
         conc = np.dot(pol_isrm.T, pol_emis['EMISSIONS_UG/S'])
         
         # build output GeoDataFrame
-        conc_df = pd.DataFrame(conc, columns=['CONC_UG/M3'], index=self.receptor_id)
+
+        #If ppb, the ISRM will output ppb concentrations
+        if ppb:
+            conc_df = pd.DataFrame(conc, columns=['CONC_PPB'], index=self.receptor_id)
+        else: 
+            conc_df = pd.DataFrame(conc, columns=['CONC_UG/M3'], index=self.receptor_id)
         conc_gdf = pol_emis.merge(conc_df, left_index=True, right_index=True)
         conc_gdf = gpd.GeoDataFrame(conc_gdf, geometry='geometry', crs=self.crs)
 
         return conc_gdf
     
-    def combine_concentrations(self, pPM25, pNH4, pVOC, pNO3, pSO4):
+    def combine_concentrations(self, pPM25, pNH4, pVOC, pNO3, pSO4, pDPM, pNOX_CONC):
         ''' Combines concentration from each pollutant into one geodataframe '''
         # Merge to combine into one dataframe
         pol_gdf = pd.merge(pPM25, pNH4, left_on=['ISRM_ID','geometry'], 
@@ -443,21 +474,45 @@ class concentration_layer:
                            right_on=['ISRM_ID','geometry'],
                            suffixes=('','_SOX'))
         
+        # Merge DPM and NOX_CONC if needed
+        if self.dpm:
+            pol_gdf = pol_gdf.merge(pDPM, left_on=['ISRM_ID','geometry'], 
+                           right_on=['ISRM_ID','geometry'],
+                           suffixes=('','_DPM'))
+        if self.nox_conc:
+            pol_gdf = pol_gdf.merge(pNOX_CONC, left_on=['ISRM_ID','geometry'], 
+                           right_on=['ISRM_ID','geometry'],
+                           suffixes=('','_NOX_CONC'))
+        
         # Quick ugly fix to add the pollutant back onto VOC (otherwise it is dropped)
         pol_gdf.rename(columns={'EMISSIONS_UG/S':'EMISSIONS_UG/S_VOC',
                                 'CONC_UG/M3':'CONC_UG/M3_VOC'}, inplace=True)
         
-        # Reorder columns for prettiness
-        pol_gdf = pol_gdf[['ISRM_ID', 'geometry', 'EMISSIONS_UG/S_PM25',
+        #Define columns with nicer names
+        pretty_columns = ['ISRM_ID', 'geometry', 'EMISSIONS_UG/S_PM25',
                            'EMISSIONS_UG/S_NH3', 'EMISSIONS_UG/S_VOC',  
                            'EMISSIONS_UG/S_NOX', 'EMISSIONS_UG/S_SOX', 
                            'CONC_UG/M3_PM25','CONC_UG/M3_NH3', 'CONC_UG/M3_VOC',
-                           'CONC_UG/M3_NOX', 'CONC_UG/M3_SOX']]
+                           'CONC_UG/M3_NOX', 'CONC_UG/M3_SOX', 'TOTAL_CONC_UG/M3']
+        
+        if self.dpm:
+            pol_gdf.rename(columns={'EMISSIONS_UG/S_DPM':'DPM_EMISSIONS_UG/S',
+                                'CONC_UG/M3_DPM':'DPM_CONC_UG/M3'}, inplace=True)
+            pretty_columns += ['DPM_EMISSIONS_UG/S','DPM_CONC_UG/M3']
+
+        #Special column names for NOx because its concentration is in ppb
+        if self.nox_conc:
+            pol_gdf.rename(columns={'EMISSIONS_UG/S_NOX_CONC':'NOX_CONC_EMISSIONS_UG/S',
+                                'CONC_PPB':'NOX_CONC_PPB'}, inplace=True)  #CHECK what to rename columns to
+            pretty_columns += ['NOX_CONC_EMISSIONS_UG/S','NOX_CONC_PPB']
     
         pol_gdf['TOTAL_CONC_UG/M3'] = pol_gdf['CONC_UG/M3_PM25'] \
                                         + pol_gdf['CONC_UG/M3_NH3'] \
                                         + pol_gdf['CONC_UG/M3_VOC'] \
                                         + pol_gdf['CONC_UG/M3_NOX'] \
                                         + pol_gdf['CONC_UG/M3_SOX']
-                                    
+        
+        #Pretty Columns
+        pol_gdf = pol_gdf[pretty_columns]
+                                
         return pol_gdf

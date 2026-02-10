@@ -52,7 +52,7 @@ class emissions:
           pollutant
 
     '''
-    def __init__(self, file_path, output_dir, f_out, debug_mode, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
+    def __init__(self, file_path, output_dir, f_out, debug_mode, nox_conc = True, units='ug/s', name='', details_to_keep=[], filter_dict={}, load_file=True, verbose=False):
         ''' Initializes the emissions object'''     
         
         # Initialize path and check that it is valid
@@ -69,6 +69,9 @@ class emissions:
         self.verbose = verbose
         self.output_dir = output_dir
         self.f_out = f_out
+        self.dpm = False
+        self.nox_conc = nox_conc
+        self.pollutants = ['PM25', 'NH3', 'VOC', 'NOX', 'SOX']
 
         # Return a starting statement
         verboseprint(self.verbose, '- [EMISSIONS] Creating a new emissions object from {}'.format(self.file_path),
@@ -100,6 +103,12 @@ class emissions:
             verboseprint(self.verbose, '- [EMISSIONS] Emissions successfully loaded.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
             self.emissions_data.columns = map(str.upper, self.emissions_data.columns)
+
+            # Reads the file and adds DPM tp pollutants list if it exists in emissions file input
+            if 'DPM' in self.emissions_data.columns:
+                self.dpm = True
+                self.pollutants.append("DPM")
+            
                         
             # Check the emissions data
             self.valid_emissions = self.check_emissions()
@@ -128,6 +137,10 @@ class emissions:
                 self.NOX = self.split_pollutants(self.emissions_data_clean, 'NOX', self.details_to_keep)
                 self.VOC = self.split_pollutants(self.emissions_data_clean, 'VOC', self.details_to_keep)
                 self.SOX = self.split_pollutants(self.emissions_data_clean, 'SOX', self.details_to_keep)
+
+                # Stores DPM data only if DPM is present
+                if self.dpm:
+                    self.DPM = self.split_pollutants(self.emissions_data_clean, 'DPM', self.details_to_keep)
                 
                 # Which ISRM layers are needed?
                 self.LA_flag, self.LB_flag, self.LC_flag = self.which_layers()
@@ -353,7 +366,7 @@ class emissions:
         
         ## (TEST 2) Check that columns are correct, or replace them if incorrect
         # Define the set of correct pollutants
-        correct_pollutants = ['PM25', 'NH3', 'VOC', 'NOX', 'SOX']
+        correct_pollutants = self.pollutants
         
         # Define a few dummy variables for storing information
         missing = []
@@ -377,7 +390,7 @@ class emissions:
             sys.exit()
             
         else: # All five pollutants are accounted for
-            has_five_pollutants = True
+            has_five_pollutants = True  #CHECK
 
         return has_indices and has_five_pollutants
     
@@ -389,7 +402,8 @@ class emissions:
                                      'NH3':['NH_3'],
                                      'VOC':['ROG', 'TOG', 'OG'],
                                      'NOX':['NO_X', 'NO2', 'NO_2'],
-                                     'SOX':['SO_X', 'SO2', 'SO_2']}
+                                     'SOX':['SO_X', 'SO2', 'SO_2'],
+                                     'DPM':['DPM']}  #CHECK
         
         # Cut the dictionary into just the relevant ones for missing_pol
         possible_wrong_names = possible_wrong_names_dict[missing_pol]
@@ -481,13 +495,13 @@ class emissions:
         
         # Scale emissions to ug/s
         scaling_factor = self.convert_units()
-        emissions_data_clean[['PM25', 'NH3', 'VOC', 'NOX', 'SOX']] *= scaling_factor
+        emissions_data_clean[self.pollutants] *= scaling_factor
         if scaling_factor != 1.0 and self.verbose:
             verboseprint(self.verbose, '- [EMISSIONS] Scaled emissions data by a factor of {:e} to convert from {} to ug/s.'.format(scaling_factor, self.units),
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Limit columns
-        emissions_data_clean = emissions_data_clean[groupby_features+['PM25', 'NH3', 'VOC', 'NOX', 'SOX']]
+        emissions_data_clean = emissions_data_clean[groupby_features+self.pollutants]
         
         return emissions_data_clean
     
@@ -525,7 +539,8 @@ class emissions:
                            'NH3':'NH3',
                            'NOX':'NOx',
                            'VOC':'VOCs',
-                           'SOX':'SOx'}
+                           'SOX':'SOx',
+                           'DPM':'DPM'}
         
         verboseprint(self.verbose, '- [EMISSIONS] Successfully created emissions object for {} for {}.'.format(self.emissions_name, pollutant_names[pollutant]),
                      self.debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -563,13 +578,22 @@ class emissions:
         ''' Returns pollutant layer '''        
         # Define a pollutant dictionary for convenience
         pollutant_dict = {'PM25':self.PM25,
-                         'NH3':self.NH3,
-                         'VOC':self.VOC,
-                         'NOX':self.NOX,
-                         'SOX':self.SOX}
+                            'NH3':self.NH3,
+                            'VOC':self.VOC,
+                            'NOX':self.NOX,
+                            'SOX':self.SOX}
         
+        if self.dpm:
+            pollutant_dict["DPM"] = self.DPM
+        if self.nox_conc:
+            pollutant_dict["NOX_CONC"] = self.NOX
+
         # Confirm pol_name is valid
         assert pol_name in pollutant_dict.keys()
         
         # Return pollutant layer
         return pollutant_dict[pol_name]
+    
+    def get_pollutant_names(self):
+        #Return list of pollutant names
+        return self.pollutants

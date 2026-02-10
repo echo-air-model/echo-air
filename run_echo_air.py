@@ -5,7 +5,7 @@ Main Run File
 
 @author: libbykoolik
 
-Last updated: 2025-12-09
+Last updated: 2025-06-05
 
 """
 #%% Import useful libraries, supporting objects, and scripts
@@ -167,6 +167,8 @@ if __name__ == "__main__":
                                                  population_columns, debug_mode=debug_mode, load_file=True, verbose=verbose)
             # block until emissions are loaded
             emis = emis_future.result()
+            dpm = emis.dpm
+            nox_conc = True
 
             # now launch ISRM and population reads in parallel
             isrm_future = file_reader_pool.submit(
@@ -219,6 +221,9 @@ if __name__ == "__main__":
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
             emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            dpm = emis.dpm
+            nox_conc = True
+            
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, LA_flag = emis.LA_flag, LB_flag = emis.LB_flag, LC_flag = emis.LC_flag, load_file=True, verbose=verbose)
@@ -257,7 +262,7 @@ if __name__ == "__main__":
         exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, population_columns, verbose, debug_mode=debug_mode)    
         
         if output_exposure: # Perform all exports in parallel
-            export_exposure(population_columns, exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, debug_mode=debug_mode)
+            export_exposure(population_columns, exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, dpm, nox_conc, debug_mode=debug_mode)
             
         elif output_png_flag: # Just export the EJ figure
             plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl, verbose, debug_mode=debug_mode)
