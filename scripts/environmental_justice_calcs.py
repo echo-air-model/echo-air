@@ -195,48 +195,99 @@ def estimate_exposure_percentile(exposure_gdf, population_columns, verbose, dpm,
               by group
         
         '''
+
         if verbose:
             logging.info('- Estimating the exposure level for each percentile of each demographic group population.')
-        pollutant_map = {'PM25_UG_M3': 'PM25_UG_M3'}
-        if dpm:
-          pollutant_map['DPM_UG_M3'] = 'DPM_UG_M3'
-        if nox_conc:
-          pollutant_map['NOX_CONC_PPB'] = 'NOX_CONC_PPB'
-                  
+      
+        
         # Create a copy to avoid overwriting, then sort based on PM25 concentration
         df_pctl = exposure_gdf.copy()
-
-        for pollutant_label, col_name in pollutant_map.items():
-            df_pctl.sort_values(by=col_name, inplace=True)
-            df_pctl.reset_index(drop=True, inplace=True)
-            for group in population_columns:
-              # Calculate cumulative sum for this specific pollutant sorting
-              cum_sum_col = df_pctl[group].cumsum()
-              total_pop = df_pctl[group].sum()
-              # Create a unique column name, e.g., 'Percentile_White_NOX_PPB'
-              new_col_name = f'Percentile_{group}_{pollutant_label}'
-              df_pctl[new_col_name] = cum_sum_col / total_pop
-              df_pctl.sort_values(by='PM25_UG_M3', inplace=True)
-              df_pctl.reset_index(drop=True, inplace=True)
+        df_pctl.sort_values(by='PM25_UG_M3', inplace=True)
+        df_pctl.reset_index(drop=True, inplace=True)
         
-        # # Iterate through each group to estimate the percentile of exposure
-        # for group in population_columns:
-        #     # Create a slice of the percentile dataframe
-        #     df_slice = df_pctl[['PM25_UG_M3',group]].copy()
+        # Iterate through each group to estimate the percentile of exposure
+        for group in population_columns:
+            # Create a slice of the percentile dataframe
+            df_slice = df_pctl[['PM25_UG_M3',group]].copy()
             
-        #     # Add the cumulative sum of the population
-        #     df_slice.loc[:,'Cumulative_Sum_Pop'] = df_slice.loc[:, group].cumsum()
+            # Add the cumulative sum of the population
+            df_slice.loc[:,'Cumulative_Sum_Pop'] = df_slice.loc[:, group].cumsum()
             
-        #     # Estimate the total population in that group, then divide the cumulative sum
-        #     # to get the percentile
-        #     total_pop_group = df_slice[group].sum()
-        #     df_slice.loc[:, 'Percentile_'+group] = df_slice['Cumulative_Sum_Pop']/total_pop_group
+            # Estimate the total population in that group, then divide the cumulative sum
+            # to get the percentile
+            total_pop_group = df_slice[group].sum()
+            df_slice.loc[:, 'Percentile_'+group] = df_slice['Cumulative_Sum_Pop']/total_pop_group
             
-        #     # Add the Percentile column into the main percentile dataframe
-        #     df_pctl.loc[:, group] = df_slice.loc[:, 'Percentile_'+group]
-        
+            # Add the Percentile column into the main percentile dataframe
+            df_pctl.loc[:, group] = df_slice.loc[:, 'Percentile_'+group]
         return df_pctl
+    #     if verbose:
+    #       logging.info('- Estimating exposure percentiles for each demographic group and pollutant.')
 
+    #     pollutants = ['PM25_UG_M3']
+    #     if dpm:
+    #       pollutants += ['DPM_UG_M3']
+    #     if nox_conc:
+    #       pollutants += ['NOX_CONC_PPB']
+
+    #     # We will store a dictionary of dataframes, one for each pollutant
+    #     pollutant_dfs = []
+
+    #     for pol in pollutants:
+    #     # Create a base range of percentiles (0 to 1) to align all groups
+    #     # Using 101 points gives us 0%, 1%, 2%... 100%
+    #       pctl_range = np.linspace(0, 1, 10001)
+    #       pol_df = pd.DataFrame({'Percentile': pctl_range})
+        
+    #       for group in population_columns:
+    #           # 1. Sort by pollutant
+    #           temp_sorted = exposure_gdf[[group, pol]].sort_values(by=pol).copy()
+
+    #           total_pop = temp_sorted[group].sum()
+    #           # 2. Calculate cumulative percentile
+    #           temp_sorted['cum_pop'] = temp_sorted[group].cumsum()
+            
+    #           if total_pop > 0:
+    #               temp_sorted['calc_pctl'] = temp_sorted['cum_pop'] / total_pop
+                
+    #               # 3. Interpolate to get concentrations at exact percentile steps (0.01, 0.02, etc.)
+    #               # This ensures all groups align on the same 'Percentile' rows
+    #               group_concentrations = np.interp(pctl_range, temp_sorted['calc_pctl'], temp_sorted[pol])
+    #               pol_df[f"{group}_{pol}"] = group_concentrations
+        
+    #       pollutant_dfs.append(pol_df)
+
+    #     # Merge all pollutant dataframes on the 'Percentile' column
+    #     final_df = pollutant_dfs[0]
+    #     for next_df in pollutant_dfs[1:]:
+    #       final_df = pd.merge(final_df, next_df, on='Percentile')
+
+    # # Save and return
+    #     final_df.to_csv("percentiles_wide.csv", index=False)
+    #     return final_df
+
+        
+        # # Pre-compute total population per group (doesn't depend on pollutant)
+        # total_pop_dict = {
+        #   group: df_pctl[group].sum() for group in population_columns
+        # }
+
+        # # Loop through pollutants
+        # for pollutant_label, col_name in pollutant_map.items():
+        # # Sort separately for this pollutant
+        #   df_sorted = df_pctl.sort_values(by=col_name).reset_index(drop=True)
+
+        # for group in population_columns:
+
+        #     cum_sum = df_sorted[group].cumsum()
+        #     total_pop = total_pop_dict[group]
+
+        #     new_col = f'Percentile_{group}_{pollutant_label}'
+
+        #     # Assign percentiles back to original index
+        #     df_pctl.loc[df_sorted.index, new_col] = cum_sum / total_pop
+
+        return df_pctl
 def run_exposure_calcs(conc, pop_alloc, population_columns, verbose, debug_mode, dpm = True, nox_conc = True):
         ''' 
         Run the exposure EJ calculations from one script 
@@ -416,24 +467,9 @@ def export_exposure_disparity(exposure_disparity, output_dir, f_out, dpm, nox_co
 
         return fname
 
-def plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl, verbose, debug_mode, dpm, nox_conc):
-        ''' 
-        Creates a percentile plot by group 
-        
-        INPUTS:
-            - population_columns: a list of population columns to use from the population input file
-            - output_dir: a filepath string of the location of the output directory
-            - f_out: the name of the file output category (will append additional information)
-            - exposure_pctl: a dataframe of exposure concentrations by percentile of population
-              exposed by group
-            - verbose: a Boolean indicating whether or not detailed logging statements should
-              be printed
-            - debug_mode: a Boolean indicating whether or not to output debug statements
-            
-        OUTPUTS:
-            - None (fname is surrogate for completion)
-        
-        '''
+def plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl,
+                             verbose, debug_mode, dpm, nox_conc):
+    
         verboseprint(verbose, '- [EJ] Drawing plot of exposure by percentile of each racial/ethnic group.', 
                     debug_mode, frameinfo=getframeinfo(currentframe()))
         # Define racial/ethnic groups of interest
@@ -463,6 +499,83 @@ def plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pct
         logging.info('- [EJ] Exposure concentration by percentile figure output as {}'.format(fname))
         
         return fname
+
+    # verboseprint(verbose,
+    #     '- [EJ] Drawing plot of exposure by percentile of each racial/ethnic group.',
+    #     debug_mode, frameinfo=getframeinfo(currentframe()))
+
+    # # Map raw column suffixes to LaTeX-formatted labels for the Y-axis
+    # pollutant_map = {
+    #     'PM25_UG_M3': r'PM$_{2.5}$ Exposure ($\mu$g/m$^3$)'
+    # }
+    # pretty_names_map = {'PM25_UG_M3': 'PM2.5'}
+
+    # if dpm:
+    #     pollutant_map['DPM_UG_M3'] = r'DPM Exposure ($\mu$g/m$^3$)'
+    #     pretty_names_map['DPM_UG_M3'] = 'DPM'
+    # if nox_conc:
+    #     pollutant_map['NOX_CONC_PPB'] = r'NO$_x$ Exposure (ppb)'
+    #     pretty_names_map['NOX_CONC_PPB'] = 'NOx'
+
+    # sns.set_theme(context="notebook", style="whitegrid", font_scale=1.75)
+    # output_files = []
+
+    # for pol_suffix, ylabel in pollutant_map.items():
+    #     # 1. Identify all columns belonging to this specific pollutant (e.g., 'White_PM25_UG_M3')
+    #     # We always keep 'Percentile' as our X-axis variable
+    #     relevant_cols = [col for col in exposure_pctl.columns if col.endswith(pol_suffix)]
+        
+    #     # 2. Subset and melt the dataframe specifically for this pollutant
+    #     # This turns columns like ['White_PM25', 'Asian_PM25'] into a long format for Seaborn
+    #     pctl_melt = pd.melt(
+    #         exposure_pctl,
+    #         id_vars=['Percentile'],
+    #         value_vars=relevant_cols,
+    #         var_name='Group',
+    #         value_name='Concentration'
+    #     )
+
+    #     # 3. Clean up the 'Group' names for the legend 
+    #     # (e.g., "White_PM25_UG_M3" becomes "White")
+    #     pctl_melt['Group'] = pctl_melt['Group'].str.replace(f'_{pol_suffix}', '').str.title()
+
+    #     # 4. Convert 0.0-1.0 scale to 0-100%
+    #     pctl_melt['Percentile_Pct'] = pctl_melt['Percentile'] * 100
+
+    #     # Plotting
+    #     fig, ax = plt.subplots(figsize=(12, 9))
+
+    #     sns.lineplot(
+    #         data=pctl_melt,
+    #         x='Percentile_Pct',
+    #         y='Concentration',
+    #         hue='Group',
+    #         linewidth=3,
+    #         palette='deep',
+    #         ax=ax
+    #     )
+
+    #     # Formatting
+    #     ax.set_xlim(0, 99)
+    #     ax.set_xticks([0, 25, 50, 75, 99])
+    #     ax.set_xticklabels(['0%', '25th', '50th', '75th', '99%'])
+    #     ax.set_xlabel('Population Percentile')
+    #     ax.set_ylabel(ylabel)
+        
+    #     # Place legend outside if it's too crowded
+    #     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+
+    #     # Save file
+    #     fname = f'{f_out}_{pretty_names_map[pol_suffix]}_exposure_percentiles.png'
+    #     fpath = os.path.join(output_dir, fname)
+
+    #     fig.savefig(fpath, dpi=200, bbox_inches='tight')
+    #     plt.close(fig) # Close to free up memory
+
+    #     logging.info(f'   - [EJ] {pretty_names_map[pol_suffix]} figure saved as {fname}')
+    #     output_files.append(fname)
+
+    # return output_files
 
 def export_exposure(population_columns, exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, dpm, nox_conc, debug_mode):
         ''' 

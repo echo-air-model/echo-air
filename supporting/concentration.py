@@ -180,8 +180,12 @@ class concentration:
         
         pollutant_name = var_to_clean[var]
 
+        labels = {'NOX_CONC_PPB':f'Concentration of {pollutant_name} (ppb)',
+                    'TOTAL_CONC_UG/M3':f'Concentration of {pollutant_name} ($\\mu$g/m$^3$)',
+                    'DPM_CONC_UG/M3' : f'Concentration of {pollutant_name} ($\\mu$g/m$^3$)'}
+
         if self.verbose:
-            logging.info('- Drawing map of total ' + var + ' concentrations.')
+            logging.info('- Drawing map of total ' + pollutant_name + ' concentrations.')
         
         # Read in CA boundary
         ca_shp = gpd.read_feather(ca_shp_fp)
@@ -205,13 +209,13 @@ class concentration:
         # A few things vary on the output resolution
         if self.output_resolution in ['AB','AD','C']:
             st_str = '* Area-Weighted Average'
-            fname = f_out + '_' + self.name.lower() + '_area_wtd_concentrations.png'
-            t_str = r'{pollutant_name} Concentrations* '+'from {}'.format(title_name)
+            fname = f_out + '_' + self.name.lower() + '_' + pollutant_name + '_area_wtd_concentrations.png'
+            t_str = fr'{pollutant_name} Concentrations* '+'from {}'.format(title_name)
             c_to_plot = self.summary_conc[['NAME', 'geometry', var]].copy()
             
         else:
-            t_str = r'{pollutant_name} Concentrations '+'from {}'.format(title_name)
-            fname = f_out + '_' + self.name.lower() + '_concentrations.png'
+            t_str = fr'{pollutant_name} Concentrations '+'from {}'.format(title_name)
+            fname = f_out + '_' + self.name.lower() + '_'+ pollutant_name + '_concentrations.png'
             c_to_plot = self.detailed_conc_clean[['ISRM_ID', 'geometry', var]].copy()
             
         # Tie things together
@@ -236,7 +240,7 @@ class concentration:
         c_to_plot.plot(column=var,
                               figsize=(20,10),
                               legend=True,
-                              legend_kwds={'label':r'Concentration of {pollutant_name}$ ($\mu$g/m$^3$)'},
+                              legend_kwds={'label':labels[var]},
                               cmap='mako_r',
                               edgecolor='none',
                               antialiased=False,
@@ -423,6 +427,10 @@ class concentration:
         # Draw the map
         if self.output_png_flag:
             self.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
+            if self.emissions.dpm:
+                self.visualize_concentrations('DPM_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
+            if self.emissions.nox_conc:
+                self.visualize_concentrations('NOX_CONC_PPB', output_region, output_dir, f_out, ca_shp_path, export=True)
         
         # Export the shapefiles
         self.export_concentrations(shape_out, f_out)

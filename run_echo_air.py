@@ -322,11 +322,23 @@ if __name__ == "__main__":
                                                              hia_inputs.pop_inc, pop, 'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                     lungcancer_future = health_executor.submit(calculate_excess_mortality, population_columns, trimmed_conc,
                                                              hia_inputs.pop_inc, pop, 'LUNG CANCER', krewski, verbose, debug_mode)
+                    if dpm:
+                        dpm_conc = conc.detailed_conc_clean[['ISRM_ID','DPM_CONC_UG/M3','geometry']]
+                        hazard_quotient_future = health_executor.submit(hazard_quotient, dpm_conc)
+                        cancer_risk_future = health_executor.submit(dpm_risk,dpm_conc, output_dir, f_out)
+                        cancer_risk = cancer_risk_future.result()
+                        cancer_excess_future = health_executor.submit(calculate_excess_mortality, population_columns, cancer_risk,
+                                                             hia_inputs.pop_inc, pop, 'CANCER RISK', dpm_excess_mortality, verbose, debug_mode, dpm)
                                     
                     # Collect all three results
                     allcause = allcause_future.result()
                     ihd = ihd_future.result()
                     lungcancer = lungcancer_future.result()
+
+                    if dpm:
+                        hazardquotient = hazard_quotient_future.result()
+                        cancerdpm = cancer_excess_future.result()
+                        dpm_cancer_ve_future = health_executor.submit(visualize_and_export_hia, cancerdpm, ca_shp_path, population_columns, 'TOTAL', 'CANCER RISK', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode, dpm=dpm)
                     
                     # Begin exporting the results in parallel
                     logging.info('<< Exporting Health Impact Outputs >>')
@@ -342,9 +354,13 @@ if __name__ == "__main__":
                     acm_summary = allcause_ve_future.result()
                     ihd_summary = ihd_ve_future.result()
                     lcm_summary = lungcancer_ve_future.result()
-                    
+
                     # Get summary table and export
-                    combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose)
+                    if dpm:
+                        dpm_cancer_summary = dpm_cancer_ve_future.result()
+                        combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose, dpm_cancer_summary)
+                    else:
+                        combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose)
                     
             else:
                 # Start with a few print statements to kick things off
@@ -359,14 +375,26 @@ if __name__ == "__main__":
                 ihd = calculate_excess_mortality(population_columns, trimmed_conc, hia_inputs.pop_inc, pop, 
                                                     'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                 lungcancer = calculate_excess_mortality(population_columns, trimmed_conc, hia_inputs.pop_inc, 
-                                                    pop, 'LUNG CANCER', krewski, verbose, debug_mode)            
+                                                    pop, 'LUNG CANCER', krewski, verbose, debug_mode)  
+                if dpm:
+                    dpm_conc = conc.detailed_conc_clean[['ISRM_ID','DPM_CONC_UG/M3','geometry']]
+                    hazardquotient = hazard_quotient(dpm_conc)
+                    cancer_risk = dpm_risk(dpm_conc, output_dir, f_out)
+                    cancer_excess = calculate_excess_mortality(population_columns, cancer_risk, hia_inputs.pop_inc, 
+                                                    pop, 'CANCER RISK', dpm_excess_mortality, verbose, debug_mode, dpm)  
+                          
                 
                 # Plot and export
                 logging.info('<< Exporting Health Impact Outputs >>')
-                visualize_and_export_hia(allcause, ca_shp_path, population_columns, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                visualize_and_export_hia(ihd, ca_shp_path, population_columns, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                visualize_and_export_hia(lungcancer, ca_shp_path, population_columns,'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode)
-            
+                acm_summary = visualize_and_export_hia(allcause, ca_shp_path, population_columns, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                ihd_summary = visualize_and_export_hia(ihd, ca_shp_path, population_columns, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                lcm_summary = visualize_and_export_hia(lungcancer, ca_shp_path, population_columns,'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode, dpm=dpm)
+
+                if dpm: 
+                    dpm_summary = visualize_and_export_hia(cancer_excess, ca_shp_path, population_columns,'TOTAL', 'CANCER RISK', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode, dpm=dpm)
+                    combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose, dpm_summary)
+                else:
+                    combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose)
             # Return that everything is done
             logging.info('- [HEALTH] All outputs have been exported!')
                 
