@@ -821,10 +821,17 @@ def rename_for_shapefile(df, endpoint, max_len=10):
     # Apply renaming
     return df.rename(columns=new_names)
   
-def hazard_quotient(conc):
-     df = conc.copy()
-     df["Hazard Quotient"] = df["DPM_CONC_UG/M3"]/5
-     return df
+def hazard_quotient(conc, output_dir, f_out,):
+    df_hq = conc.copy()
+    df_hq["HQ"] = df_hq["DPM_CONC_UG/M3"]/5
+
+    fname = f_out + '_dpm_hazard_quotient.csv'
+    fname = str.lower(fname)
+    fpath = os.path.join(output_dir, fname)
+
+    hq_output = df_hq[['ISRM_ID', 'DPM_CONC_UG/M3', 'HQ']]
+    hq_output.to_csv(fpath, index=False)
+    return df_hq
 
 def dpm_risk(conc, output_dir, f_out, avg_time='30YR'): 
   ''' 

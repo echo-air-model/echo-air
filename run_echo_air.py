@@ -156,10 +156,11 @@ if __name__ == "__main__":
             file_reader_pool = concurrent.futures.ThreadPoolExecutor()
             
             # Start reading emissions & population first, then ISRM
+            nox_conc = False
             emis_future = file_reader_pool.submit(
                 emissions,
                 emissions_path, output_dir, f_out,
-                debug_mode=debug_mode, units=units,
+                debug_mode=debug_mode, nox_conc=nox_conc, units=units,
                 name=name, load_file=True, verbose=verbose
             )
 
@@ -168,7 +169,6 @@ if __name__ == "__main__":
             # block until emissions are loaded
             emis = emis_future.result()
             dpm = emis.dpm
-            nox_conc = True
 
             # now launch ISRM and population reads in parallel
             isrm_future = file_reader_pool.submit(
@@ -220,9 +220,9 @@ if __name__ == "__main__":
             
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            nox_conc = False
+            emis = emissions(emissions_path, output_dir, f_out, nox_conc=nox_conc, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
             dpm = emis.dpm
-            nox_conc = True
             
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
@@ -259,7 +259,7 @@ if __name__ == "__main__":
         # Estimate exposures and output them
         if run_parallel:
             exp_pop_alloc = exp_pop_alloc_future.result()
-        exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, population_columns, verbose, debug_mode=debug_mode)    
+        exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, population_columns, verbose, debug_mode=debug_mode, dpm=dpm, nox_conc=nox_conc)    
         
         if output_exposure: # Perform all exports in parallel
             export_exposure(population_columns, exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, dpm, nox_conc, debug_mode=debug_mode)
@@ -324,8 +324,8 @@ if __name__ == "__main__":
                                                              hia_inputs.pop_inc, pop, 'LUNG CANCER', krewski, verbose, debug_mode)
                     if dpm:
                         dpm_conc = conc.detailed_conc_clean[['ISRM_ID','DPM_CONC_UG/M3','geometry']]
-                        hazard_quotient_future = health_executor.submit(hazard_quotient, dpm_conc)
-                        cancer_risk_future = health_executor.submit(dpm_risk,dpm_conc, output_dir, f_out)
+                        hazard_quotient_future = health_executor.submit(hazard_quotient, dpm_conc, output_dir, f_out)
+                        cancer_risk_future = health_executor.submit(dpm_risk, dpm_conc, output_dir, f_out)
                         cancer_risk = cancer_risk_future.result()
                         cancer_excess_future = health_executor.submit(calculate_excess_mortality, population_columns, cancer_risk,
                                                              hia_inputs.pop_inc, pop, 'CANCER RISK', dpm_excess_mortality, verbose, debug_mode, dpm)
@@ -378,7 +378,7 @@ if __name__ == "__main__":
                                                     pop, 'LUNG CANCER', krewski, verbose, debug_mode)  
                 if dpm:
                     dpm_conc = conc.detailed_conc_clean[['ISRM_ID','DPM_CONC_UG/M3','geometry']]
-                    hazardquotient = hazard_quotient(dpm_conc)
+                    hazardquotient = hazard_quotient(dpm_conc, output_dir, f_out)
                     cancer_risk = dpm_risk(dpm_conc, output_dir, f_out)
                     cancer_excess = calculate_excess_mortality(population_columns, cancer_risk, hia_inputs.pop_inc, 
                                                     pop, 'CANCER RISK', dpm_excess_mortality, verbose, debug_mode, dpm)  

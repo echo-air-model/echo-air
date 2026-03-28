@@ -56,7 +56,7 @@ class concentration_layer:
           contribution to the total ground-level PM2.5 concentrations
         
     '''
-    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, output_png_flag, run_parallel, shp_path, output_region, debug_mode, nox_conc = True, run_calcs=True, verbose=False):
+    def __init__(self, emis_obj, isrm_obj, layer, output_dir, output_emis_flag, output_png_flag, run_parallel, shp_path, output_region, debug_mode, run_calcs=True, verbose=False):
         ''' Initializes the Concentration object'''        
         # Initialize concentration object by reading in the emissions and isrm 
         self.emissions = emis_obj
@@ -80,8 +80,9 @@ class concentration_layer:
         self.crs = self.isrm.crs
         self.name = self.emissions.emissions_name
         self.pollutants = emis_obj.get_pollutant_names()
-        self.dpm = 'DPM' in self.pollutants
-        self.nox_conc = nox_conc
+        self.dpm = emis_obj.dpm
+        self.nox_conc = emis_obj.nox_conc
+        print(self.nox_conc)
         
         # Print a few things for logging purposes
         logging.info('- [CONCENTRATION] Estimating concentrations from layer {} of the ISRM.'.format(self.layer))

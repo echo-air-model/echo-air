@@ -38,6 +38,7 @@ def create_exposure_df(conc, isrm_pop_alloc, population_columns, verbose, debug_
             - verbose: a Boolean indicating whether or not detailed logging statements 
               should be printed
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - dpm: a Boolean indicating whether or not to include DPM in calculations
               
         OUTPUTS:
             - exposure_gdf: a geodataframe with the exposure concentrations and allocated 
@@ -85,6 +86,7 @@ def add_pwm_col(exposure_gdf, group, dpm, nox_conc):
               grid cell geometry
             - verbose: a Boolean indicating whether or not detailed logging statements should be 
               printed
+            - dpm: a Boolean indicating whether to add a DPM_PWM column as well
               
         OUTPUTS:
             - exposure_gdf: a geodataframe with the exposure concentrations and allocated population
@@ -114,6 +116,7 @@ def get_pwm(exposure_gdf, group, dpm, nox_conc):
             - exposure_gdf: a geodataframe with the exposure concentrations and allocated population 
               by racial group
             - group: the racial/ethnic group name
+            - dpm: a Boolean indicating whether or not to estimate PWMs for DPM
             
         OUTPUTS: 
             - PWM_group: the group-level population weighted mean exposure concentration (float)
@@ -148,6 +151,7 @@ def get_overall_disparity(exposure_gdf, population_columns, dpm, nox_conc):
             - exposure_gdf: a geodataframe with the exposure concentrations and allocated population 
               by racial group
             - population_columns: a list of population columns to use from the population input file
+            - dpm: a Boolean indicating whether or not to include DPM in calculations
             
         OUTPUTS: 
             - pwm_df: a dataframe containing the PWM, absolute disparity, and relative disparity
@@ -189,6 +193,7 @@ def estimate_exposure_percentile(exposure_gdf, population_columns, verbose, dpm,
               by racial group
             - population_columns: a list of population columns to use from the population input file
             - verbose: a Boolean indicating whether or not detailed logging statements should be printed
+            - dpm: a Boolean indicating whether or not to calculate percentiles for DPM
             
         OUTPUTS:
             - df_pctl: a dataframe of exposure concentrations by percentile of population exposed 
@@ -262,7 +267,7 @@ def estimate_exposure_percentile(exposure_gdf, population_columns, verbose, dpm,
         #     df_pctl.loc[df_sorted.index, new_col] = cum_sum / total_pop
 
         # return df_pctl
-def run_exposure_calcs(conc, pop_alloc, population_columns, verbose, debug_mode, dpm = True, nox_conc = True):
+def run_exposure_calcs(conc, pop_alloc, population_columns, verbose, debug_mode, dpm, nox_conc):
         ''' 
         Run the exposure EJ calculations from one script 
         
