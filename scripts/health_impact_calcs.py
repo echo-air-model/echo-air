@@ -118,7 +118,10 @@ def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, po
               the `function` provided
         
         '''
+        # Define dictionary for column of interest
         column = {"DPM":"RISK", "PM25":"TOTAL_CONC_UG/M3"}
+
+        # Change logging statement depending on pollutant
         if dpm:
           logging_code = create_logging_code()[endpoint]
           endpoint_full = endpoint + " incidence"
@@ -282,7 +285,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         # Initialize the figure as four panes
         fig, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, figsize=(22, 6))
 
-        # Check for negative bounds that will break the LogNorm
+        # Define labels based on pollutant being plotted
         if pollutant == 'PM2.5':
           col = 'TOTAL_CONC_UG/M3'
           pretty_pol = 'PM$_{2.5}$'
@@ -299,6 +302,8 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
           per_area_label = r'Excess Incidence (incidence/km$^2$)'
           per_pop_label = r'Incidence per Population (incidence/100 K people)'
           file_suffix = 'excess_incidence'
+
+        # Check for negative bounds that will break the LogNorm
         if hia_df[col].min() < 0:
             logging.info('* {} Negative concentrations and outcomes detected for {}. Health outcome plots may not represent true outcome distributions in space.'.format(logging_code, fname))
 
@@ -527,6 +532,7 @@ def export_health_impacts(hia_df, population_columns, group, endpoint, output_di
         '''
         logging_code = create_logging_code()[endpoint]
         
+        # Create file name depending on pollutant
         if pollutant == 'DPM':
           endpoint_full = endpoint + " incidence"
           file_ending = '_excess_incidence.shp'
@@ -587,6 +593,7 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
         '''
         logging_code = create_logging_code()[endpoint]
 
+        # Create file name depening on pollutant
         if pollutant == 'DPM':
           endpoint_full = endpoint + " incidence"
           file_ending1 = '_excess_incidence.csv'
@@ -623,7 +630,6 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
         
         ## Update column names
         # Create the rename dictionary and make a few edits
-  
         pop_rename_dict = {'POP_'+k: k + ' (# People)' for k in population_columns} # Add units to population
         hia_rename_dict = {l+'_'+k:endpoint_nice+' - '+k+' (excess deaths)' for k in population_columns}
 
@@ -665,6 +671,8 @@ def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoin
             
         '''
         logging_code = create_logging_code()[endpoint]
+
+        #Depending on pollutant, it is either excess incidence or excess mortality
         if pollutant == 'DPM':
           endpoint_full = endpoint + " incidence"
           rename1 = ' Incidence (# Excess Cases)'
@@ -822,15 +830,29 @@ def rename_for_shapefile(df, endpoint, max_len=10):
     return df.rename(columns=new_names)
   
 def hazard_quotient(conc, output_dir, f_out,):
+    '''
+    Calculates the Hazard Quotient (HQ) for each ISRM grid cell
+
+    INPUTS:
+      - conc: a vector with the dmp concentration for each grid cell
+    
+    OUTPUTS:
+      - df_hq: a dataframe of HQs per grid cell
+    '''
+
+    # Divided DPM concentration by 5
     df_hq = conc.copy()
     df_hq["HQ"] = df_hq["DPM_CONC_UG/M3"]/5
 
+    # Created file name for output
     fname = f_out + '_dpm_hazard_quotient.csv'
     fname = str.lower(fname)
     fpath = os.path.join(output_dir, fname)
 
+    #Outputs file
     hq_output = df_hq[['ISRM_ID', 'DPM_CONC_UG/M3', 'HQ']]
     hq_output.to_csv(fpath, index=False)
+
     return df_hq
 
 def dpm_risk(conc, output_dir, f_out, avg_time='30YR'): 
@@ -890,8 +912,19 @@ def dpm_risk(conc, output_dir, f_out, avg_time='30YR'):
     
   return dpm_risk
 
-def dpm_excess_mortality(conc,population):
-     return conc*population/(10**(6))
+def dpm_excess_incidence(risk,population):
+    '''
+    For each given risk and population count, calculates the excess cancer incidence
+
+    INPUTS:
+        - risk: numerical risk value
+        - population: population count
+
+    OUTPUTS:
+        - excess_incidence: excess number of cancer cases
+    '''
+    excess_incidence = risk*population/(10**(6))
+    return excess_incidence
 
 
     

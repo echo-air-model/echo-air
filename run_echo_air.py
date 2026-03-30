@@ -328,7 +328,7 @@ if __name__ == "__main__":
                         cancer_risk_future = health_executor.submit(dpm_risk, dpm_conc, output_dir, f_out)
                         cancer_risk = cancer_risk_future.result()
                         cancer_excess_future = health_executor.submit(calculate_excess_mortality, population_columns, cancer_risk,
-                                                             hia_inputs.pop_inc, pop, 'CANCER RISK', dpm_excess_mortality, verbose, debug_mode, dpm)
+                                                             hia_inputs.pop_inc, pop, 'CANCER RISK', dpm_excess_incidence, verbose, debug_mode, dpm)
                                     
                     # Collect all three results
                     allcause = allcause_future.result()
@@ -381,7 +381,7 @@ if __name__ == "__main__":
                     hazardquotient = hazard_quotient(dpm_conc, output_dir, f_out)
                     cancer_risk = dpm_risk(dpm_conc, output_dir, f_out)
                     cancer_excess = calculate_excess_mortality(population_columns, cancer_risk, hia_inputs.pop_inc, 
-                                                    pop, 'CANCER RISK', dpm_excess_mortality, verbose, debug_mode, dpm)  
+                                                    pop, 'CANCER RISK', dpm_excess_incidence, verbose, debug_mode, dpm)  
                           
                 
                 # Plot and export
