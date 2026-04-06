@@ -51,7 +51,7 @@ class isrm:
         - map_isrm: simple function for mapping the ISRM grid cells
     
     '''
-    def __init__(self, isrm_path, output_region, region_of_interest, run_parallel, debug_mode, dpm = True, nox_conc = True, LA_flag=True, LB_flag=True, LC_flag=True, load_file=True, verbose=False):
+    def __init__(self, isrm_path, output_region, region_of_interest, run_parallel, debug_mode, dpm, nox_conc = False, LA_flag=True, LB_flag=True, LC_flag=True, load_file=True, verbose=False):
         ''' Initializes the ISRM object'''        
         
         # Initialize paths and check that they are valid

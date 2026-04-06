@@ -776,17 +776,17 @@ def combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_o
             
         '''
         # Merge ACM and IHD first, then add LCM
-        hia_summary = pd.merge(acm_summary, ihd_summary, on='Group')
-        hia_summary = pd.merge(hia_summary, lcm_summary, on='Group')
+        hia_summary = pd.merge(acm_summary, ihd_summary.drop(columns=['Population (# People)']), on='Group')
+
+
+        hia_summary = pd.merge(hia_summary, lcm_summary.drop(columns=['Population (# People)']), on='Group')
 
         #Add DPM 
         if dpm_summary is not None:
-            hia_summary = pd.merge(hia_summary, dpm_summary, on='Group')
+            hia_summary = pd.merge(hia_summary, dpm_summary.drop(columns=['Population (# People)']), on='Group')
         
         # Keep only necessary columns
         hia_summary = hia_summary.loc[:, ~hia_summary.columns.str.startswith(('Mortality','Incidence'))]
-        hia_summary = hia_summary.loc[:, ~hia_summary.columns.str.endswith('x')]
-        hia_summary = hia_summary.loc[:, ~hia_summary.columns.str.endswith('y')]
         
         
         # Export results

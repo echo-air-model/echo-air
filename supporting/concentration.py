@@ -331,7 +331,7 @@ class concentration:
             if self.emissions.dpm:
                 relevant_columns.append('DPM_UG_M3')
             if self.emissions.nox_conc:
-                relevant_columns.append('NOXC_ppb')
+                relevant_columns.append('NOXC_PPB')
                 
             gdf_export.columns = relevant_columns
             # Ensure it's a GeoDataFrame so .to_file() exists

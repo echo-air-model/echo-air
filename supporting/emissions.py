@@ -94,7 +94,15 @@ class emissions:
         else:
             verboseprint(self.verbose, '- [EMISSIONS] Units of provided emissions ({}) are valid.'.format(self.units),
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
-            
+        
+        #Determine if DPM calculations should be done
+        if self.peek_pollutants():
+            self.dpm = True
+            if "DPM" not in self.pollutants:
+                self.pollutants.append("DPM")
+        else:
+            self.dpm = False
+
         # If load_file is True, import the emissions data
         if load_file == True and self.valid_file:
             verboseprint(self.verbose, '- [EMISSIONS] Attempting to load the emissions data. This step may take some time.',
@@ -105,9 +113,9 @@ class emissions:
             self.emissions_data.columns = map(str.upper, self.emissions_data.columns)
 
             # Reads the file and adds DPM tp pollutants list if it exists in emissions file input
-            if 'DPM' in self.emissions_data.columns:
-                self.dpm = True
-                self.pollutants.append("DPM")
+            # if 'DPM' in self.emissions_data.columns:  #Check
+            #     self.dpm = True
+            #     self.pollutants.append("DPM")
             
                         
             # Check the emissions data
@@ -597,3 +605,32 @@ class emissions:
     def get_pollutant_names(self):
         #Return list of pollutant names
         return self.pollutants
+    
+    def peek_pollutants(self):
+        ''' 
+        Checks file headers for DPM without loading the full dataset.
+        Optimized for Pandas 2.2.3 and PyArrow 19.0.1.
+        '''
+        try:
+            if self.file_type == 'csv':
+                # Peek at just the header row (matching your header=9 logic)
+                df_peek = pd.read_csv(self.file_path, header=9, nrows=0)
+                cols = df_peek.columns
+            
+            elif self.file_type == 'feather':
+                # Use pyarrow to read only the schema (extremely fast)
+                import pyarrow.feather as feather
+                schema = feather.read_table(self.file_path).schema
+                cols = schema.names
+            
+            elif self.file_type in ['shp', 'gpkg']:
+                # Read just the first row to get column names
+                df_peek = gpd.read_file(self.file_path, rows=1)
+                cols = df_peek.columns
+            
+            # Return True if DPM is found (case-insensitive)
+            return any('DPM' in col.upper() for col in cols)
+            
+        except Exception as e:
+            verboseprint(self.verbose, f'# [EMISSIONS] Peek failed: {e}', self.debug_mode)
+            return False

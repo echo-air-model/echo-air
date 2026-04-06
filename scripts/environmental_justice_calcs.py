@@ -50,6 +50,7 @@ def create_exposure_df(conc, isrm_pop_alloc, population_columns, verbose, debug_
         conc_gdf = conc.total_conc.copy()
         relevant_columns = ['ISRM_ID', 'geometry', 'PM25_UG_M3']
 
+        # Add relevant columns
         if dpm:
              relevant_columns.append('DPM_UG_M3')
         if nox_conc:
@@ -120,6 +121,7 @@ def get_pwm(exposure_gdf, group, dpm, nox_conc):
             
         OUTPUTS: 
             - PWM_group: the group-level population weighted mean exposure concentration (float)
+            - DPM_PWM_group: the group-level population weighted mean exposure concentration (float)
         '''
         # Create a string for the PWM column name
         pwm_col = group+'_PWM'
@@ -203,26 +205,31 @@ def estimate_exposure_percentile(exposure_gdf, population_columns, verbose, dpm,
         if verbose:
           logging.info('- Estimating exposure percentiles for each demographic group and pollutant.')
 
+        #Define pollutants of interest
         pollutants = ['PM25_UG_M3']
+
         if dpm:
           pollutants += ['DPM_UG_M3']
         if nox_conc:
           pollutants += ['NOX_CONC_PPB']
 
         # We will store a dictionary of dataframes, one for each pollutant
+        
         pollutant_dfs = []
 
         for pol in pollutants:
+
         # Create a base range of percentiles (0 to 1) to align all groups
-        # Using 101 points gives us 0%, 1%, 2%... 100%
           pctl_range = np.linspace(0, 1, 10001)
           pol_df = pd.DataFrame({'Percentile': pctl_range})
         
           for group in population_columns:
+              
               # 1. Sort by pollutant
               temp_sorted = exposure_gdf[[group, pol]].sort_values(by=pol).copy()
 
               total_pop = temp_sorted[group].sum()
+
               # 2. Calculate cumulative percentile
               temp_sorted['cum_pop'] = temp_sorted[group].cumsum()
             
@@ -241,32 +248,9 @@ def estimate_exposure_percentile(exposure_gdf, population_columns, verbose, dpm,
         for next_df in pollutant_dfs[1:]:
           final_df = pd.merge(final_df, next_df, on='Percentile')
 
-    # Save and return
-        final_df.to_csv("percentiles_wide.csv", index=False)
         return final_df
 
-        
-        # # Pre-compute total population per group (doesn't depend on pollutant)
-        # total_pop_dict = {
-        #   group: df_pctl[group].sum() for group in population_columns
-        # }
-
-        # # Loop through pollutants
-        # for pollutant_label, col_name in pollutant_map.items():
-        # # Sort separately for this pollutant
-        #   df_sorted = df_pctl.sort_values(by=col_name).reset_index(drop=True)
-
-        # for group in population_columns:
-
-        #     cum_sum = df_sorted[group].cumsum()
-        #     total_pop = total_pop_dict[group]
-
-        #     new_col = f'Percentile_{group}_{pollutant_label}'
-
-        #     # Assign percentiles back to original index
-        #     df_pctl.loc[df_sorted.index, new_col] = cum_sum / total_pop
-
-        # return df_pctl
+    
 def run_exposure_calcs(conc, pop_alloc, population_columns, verbose, debug_mode, dpm, nox_conc):
         ''' 
         Run the exposure EJ calculations from one script 

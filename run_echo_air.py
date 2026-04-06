@@ -95,6 +95,7 @@ if __name__ == "__main__":
         output_emis_flag = cf.output_emis
         output_png_flag = cf.output_png
         population_columns = [item.upper() for item in cf.population_columns]
+        nox_conc = False
 
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
@@ -121,8 +122,10 @@ if __name__ == "__main__":
     if check:
         try:
             # Default to verbose since this mode is just for checking files
-            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=False, verbose=True)
+            # Assumes true for DPM, but will not error if files are not present 
             emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
+            dpm = emis.dpm
+            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, dpm=dpm, nox_conc=nox_conc, load_file=False, verbose=True)
             pop = population(population_path, population_columns, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
 
@@ -156,7 +159,6 @@ if __name__ == "__main__":
             file_reader_pool = concurrent.futures.ThreadPoolExecutor()
             
             # Start reading emissions & population first, then ISRM
-            nox_conc = False
             emis_future = file_reader_pool.submit(
                 emissions,
                 emissions_path, output_dir, f_out,
@@ -174,7 +176,8 @@ if __name__ == "__main__":
             isrm_future = file_reader_pool.submit(
                 isrm,
                 isrm_path, output_region, region_of_interest,
-                run_parallel, debug_mode=debug_mode,
+                run_parallel, debug_mode=debug_mode, 
+                dpm=dpm, nox_conc=nox_conc,
                 LA_flag = emis.LA_flag,
                 LB_flag = emis.LB_flag,
                 LC_flag = emis.LC_flag,
@@ -388,7 +391,7 @@ if __name__ == "__main__":
                 logging.info('<< Exporting Health Impact Outputs >>')
                 acm_summary = visualize_and_export_hia(allcause, ca_shp_path, population_columns, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
                 ihd_summary = visualize_and_export_hia(ihd, ca_shp_path, population_columns, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                lcm_summary = visualize_and_export_hia(lungcancer, ca_shp_path, population_columns,'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode, dpm=dpm)
+                lcm_summary = visualize_and_export_hia(lungcancer, ca_shp_path, population_columns,'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode)
 
                 if dpm: 
                     dpm_summary = visualize_and_export_hia(cancer_excess, ca_shp_path, population_columns,'TOTAL', 'CANCER RISK', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode, dpm=dpm)

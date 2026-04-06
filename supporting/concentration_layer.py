@@ -82,7 +82,6 @@ class concentration_layer:
         self.pollutants = emis_obj.get_pollutant_names()
         self.dpm = emis_obj.dpm
         self.nox_conc = emis_obj.nox_conc
-        print(self.nox_conc)
         
         # Print a few things for logging purposes
         logging.info('- [CONCENTRATION] Estimating concentrations from layer {} of the ISRM.'.format(self.layer))
