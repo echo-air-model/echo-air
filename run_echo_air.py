@@ -95,6 +95,8 @@ if __name__ == "__main__":
         output_emis_flag = cf.output_emis
         output_png_flag = cf.output_png
         population_columns = [item.upper() for item in cf.population_columns]
+
+        # NOx calculations are turned off, turn on for future use oncce the NOx ISRM is ready
         nox_conc = False
 
     # Create the output directory
@@ -121,9 +123,8 @@ if __name__ == "__main__":
     # running calculations
     if check:
         try:
-            # Default to verbose since this mode is just for checking files
-            # Assumes true for DPM, but will not error if files are not present 
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
+            # Default to verbose since this mode is just for checking filess
+            emis = emissions(emissions_path, output_dir, f_out, nox_conc=nox_conc, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
             dpm = emis.dpm
             isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, dpm=dpm, nox_conc=nox_conc, load_file=False, verbose=True)
             pop = population(population_path, population_columns, debug_mode=debug_mode, load_file=False, verbose=True)
@@ -229,7 +230,7 @@ if __name__ == "__main__":
             
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, LA_flag = emis.LA_flag, LB_flag = emis.LB_flag, LC_flag = emis.LC_flag, load_file=True, verbose=verbose)
+            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, dpm = dpm, LA_flag = emis.LA_flag, LB_flag = emis.LB_flag, LC_flag = emis.LC_flag, load_file=True, verbose=verbose)
             # Create population object
             verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
             pop = population(population_path, population_columns, debug_mode=debug_mode, load_file=True, verbose=verbose)
@@ -325,6 +326,8 @@ if __name__ == "__main__":
                                                              hia_inputs.pop_inc, pop, 'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                     lungcancer_future = health_executor.submit(calculate_excess_mortality, population_columns, trimmed_conc,
                                                              hia_inputs.pop_inc, pop, 'LUNG CANCER', krewski, verbose, debug_mode)
+                    
+                    # If dpm, calculate extra health impacts
                     if dpm:
                         dpm_conc = conc.detailed_conc_clean[['ISRM_ID','DPM_CONC_UG/M3','geometry']]
                         hazard_quotient_future = health_executor.submit(hazard_quotient, dpm_conc, output_dir, f_out)

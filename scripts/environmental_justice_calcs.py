@@ -39,6 +39,7 @@ def create_exposure_df(conc, isrm_pop_alloc, population_columns, verbose, debug_
               should be printed
             - debug_mode: a Boolean indicating whether or not to output debug statements
             - dpm: a Boolean indicating whether or not to include DPM in calculations
+            - nox_conc: a Boolean indicating whether or not to include NOx in calculations
               
         OUTPUTS:
             - exposure_gdf: a geodataframe with the exposure concentrations and allocated 
@@ -88,6 +89,7 @@ def add_pwm_col(exposure_gdf, group, dpm, nox_conc):
             - verbose: a Boolean indicating whether or not detailed logging statements should be 
               printed
             - dpm: a Boolean indicating whether to add a DPM_PWM column as well
+            - nox_conc: a Boolean indicating whether to add a NOX_CONC column as well
               
         OUTPUTS:
             - exposure_gdf: a geodataframe with the exposure concentrations and allocated population
@@ -118,10 +120,12 @@ def get_pwm(exposure_gdf, group, dpm, nox_conc):
               by racial group
             - group: the racial/ethnic group name
             - dpm: a Boolean indicating whether or not to estimate PWMs for DPM
+            - nox_conc: a Boolean indicating whether or not to estimate PWMs for NOx
             
         OUTPUTS: 
             - PWM_group: the group-level population weighted mean exposure concentration (float)
             - DPM_PWM_group: the group-level population weighted mean exposure concentration (float)
+            - NOX_CONC_PWM_group: the group-level population weighted mean exposure concentration (float)
         '''
         # Create a string for the PWM column name
         pwm_col = group+'_PWM'
@@ -154,6 +158,7 @@ def get_overall_disparity(exposure_gdf, population_columns, dpm, nox_conc):
               by racial group
             - population_columns: a list of population columns to use from the population input file
             - dpm: a Boolean indicating whether or not to include DPM in calculations
+            - nox_conc: a Boolean indicating whether or not to include NOx in calculations
             
         OUTPUTS: 
             - pwm_df: a dataframe containing the PWM, absolute disparity, and relative disparity
@@ -196,6 +201,7 @@ def estimate_exposure_percentile(exposure_gdf, population_columns, verbose, dpm,
             - population_columns: a list of population columns to use from the population input file
             - verbose: a Boolean indicating whether or not detailed logging statements should be printed
             - dpm: a Boolean indicating whether or not to calculate percentiles for DPM
+            - dpm: a Boolean indicating whether or not to calculate percentiles for NOx
             
         OUTPUTS:
             - df_pctl: a dataframe of exposure concentrations by percentile of population exposed 
@@ -263,6 +269,8 @@ def run_exposure_calcs(conc, pop_alloc, population_columns, verbose, debug_mode,
             - verbose: a Boolean indicating whether or not detailed logging statements should
               be printed
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - dpm: a Boolean indicating whether or not to include DPM calculations
+            - nox_conc: a Boolean indicating whether or not to include NOx calculations
             
         OUTPUTS: 
             - exposure_gdf: a dataframe containing the exposure concentrations and population
@@ -570,32 +578,6 @@ def export_exposure(population_columns, exposure_gdf, exposure_disparity, exposu
 
         return
 
-# def region_pwm_helper(name, group, full_dataset):
-#         ''' 
-#         Estimates population-weighted mean for a subset of the full_dataset
-        
-#         INPUTS:
-#             - name: the specific name of the region type (e.g., SF BAY AREA)
-#             - group: the racial/ethnic group of interest
-#             - full_dataset: a dataframe containing all of the concentraion and population
-#               intersection objects with regions assigned
-            
-#         OUTPUTS:
-#             - pwm: the population-weighted mean concentration of PM2.5
-        
-#         '''
-#         # Slice relevant parts of the dataframe
-#         tmp = full_dataset[full_dataset['NAME']==name][['TOTAL_CONC_UG/M3',group]].copy()
-
-#         # Estimate the PWM
-#         den = tmp[group].sum()
-
-#         #If denominator is 0, assign NaN
-#         if den == 0 or pd.isna(den):
-#           pwm = np.nan
-#         else:
-#           pwm = (tmp[group] * tmp['TOTAL_CONC_UG/M3']).sum() / den
-#         return pwm
 def region_pwm_helper(name, group, intersect, conc_col='TOTAL_CONC_UG/M3'):
     '''
     Calculates the population-weighted mean for a specific region and group.
@@ -616,96 +598,6 @@ def region_pwm_helper(name, group, intersect, conc_col='TOTAL_CONC_UG/M3'):
     pwm = (subset[conc_col] * subset[group]).sum() / total_pop
     
     return pwm
-
-# def export_pwm_map(population_columns, pop_exp, conc, output_dir, output_region, output_png_flag, f_out, ca_shp_path, shape_out):
-#         ''' 
-#         Creates the exports for the population-weighted products requested when the 
-#         user inputs an output resolution larger than the ISRM grid. In this step, 
-#         dropping geometry occurs before aggregation and then is reused as needed.
-        
-#         INPUTS:
-#             - population_columns: a list of population columns to use from the population input file
-#             - pop_exp: a dataframe containing the population information without age-resolution
-#             - conc: a concentration object (which contains the crosswalk with geometry)
-#             - output_dir: a filepath string of the location of the output directory
-#             - output_region: the geometry of the desired output region
-#             - f_out: the name of the file output category (will append additional information)
-#             - ca_shp_path: a filepath string of the location of the California boundary shapefile
-#             - shape_out: a filepath string of the location of the shapefile output directory
-            
-#         OUTPUTS:
-#             - output_res_geo: a GeoDataFrame with the aggregated population-weighted means.
-#         '''
-#         # Log statement
-#         logging.info('- [EJ] Creating population-weighted mean summaries at the output resolution requested.')
-        
-#         # Collect the necessary objects:
-#         # crosswalk: from the concentration object (with geometry)
-#         crosswalk = conc.crosswalk[['NAME', 'ISRM_ID', 'TOTAL_CONC_UG/M3', 'geometry']].copy()
-#         # Population data from pop_exp (with geometry)
-#         pop_exp = pop_exp[['POP_ID'] + population_columns + ['geometry']].copy()
-        
-#         # Project population data to the same CRS as crosswalk
-#         pop_exp = pop_exp.to_crs(crosswalk.crs)
-        
-#         # Create an intersection object (union) between pop_exp and crosswalk
-#         intersect = gpd.overlay(pop_exp, crosswalk, how='union', keep_geom_type=False)
-        
-#         # Remove null matches
-#         intersect = intersect[(~intersect['POP_ID'].isna()) & (~intersect['ISRM_ID'].isna())]
-        
-#         # Estimate area (in km²)
-#         intersect['AREA_M2'] = intersect.geometry.area / (1000.0 * 1000.0)
-        
-#         # --- Drop geometry before aggregation ---
-#         numeric_intersect = intersect.drop(columns='geometry')
-        
-#         # Aggregate total area by POP_ID
-#         pop_totalarea = (numeric_intersect.groupby('POP_ID', as_index=False)['AREA_M2']
-#                         .sum()
-#                         .set_index('POP_ID')['AREA_M2']
-#                         .to_dict())
-        
-#         # Map total area back onto intersect and calculate area fraction
-#         intersect['AREA_POP_TOTAL'] = intersect['POP_ID'].map(pop_totalarea)
-#         intersect['AREA_FRAC'] = intersect['AREA_M2'] / intersect['AREA_POP_TOTAL']
-        
-#         # Apportion population for each group using the area fraction
-#         for group in population_columns:
-#             intersect[group] = intersect[group] * intersect['AREA_FRAC']
-        
-#         # Get the output resolution names and geometries by dissolving the crosswalk (geometry is preserved here)
-#         output_res_geo = crosswalk[['NAME', 'geometry']].dissolve(by='NAME').reset_index()
-        
-#         # Estimate the population-weighted mean (PWM) per group using your helper function.
-#         # (This function will internally slice intersect for the given NAME.)
-#         for group in population_columns:
-#             output_res_geo[group + '_PWM'] = output_res_geo.apply(
-#                 lambda x: region_pwm_helper(x['NAME'], group, intersect), axis=1)
-        
-#         # Export the map of population-weighted concentrations.
-#         logging.info('- [EJ] Exporting map of population-weighted mean summaries at the output resolution requested.')
-#         if output_png_flag:
-#           visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path)
-        
-#         # Create a shapefile to output, using only the relevant columns.
-#         to_shp = output_res_geo[['NAME', 'TOTAL_PWM', 'geometry']].copy()
-#         to_shp.columns = ['NAME', 'PWM_UG_M3', 'geometry']
-#         to_shp.to_file(os.path.join(output_dir, 'shapes', f_out + '_pwm_concentration.shp'))
-        
-#         # --- Aggregate population by region ---
-#         # Drop geometry from intersect before grouping.
-#         numeric_intersect = intersect.drop(columns='geometry')
-#         pop_by_name = numeric_intersect.groupby('NAME', as_index=False)[population_columns].sum()
-        
-#         # Merge the aggregated population data with the output resolution GeoDataFrame.
-#         pwm_cols = [f"{col}_PWM" for col in population_columns]
-#         to_csv = pd.merge(pop_by_name, 
-#                           output_res_geo[['NAME'] + pwm_cols], 
-#                           on='NAME')
-#         to_csv.to_csv(os.path.join(output_dir, f_out + '_aggregated_exposure_concentrations.csv'), index=False)
-        
-#         return output_res_geo
 
 def export_pwm_map(population_columns, pop_exp, conc, output_dir, output_region, 
                    output_png_flag, f_out, ca_shp_path, shape_out, 
@@ -857,84 +749,6 @@ def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_
             
         return
 
-# def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_path):
-#         ''' 
-#         Creates map of PWM concentrations using simple chloropleth 
-        
-#         INPUTS:
-#             - output_res_geo: a dataframe containing the population-weighted mean
-#               concentrations for each output resolution
-#             - output_region: the geometry of the desired output region
-#             - output_dir: a filepath string of the location of the output directory
-#             - f_out: the name of the file output category (will append additional information)
-#             - ca_shp_path: a filepath string of the location of the California boundary shapefile
-            
-#         OUTPUTS:
-#             - None
-        
-#         '''
-#         # Read in CA boundary
-#         ca_shp = gpd.read_feather(ca_shp_path)
-#         ca_prj = ca_shp.to_crs(output_res_geo.crs)
-        
-#         # Reproject output_region
-#         output_region = output_region.to_crs(output_res_geo.crs)
-        
-#         # Create necessary labels and strings
-#         pol = 'All Emissions'
-#         st_str = '* Population-Weighted Average'
-#         fname = f_out + '_' + 'pop_wtd_concentrations.png'
-#         t_str = r'PM$_{2.5}$ Concentrations* '+'from {}'.format(pol)
-            
-#         # Tie things together
-#         fname = str.lower(fname)
-#         fpath = os.path.join(output_dir, fname)
-        
-#         # Grab relevant info
-#         c_to_plot = output_res_geo[['NAME', 'TOTAL_PWM', 'geometry']].copy()
-        
-#         # Clip to output region
-#         c_to_plot = gpd.clip(c_to_plot, output_region)
-        
-#         sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
-        
-#         fig, ax = plt.subplots(1,1)
-#         c_to_plot.plot(column='TOTAL_PWM',
-#                               figsize=(20,10),
-#                               legend=True,
-#                               legend_kwds={'label':r'Concentration of PM$_{2.5}$ ($\mu$g/m$^3$)'},
-#                               cmap='mako_r',
-#                               edgecolor='none',
-#                               antialiased=False,
-#                               ax = ax)
-        
-#         ca_prj.plot(edgecolor='black', facecolor='none', ax=ax)
-        
-#         # Clip to output_region
-#         minx, miny, maxx, maxy = output_region.total_bounds
-#         ax.set_xlim(minx, maxx)
-#         ax.set_ylim(miny, maxy)
-
-#         # Calculates the longitude and latitude of the center
-#         center_lon, center_lat = (minx + maxx) / 2, (miny + maxy) / 2
-        
-#         # Add north arrow
-#         angle_to_north = calculate_true_north_angle(center_lon, center_lat, output_res_geo.crs)
-#         add_north_arrow(ax,float(angle_to_north))
-        
-#         # Add scale bar
-#         scalebar = ScaleBar(1, location='lower left', border_pad=0.5)  # 1 pixel = 1 unit
-#         ax.add_artist(scalebar)
-        
-#         ax.set_title(t_str)
-#         ax.xaxis.set_visible(False)
-#         ax.yaxis.set_visible(False)
-#         ax.text(minx-(maxx-minx)*0.1, miny-(maxy-miny)*0.1, st_str, fontsize=12)
-        
-#         fig.tight_layout()
-#         fig.savefig(fpath, dpi=200)
-            
-#         return 
 
 def rename_for_shapefile(df, max_len=10):
     """
