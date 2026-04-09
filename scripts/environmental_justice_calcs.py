@@ -4,7 +4,7 @@
 EJ Functions
 
 @author: libbykoolik
-last modified: 2025-06-05
+last modified: 2026-04-09
 """
 
 # Import Libraries
@@ -201,7 +201,6 @@ def estimate_exposure_percentile(exposure_gdf, population_columns, verbose, dpm,
             - population_columns: a list of population columns to use from the population input file
             - verbose: a Boolean indicating whether or not detailed logging statements should be printed
             - dpm: a Boolean indicating whether or not to calculate percentiles for DPM
-            - dpm: a Boolean indicating whether or not to calculate percentiles for NOx
             
         OUTPUTS:
             - df_pctl: a dataframe of exposure concentrations by percentile of population exposed 
@@ -298,6 +297,8 @@ def export_exposure_gdf(population_columns, exposure_gdf, shape_out, f_out, dpm,
               estimates for each group
             - shape_out: a filepath string of the location of the shapefile output directory
             - f_out: the name of the file output category (will append additional information)
+            - dpm: a Boolean indicating whether or not to include DPM calculations
+            - nox_conc: a Boolean indicating whether or not to include NOx calculations
             
         OUTPUTS:
             - None (fname is surrogate for completion)
@@ -338,6 +339,8 @@ def export_exposure_csv(population_columns, exposure_gdf, output_dir, f_out, dpm
               estimates for each group
             - output_dir: a filepath string of the location of the output directory
             - f_out: the name of the file output category (will append additional information)
+            - dpm: a Boolean indicating whether or not to include DPM calculations
+            - nox_conc: a Boolean indicating whether or not to include NOx calculations
             
         OUTPUTS:
             - None (fname is surrogate for completion)
@@ -388,6 +391,8 @@ def export_exposure_disparity(exposure_disparity, output_dir, f_out, dpm, nox_co
               disparity of each group
             - output_dir: a filepath string of the location of the output directory
             - f_out: the name of the file output category (will append additional information)
+            - dpm: a Boolean indicating whether or not to include DPM calculations
+            - nox_conc: a Boolean indicating whether or not to include NOx calculations
             
         OUTPUTS:
             - None (fname is surrogate for completion)
@@ -440,6 +445,25 @@ def export_exposure_disparity(exposure_disparity, output_dir, f_out, dpm, nox_co
 
 def plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl,
                              verbose, debug_mode, dpm, nox_conc):
+    ''' 
+        Creates a percentile plot by group 
+        
+        INPUTS:
+            - population_columns: a list of population columns to use from the population input file
+            - output_dir: a filepath string of the location of the output directory
+            - f_out: the name of the file output category (will append additional information)
+            - exposure_pctl: a dataframe of exposure concentrations by percentile of population
+              exposed by group
+            - verbose: a Boolean indicating whether or not detailed logging statements should
+              be printed
+            - debug_mode: a Boolean indicating whether or not to output debug statements
+            - dpm: a Boolean indicating whether or not to include DPM
+            - nox_conc: a Boolean indicating whether or not to include NOx
+            
+        OUTPUTS:
+            - None (fname is surrogate for completion)
+        
+        '''
     
     verboseprint(verbose,
         '- [EJ] Drawing plot of exposure by percentile of each racial/ethnic group.',
@@ -580,7 +604,17 @@ def export_exposure(population_columns, exposure_gdf, exposure_disparity, exposu
 
 def region_pwm_helper(name, group, intersect, conc_col='TOTAL_CONC_UG/M3'):
     '''
-    Calculates the population-weighted mean for a specific region and group.
+      Estimates population-weighted mean for a subset of the full_dataset
+        
+      INPUTS:
+            - name: the specific name of the region type (e.g., SF BAY AREA)
+            - group: the racial/ethnic group of interest
+            - full_dataset: a dataframe containing all of the concentraion and population
+              intersection objects with regions assigned
+            - conc_col: the column that the PWMs should be calculated for
+            
+      OUTPUTS:
+            - pwm: the population-weighted mean concentration of conc_col
     '''
     # Slice the intersection dataframe for the specific output region (NAME)
     # and only for records where the group population is greater than 0
@@ -601,17 +635,33 @@ def region_pwm_helper(name, group, intersect, conc_col='TOTAL_CONC_UG/M3'):
 
 def export_pwm_map(population_columns, pop_exp, conc, output_dir, output_region, 
                    output_png_flag, f_out, ca_shp_path, shape_out, 
-                   dpm, nox_g):
-    ''' 
-    Aggregates population-weighted concentrations for all available pollutants
-    and exports them into a single shapefile and a single CSV.
+                   dpm, nox_conc):
+    
+    ''' Creates the exports for the population-weighted products requested when the 
+        user inputs an output resolution larger than the ISRM grid. 
+        
+        INPUTS:
+            - population_columns: a list of population columns to use from the population input file
+            - pop_exp: a dataframe containing the population information without age-resolution
+            - conc: a concentration object (which contains the crosswalk with geometry)
+            - output_dir: a filepath string of the location of the output directory
+            - output_region: the geometry of the desired output region
+            - f_out: the name of the file output category (will append additional information)
+            - ca_shp_path: a filepath string of the location of the California boundary shapefile
+            - shape_out: a filepath string of the location of the shapefile output directory
+            - dpm: a Boolean indicating whether or not to include DPM
+            - nox_conc: a Boolean indicating whether or not to include NOx
+            
+        OUTPUTS:
+            - output_res_geo: a GeoDataFrame with the aggregated population-weighted means.
+
     '''
     logging.info('- [EJ] Creating population-weighted mean summaries for all pollutants.')
 
     # 1. Map concentration columns to labels
     pollutant_mapping = {'TOTAL_CONC_UG/M3': 'PM25'}
     if dpm: pollutant_mapping['DPM_CONC_UG/M3'] = 'DPM'
-    if nox_g: pollutant_mapping['NOX_CONC_PPB'] = 'NOx'
+    if nox_conc: pollutant_mapping['NOX_CONC_PPB'] = 'NOx'
 
     pwm_cols = []
     
@@ -675,8 +725,16 @@ def visualize_pwm_conc(output_res_geo, output_region, output_dir, f_out, ca_shp_
         Creates map of PWM concentrations using simple chloropleth 
         
         INPUTS:
+            - output_res_geo: a dataframe containing the population-weighted mean concentrations for each output resolution
+            - output_region: the geometry of the desired output region
+            - output_dir: a filepath string of the location of the output directory
+            - f_out: the name of the file output category (will append additional information)
+            - ca_shp_path: a filepath string of the location of the California boundary shapefile
             - pol_label: The name of the pollutant (e.g., 'DPM', 'NOx')
             - data_col: The specific column name to plot (e.g., 'WHITE_NOX_PWM')
+
+        OUTPUTS:
+            - None
         '''
         # Read in CA boundary
         ca_shp = gpd.read_feather(ca_shp_path)
