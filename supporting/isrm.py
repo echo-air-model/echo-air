@@ -4,7 +4,7 @@
 ISRM Data Object
 
 @author: libbykoolik
-last modified: 2025-06-05
+last modified: 2026-04-10
 """
 
 # Import Libraries
@@ -47,6 +47,7 @@ class isrm:
           receptors within the output_region
         - PM25, NH3, NOx, SOX, VOC: the ISRM matrices for each of the primary 
           pollutants
+        - DPM, NOX_CONC: the ISRM matrices for each of the optional pollutants
         
     EXTERNAL FUNCTIONS:
         - get_pollutant_layer: returns the ISRM matrix for a single pollutant
