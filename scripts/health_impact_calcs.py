@@ -818,7 +818,6 @@ def rename_for_shapefile(df, endpoint, max_len=10):
             new_names[col] = replacement
             used.add(replacement)
             pop_counter += 1
-    
     logging_code = create_logging_code()[endpoint]
     changes = ", ".join([f"{old}→{new}" for old, new in new_names.items()])
     logging.info("  - {} Columns too long for shapefile renamed: {}".format(logging_code, changes))
