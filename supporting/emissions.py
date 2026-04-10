@@ -4,7 +4,7 @@
 Emissions Data Object
 
 @author: libbykoolik
-last modified: 2024-06-05
+last modified: 2026-04-10
 """
 
 # Import Libraries
@@ -36,6 +36,7 @@ class emissions:
         - load_file: set to True to import emissions, otherwise will just run checks
         - verbose: enable for more detailed outputs
         - debug_mode: a Boolean indicating whether or not to output debug statements
+        - nox_conc: a Boolean indicating whether or not to separate NOx concentrations
         
     CALCULATES:
         - PM25: primary PM2.5 emissions in each grid cell
@@ -43,6 +44,7 @@ class emissions:
         - VOC: VOC compound emissions in each grid cell
         - NOX: NOx emissions in each grid cell
         - SOX: SOx emissions in each grid cell
+        - DPM: DPM emissions in each grid cell
         - LA_flag, LB_flag, LC_flag: Booleans indicating whether 
           each layer should be calculated based on emissions release heights
           
