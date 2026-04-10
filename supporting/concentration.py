@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2025-06-05
+last modified: 2026-04-10
 """
 
 # Import Libraries
@@ -52,7 +52,7 @@ class concentration:
           combined from all three vertical layers
         - detailed_conc_clean: simplified geodataframe of the detailed concentrations 
           at ground-level combined from all three vertical layers
-        - total_conc: geodataframe with total ground-level PM2.5 concentrations 
+        - total_conc: geodataframe with total ground-level PM2.5, DPM, and/or NOx concentrations 
           across the ISRM grid
           
     EXTERNAL FUNCTIONS:
