@@ -5,7 +5,7 @@ Health Impact Functions
 
 @author: libbykoolik
 
-last modified: 2025-06-05
+last modified: 2026-04-10
 
 """
 
@@ -112,6 +112,7 @@ def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, po
             - verbose: a Boolean indicating whether or not detailed logging statements 
               should be printed 
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - dpm: a Boolean indicating whether or not to include DPM, set to false be default
             
         OUTPUTS:
             - pop_inc_conc: a dataframe containing excess mortality for the `endpoint` using
@@ -201,8 +202,6 @@ def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, po
         
         # Print statement
         logging.info('- {} {} health impacts calculated.'.format(logging_code, endpoint.title()))
-
-        # Add if statement here and only get concentrations if DPM is flagged, then call DPM health function calculations (CHECK)
         
         return pop_inc_conc
 
@@ -226,6 +225,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - pollutant: name of the pollutant to plot
             
         OUTPUTS:
             - fname: a string filename made by combining the `f_out` with the `group`
@@ -524,6 +524,7 @@ def export_health_impacts(hia_df, population_columns, group, endpoint, output_di
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed  
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - pollutant: name of the pollutant whose health impacts will be calculated
             
         OUTPUTS:
             - fname: a string filename made by combining the `f_out` with the `group`
@@ -585,6 +586,7 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed  
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - pollutant: name of the pollutant whose health impacts will be calculated
             
         OUTPUTS:
             - fname: a string filename made by combining the `f_out` with the `group`
@@ -656,18 +658,18 @@ def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoin
             - population_columns: a list of population columns to use from the population input file
             - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
               `function` provided
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', CANCER'
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed   
             - l: an intermediate string that has the endpoint label string (e.g., ACM_)
             - endpoint_nice: an intermediate string that has a nicely formatted version
               of the endpoint (e.g., All Cause)
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - pollutant: name of the pollutant whose health impacts will be calculated
         
         OUTPUTS:
-            - hia_summary: a summary dataframe containing population, excess mortality,
-              and excess mortality rate per demographic group.
+            - hia_summary: a summary dataframe containing population, excess mortality/incidence,
+              and excess mortality/incidence rate per demographic group.
             
         '''
         logging_code = create_logging_code()[endpoint]
@@ -719,8 +721,7 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpo
             - ca_shp_fp: a filepath string of the California state boundary shapefile
             - population_columns: a list of population columns to use from the population input file
             - group: the racial/ethnic group name
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', 'CANCER'
             - output_dir: a filepath string of the location of the output directory
             - f_out: the name of the file output category (will append additional information) 
             - shape_out: a filepath string for shapefiles
@@ -731,8 +732,8 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpo
             - debug_mode: a Boolean indicating whether or not to output debug statements
             
         OUTPUTS:
-            - hia_summary: a summary dataframe containing population, excess mortality,
-              and excess mortality rate per demographic group.
+            - hia_summary: a summary dataframe containing population, excess mortality/incidence,
+              and excess mortality/incidence rate per demographic group.
         
         '''    
         logging_code = create_logging_code()[endpoint]
@@ -771,6 +772,7 @@ def combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_o
             - f_out: the name of the file output category (will append additional information) 
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed      
+            - dpm_summary: an optional summary dataframe containing population, excess cancer incidence, and cancer incidence rates 
             
         OUTPUTS: None
             
@@ -834,7 +836,7 @@ def hazard_quotient(conc, output_dir, f_out,):
     Calculates the Hazard Quotient (HQ) for each ISRM grid cell
 
     INPUTS:
-      - conc: a vector with the dmp concentration for each grid cell
+      - conc: a vector with the dpm concentration for each grid cell
     
     OUTPUTS:
       - df_hq: a dataframe of HQs per grid cell
