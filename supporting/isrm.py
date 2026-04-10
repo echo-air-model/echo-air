@@ -38,6 +38,8 @@ class isrm:
         - verbose: a Boolean indicating whether or not detailed logging statements 
           should be printed
         - debug_mode: a Boolean indicating whether or not to output debug statements
+        - dpm: a Boolean indicating whether or not the DPM ISRM should be loaded
+        - nox_conc: a Boolean indicating whether or not the NOx concentration ISRM should be loaded
           
     CALCULATES:
         - receptor_IDs: the IDs associated with ISRM receptors within the output_region
@@ -65,93 +67,21 @@ class isrm:
         if self.nox_conc:
             self.pollutant_names.append('NOX_CONC')
 
-        # inside isrm.__init__, after defining self.isrm_path:
-        # Unpack all pollutant‐layer paths plus the main file path, depending on what pollutants are needed
-        # The get_isrm_files() method returns a tuple of strings in this exact order:
-        if self.dpm and self.nox_conc:
-            (self.pm25_LA_path,
-            self.pm25_LB_path,
-            self.pm25_LC_path,
-            self.nh3_LA_path,
-            self.nh3_LB_path,
-            self.nh3_LC_path,
-            self.nox_LA_path,
-            self.nox_LB_path,
-            self.nox_LC_path,
-            self.sox_LA_path,
-            self.sox_LB_path,
-            self.sox_LC_path,
-            self.voc_LA_path,
-            self.voc_LB_path,
-            self.voc_LC_path,
-            self.dpm_LA_path,
-            self.dpm_LB_path,
-            self.dpm_LC_path,
-            self.nox_conc_LA_path,
-            self.nox_conc_LB_path,
-            self.nox_conc_LC_path,
-            self.geo_file_path
-            ) = self.get_isrm_files()
-        elif self.dpm:
-            (self.pm25_LA_path,
-            self.pm25_LB_path,
-            self.pm25_LC_path,
-            self.nh3_LA_path,
-            self.nh3_LB_path,
-            self.nh3_LC_path,
-            self.nox_LA_path,
-            self.nox_LB_path,
-            self.nox_LC_path,
-            self.sox_LA_path,
-            self.sox_LB_path,
-            self.sox_LC_path,
-            self.voc_LA_path,
-            self.voc_LB_path,
-            self.voc_LC_path,
-            self.dpm_LA_path,
-            self.dpm_LB_path,
-            self.dpm_LC_path,
-            self.geo_file_path
-            ) = self.get_isrm_files()
-        elif self.nox_conc:
-            (self.pm25_LA_path,
-            self.pm25_LB_path,
-            self.pm25_LC_path,
-            self.nh3_LA_path,
-            self.nh3_LB_path,
-            self.nh3_LC_path,
-            self.nox_LA_path,
-            self.nox_LB_path,
-            self.nox_LC_path,
-            self.sox_LA_path,
-            self.sox_LB_path,
-            self.sox_LC_path,
-            self.voc_LA_path,
-            self.voc_LB_path,
-            self.voc_LC_path,
-            self.nox_conc_LA_path,
-            self.nox_conc_LB_path,
-            self.nox_conc_LC_path,
-            self.geo_file_path
-            ) = self.get_isrm_files()
-        else:
-            (self.pm25_LA_path,
-            self.pm25_LB_path,
-            self.pm25_LC_path,
-            self.nh3_LA_path,
-            self.nh3_LB_path,
-            self.nh3_LC_path,
-            self.nox_LA_path,
-            self.nox_LB_path,
-            self.nox_LC_path,
-            self.sox_LA_path,
-            self.sox_LB_path,
-            self.sox_LC_path,
-            self.voc_LA_path,
-            self.voc_LB_path,
-            self.voc_LC_path,
-            self.geo_file_path
-            ) = self.get_isrm_files()
+        # 2. Get the flat list of paths
+        all_paths = self.get_isrm_files()
+
+        # 3. Dynamically assign attributes (self.pm25_la_path, etc.)
+        # We use all_paths[:-1] to skip the geo_file at the end of the list
+        path_idx = 0
+        for pol in self.pollutant_names:
+            for layer in ['LA', 'LB', 'LC']:
+                attr_name = f"{pol.lower()}_{layer}_path"
+                setattr(self, attr_name, all_paths[path_idx])
+                path_idx += 1
+            
+        # 4. Assign the geo path (the last item)
+        self.geo_file_path = all_paths[-1]
+
         
         # Store the region definitions and control flags for later use
         self.output_region = output_region # GeoDataFrame defining where concentrations run
@@ -217,55 +147,19 @@ class isrm:
     def __repr__(self):
         return '< ISRM object >'
 
-    
     def get_isrm_files(self):
-        ''' Defines ISRM file paths from the ISRM_Path input '''
-        # for each pollutant, three files:
-        # PM2.5
-        pm25_LA = path.join(self.isrm_path, 'ISRM_PM25_LA.npy')
-        pm25_LB = path.join(self.isrm_path, 'ISRM_PM25_LB.npy')
-        pm25_LC = path.join(self.isrm_path, 'ISRM_PM25_LC.npy')
-        # NH3
-        nh3_LA  = path.join(self.isrm_path, 'ISRM_NH3_LA.npy')
-        nh3_LB  = path.join(self.isrm_path, 'ISRM_NH3_LB.npy')
-        nh3_LC  = path.join(self.isrm_path, 'ISRM_NH3_LC.npy')
-        # NOx
-        nox_LA  = path.join(self.isrm_path, 'ISRM_NOX_LA.npy')
-        nox_LB  = path.join(self.isrm_path, 'ISRM_NOX_LB.npy')
-        nox_LC  = path.join(self.isrm_path, 'ISRM_NOX_LC.npy')
-        # SOx
-        sox_LA  = path.join(self.isrm_path, 'ISRM_SOX_LA.npy')
-        sox_LB  = path.join(self.isrm_path, 'ISRM_SOX_LB.npy')
-        sox_LC  = path.join(self.isrm_path, 'ISRM_SOX_LC.npy')
-        # VOC
-        voc_LA  = path.join(self.isrm_path, 'ISRM_VOC_LA.npy')
-        voc_LB  = path.join(self.isrm_path, 'ISRM_VOC_LB.npy')
-        voc_LC  = path.join(self.isrm_path, 'ISRM_VOC_LC.npy')
-        geo_file_path = path.join(self.isrm_path, 'isrm_geo.feather')
-        # DPM
-        if self.dpm:
-            dpm_LA  = path.join(self.isrm_path, 'ISRM_DPM_LA.npy')
-            dpm_LB  = path.join(self.isrm_path, 'ISRM_DPM_LB.npy')
-            dpm_LC  = path.join(self.isrm_path, 'ISRM_DPM_LC.npy')
-        # NOx (g)
-        if self.nox_conc:
-            nox_conc_LA  = path.join(self.isrm_path, 'ISRM_NOX_CONC_LA.npy')
-            nox_conc_LB  = path.join(self.isrm_path, 'ISRM_NOX_CONC_LB.npy')
-            nox_conc_LC  = path.join(self.isrm_path, 'ISRM_NOX_CONC_LC.npy')
-
-        #Depending on requested pollutants, output ISRM paths
-        if self.dpm and self.nox_conc:
-            return (pm25_LA, pm25_LB, pm25_LC, nh3_LA,  nh3_LB,  nh3_LC, nox_LA,  nox_LB,  
-                    nox_LC, sox_LA,  sox_LB,  sox_LC, voc_LA,  voc_LB,  voc_LC, dpm_LA, dpm_LB, dpm_LC, nox_conc_LA, nox_conc_LB, nox_conc_LC, geo_file_path)
-        elif self.dpm:
-            return (pm25_LA, pm25_LB, pm25_LC, nh3_LA,  nh3_LB,  nh3_LC, nox_LA,  nox_LB,  
-                    nox_LC, sox_LA,  sox_LB,  sox_LC, voc_LA,  voc_LB,  voc_LC, dpm_LA, dpm_LB, dpm_LC, geo_file_path)
-        elif self.nox_conc:
-            return (pm25_LA, pm25_LB, pm25_LC, nh3_LA,  nh3_LB,  nh3_LC, nox_LA,  nox_LB,  
-                    nox_LC, sox_LA,  sox_LB,  sox_LC, voc_LA,  voc_LB,  voc_LC, nox_conc_LA, nox_conc_LB, nox_conc_LC, geo_file_path)
-        else:
-            return (pm25_LA, pm25_LB, pm25_LC, nh3_LA,  nh3_LB,  nh3_LC, nox_LA,  nox_LB,  
-                    nox_LC, sox_LA,  sox_LB,  sox_LC, voc_LA,  voc_LB,  voc_LC,geo_file_path)
+        ''' Defines ISRM file paths based on active pollutants '''
+        paths = []
+    
+        # Iterate through each active pollutant and each required layer
+        for pol in self.pollutant_names:
+            for layer in ['LA', 'LB', 'LC']:
+                file_name = f'ISRM_{pol}_{layer}.npy'
+                paths.append(os.path.join(self.isrm_path, file_name))
+            
+        # Always append the geo file at the end
+        paths.append(os.path.join(self.isrm_path, 'isrm_geo.feather'))
+        return tuple(paths)
 
     def check_path(self):
         ''' Checks if ISRM layer files and geo file exist at the paths specified '''
