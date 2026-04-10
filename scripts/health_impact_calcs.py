@@ -63,8 +63,7 @@ def krewski(conc, inc, pop, endpoint):
             - conc: a float with the exposure concentration for a given geography
             - inc: a float with the background incidence for a given group in a given geography
             - pop: a float with the population estimate for a given group in a given geography
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 
-              or 'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 'LUNG CANCER'
             
         OUTPUTS: 
             - a float estimating the number of excess mortalities for the `endpoint` across 
@@ -105,17 +104,15 @@ def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, po
             - health_data_pop_inc: a `health_data` object's pop_inc member as defined in the `health_data.py` 
               supporting script
             - pop: a population count
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 
-              or 'LUNG CANCER'
-            - function: the health impact function of choice (currently only `krewski` is 
-              built out)
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER' or 'CANCER'
+            - function: the health impact function of choice
             - verbose: a Boolean indicating whether or not detailed logging statements 
               should be printed 
             - debug_mode: a Boolean indicating whether or not to output debug statements
             - dpm: a Boolean indicating whether or not to include DPM, set to false be default
             
         OUTPUTS:
-            - pop_inc_conc: a dataframe containing excess mortality for the `endpoint` using
+            - pop_inc_conc: a dataframe containing excess mortality or incidence for the `endpoint` using
               the `function` provided
         
         '''
@@ -212,12 +209,11 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         Plots mortality maps and exports as a png. 
         
         INPUTS:
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the `function`
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the `function`
               provided
             - ca_shp_fp: a filepath string of the California state boundary shapefile
             - group: the racial/ethnic group name
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', or 'CANCER'
             - output_resolution: a String that represents the output resolution 
             - boundary: a GeoDataFrame that represents the output resolution data
             - output_dir: a filepath string of the location of the output directory
@@ -513,12 +509,11 @@ def export_health_impacts(hia_df, population_columns, group, endpoint, output_di
         Plots mortality as a shapefile. 
         
         INPUTS:
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the 
               `function` provided
             - population_columns: a list of population columns to use from the population input file
             - group: the racial/ethnic group name
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', or 'CANCER'
             - output_dir: a filepath string of the location of the output directory
             - f_out: the name of the file output category (will append additional information) 
             - verbose: a Boolean indicating whether or not detailed logging statements should 
@@ -576,11 +571,10 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
         Exports total mortality as a csv file. 
         
         INPUTS:
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the 
               `function` provided
             - population_columns: a list of population columns to use from the population input file
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER' or 'CANCER'
             - output_dir: a filepath string of the location of the output directory
             - f_out: the name of the file output category (will append additional information) 
             - verbose: a Boolean indicating whether or not detailed logging statements should 
@@ -656,9 +650,9 @@ def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoin
         
         INPUTS:
             - population_columns: a list of population columns to use from the population input file
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the 
               `function` provided
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', or 'CANCER'
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed   
             - l: an intermediate string that has the endpoint label string (e.g., ACM_)
@@ -716,12 +710,12 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpo
         Automates this process a bit.
         
         INPUTS:
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the 
               `function` provided
             - ca_shp_fp: a filepath string of the California state boundary shapefile
             - population_columns: a list of population columns to use from the population input file
             - group: the racial/ethnic group name
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', 'CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', or 'CANCER'
             - output_dir: a filepath string of the location of the output directory
             - f_out: the name of the file output category (will append additional information) 
             - shape_out: a filepath string for shapefiles
@@ -730,6 +724,7 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpo
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed      
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - dpm: A Boolean indicating whether or not to run DPM calcs
             
         OUTPUTS:
             - hia_summary: a summary dataframe containing population, excess mortality/incidence,
@@ -836,7 +831,7 @@ def hazard_quotient(conc, output_dir, f_out,):
     Calculates the Hazard Quotient (HQ) for each ISRM grid cell
 
     INPUTS:
-      - conc: a vector with the dpm concentration for each grid cell
+      - conc: a vector with the DPM concentration for each grid cell
     
     OUTPUTS:
       - df_hq: a dataframe of HQs per grid cell
