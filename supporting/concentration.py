@@ -4,7 +4,7 @@
 Total Concentration Data Object
 
 @author: libbykoolik
-last modified: 2025-10-13
+last modified: 2026-04-10
 """
 
 # Import Libraries
@@ -52,7 +52,7 @@ class concentration:
           combined from all three vertical layers
         - detailed_conc_clean: simplified geodataframe of the detailed concentrations 
           at ground-level combined from all three vertical layers
-        - total_conc: geodataframe with total ground-level PM2.5 concentrations 
+        - total_conc: geodataframe with total ground-level PM2.5, DPM, and/or NOx concentrations 
           across the ISRM grid
           
     EXTERNAL FUNCTIONS:
@@ -157,15 +157,35 @@ class concentration:
         detailed_concentration_clean = gpd.GeoDataFrame(detailed_concentration_clean, geometry='geometry', crs=self.crs)
         
         # Make a final version that is very simple
-        total_concentration = detailed_concentration_clean[['ISRM_ID','geometry', 'TOTAL_CONC_UG/M3']].copy()
+        total_conc_columns = ['ISRM_ID','geometry', 'TOTAL_CONC_UG/M3']
+        
+        # Add more columns for final output, if needed
+        if self.emissions.dpm:
+            total_conc_columns.append('DPM_CONC_UG/M3')
+        if self.emissions.nox_conc:
+            total_conc_columns.append('NOX_CONC_PPB')
+
+        total_concentration = detailed_concentration_clean[total_conc_columns].copy()
         
         return detailed_concentration, detailed_concentration_clean, total_concentration
     
     def visualize_concentrations(self, var, output_region, output_dir, f_out, ca_shp_fp, export = True):
         ''' Creates map of concentrations using simple chloropleth '''
         # Note to build this out further at some point in the future, works for now
+
+        # Define dictionary to change var column name into a nicer name
+        var_to_clean = {'TOTAL_CONC_UG/M3':'PM2.5',
+                        'DPM_CONC_UG/M3' : 'DPM',
+                        'NOX_CONC_PPB' : 'NOx'}
+        
+        pollutant_name = var_to_clean[var]
+
+        labels = {'NOX_CONC_PPB':f'Concentration of {pollutant_name} (ppb)',
+                    'TOTAL_CONC_UG/M3':f'Concentration of {pollutant_name} ($\\mu$g/m$^3$)',
+                    'DPM_CONC_UG/M3' : f'Concentration of {pollutant_name} ($\\mu$g/m$^3$)'}
+
         if self.verbose:
-            logging.info('- Drawing map of total PM2.5 concentrations.')
+            logging.info('- Drawing map of total ' + pollutant_name + ' concentrations.')
         
         # Read in CA boundary
         ca_shp = gpd.read_feather(ca_shp_fp)
@@ -189,13 +209,13 @@ class concentration:
         # A few things vary on the output resolution
         if self.output_resolution in ['AB','AD','C']:
             st_str = '* Area-Weighted Average'
-            fname = f_out + '_' + self.name.lower() + '_area_wtd_concentrations.png'
-            t_str = r'PM$_{2.5}$ Concentrations* '+'from {}'.format(title_name)
+            fname = f_out + '_' + self.name.lower() + '_' + pollutant_name + '_area_wtd_concentrations.png'
+            t_str = fr'{pollutant_name} Concentrations* '+'from {}'.format(title_name)
             c_to_plot = self.summary_conc[['NAME', 'geometry', var]].copy()
             
         else:
-            t_str = r'PM$_{2.5}$ Concentrations '+'from {}'.format(title_name)
-            fname = f_out + '_' + self.name.lower() + '_concentrations.png'
+            t_str = fr'{pollutant_name} Concentrations '+'from {}'.format(title_name)
+            fname = f_out + '_' + self.name.lower() + '_'+ pollutant_name + '_concentrations.png'
             c_to_plot = self.detailed_conc_clean[['ISRM_ID', 'geometry', var]].copy()
             
         # Tie things together
@@ -220,7 +240,7 @@ class concentration:
         c_to_plot.plot(column=var,
                               figsize=(20,10),
                               legend=True,
-                              legend_kwds={'label':r'Concentration of PM$_{2.5}$ ($\mu$g/m$^3$)'},
+                              legend_kwds={'label':labels[var]},
                               cmap='mako_r',
                               edgecolor='none',
                               antialiased=False,
@@ -255,7 +275,7 @@ class concentration:
         fig.tight_layout()
         
         if export:
-            verboseprint(self.verbose, '   - [CONCENTRATION] Exporting a map of total PM2.5 concentrations as a png.',
+            verboseprint(self.verbose, '   - [CONCENTRATION] Exporting a map of total ' + pollutant_name + ' concentrations as a png.',
                          self.debug_mode, frameinfo=getframeinfo(currentframe()))
             fig.savefig(fpath, dpi=200)
             logging.info('- [CONCENTRATION] Map of concentrations output as {}'.format(fname))
@@ -272,10 +292,21 @@ class concentration:
             
             # Make a copy and change column names to meet shapefile requirements
             gdf_export = self.detailed_conc.copy()
-            gdf_export.columns = ['ISRM_ID', 'geometry', 'PM25_UG_S', 'NH3_UG_S',
+
+            relevant_columns = ['ISRM_ID', 'geometry', 'PM25_UG_S', 'NH3_UG_S',
                                   'VOC_UG_S', 'NOX_UG_S', 'SOX_UG_S', 'fPM_UG_M3', 
                                   'fNH3_UG_M3', 'fVOC_UG_M3', 'fNOX_UG_M3',
-                                  'fSOX_UG_M3', 'PM25_UG_M3', 'LAYER']
+                                  'fSOX_UG_M3', 'PM25_UG_M3']
+            
+            #Add DPM and NOX_CONC columns only if needed
+            if self.emissions.dpm:
+                relevant_columns += ['DPM_UG_S', 'DPM_UG_M3']
+            if self.emissions.nox_conc:
+                relevant_columns += ['NOXC_UG_S', 'NOXC_PPB']
+
+            relevant_columns += ['LAYER']
+
+            gdf_export.columns = relevant_columns
             
             # Ensure it's a GeoDataFrame so .to_file() exists
             if not isinstance(gdf_export, gpd.GeoDataFrame):
@@ -295,8 +326,14 @@ class concentration:
             
             # Make a copy and change column names to meet shapefile requirements
             gdf_export = self.summary_conc.copy()
-            gdf_export.columns = ['NAME', 'geometry', 'PM25_UG_M3']
-            
+            relevant_columns = ['NAME', 'geometry', 'PM25_UG_M3']
+
+            if self.emissions.dpm:
+                relevant_columns.append('DPM_UG_M3')
+            if self.emissions.nox_conc:
+                relevant_columns.append('NOXC_PPB')
+                
+            gdf_export.columns = relevant_columns
             # Ensure it's a GeoDataFrame so .to_file() exists
             if not isinstance(gdf_export, gpd.GeoDataFrame):
                 gdf_export = gpd.GeoDataFrame(
@@ -336,16 +373,27 @@ class concentration:
             intersect['area_frac'] = intersect['area_km2'] / intersect['area_total']
 
             # Update the concentration to scale by the fraction
-            intersect['TOTAL_CONC_UG/M3'] = intersect['area_frac'] * intersect['TOTAL_CONC_UG/M3']  
+            intersect['TOTAL_CONC_UG/M3'] = intersect['area_frac'] * intersect['TOTAL_CONC_UG/M3']
+            relevant_columns = ['TOTAL_CONC_UG/M3']
+
+            #Add DPM and NOX_CONC columns only if needed
+            if self.emissions.dpm: 
+                intersect['DPM_CONC_UG/M3'] = intersect['area_frac'] * intersect['DPM_CONC_UG/M3']  
+                intersect['DPM_CONC_UG/M3'] = intersect['DPM_CONC_UG/M3'].fillna(0)
+                relevant_columns.append('DPM_CONC_UG/M3')
+            if self.emissions.nox_conc:
+                intersect['NOX_CONC_PPB'] = intersect['area_frac'] * intersect['NOX_CONC_PPB'] 
+                intersect['NOX_CONC_PPB'] = intersect['NOX_CONC_PPB'].fillna(0)
+                relevant_columns.append('NOX_CONC_PPB')
                 
             # Remove any null variables
             intersect['TOTAL_CONC_UG/M3'] = intersect['TOTAL_CONC_UG/M3'].fillna(0)
          
             # Sum up for each larger shape
-            summary_conc = intersect.groupby(['NAME'])[['TOTAL_CONC_UG/M3']].sum().reset_index()
+            summary_conc = intersect.groupby(['NAME'])[relevant_columns].sum().reset_index()
             
             ## Clean up
-            summary_conc = summary_conc[['NAME','TOTAL_CONC_UG/M3']].copy()
+            summary_conc = summary_conc[['NAME'] + relevant_columns].copy()
                         
             # Clean up
             summary_conc = summary_conc.reset_index(drop=True)
@@ -356,7 +404,7 @@ class concentration:
             # Also, save a crosswalk
             crosswalk = intersect[['NAME','ISRM_ID','area_frac', 'area_total', 'geometry']].copy()
             crosswalk = crosswalk[~crosswalk['NAME'].isna()].copy()
-            crosswalk = pd.merge(crosswalk, tmp[['ISRM_ID','TOTAL_CONC_UG/M3']], on='ISRM_ID', how='left')
+            crosswalk = pd.merge(crosswalk, tmp[['ISRM_ID'] + relevant_columns], on='ISRM_ID', how='left')
              
         # If not, create summary_conc from total_conc
         else:
@@ -379,6 +427,10 @@ class concentration:
         # Draw the map
         if self.output_png_flag:
             self.visualize_concentrations('TOTAL_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
+            if self.emissions.dpm:
+                self.visualize_concentrations('DPM_CONC_UG/M3', output_region, output_dir, f_out, ca_shp_path, export=True)
+            if self.emissions.nox_conc:
+                self.visualize_concentrations('NOX_CONC_PPB', output_region, output_dir, f_out, ca_shp_path, export=True)
         
         # Export the shapefiles
         self.export_concentrations(shape_out, f_out)

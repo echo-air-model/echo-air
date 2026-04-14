@@ -5,7 +5,7 @@ Health Impact Functions
 
 @author: libbykoolik
 
-last modified: 2025-12-10
+last modified: 2026-04-10
 
 """
 
@@ -63,8 +63,7 @@ def krewski(conc, inc, pop, endpoint):
             - conc: a float with the exposure concentration for a given geography
             - inc: a float with the background incidence for a given group in a given geography
             - pop: a float with the population estimate for a given group in a given geography
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 
-              or 'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 'LUNG CANCER'
             
         OUTPUTS: 
             - a float estimating the number of excess mortalities for the `endpoint` across 
@@ -89,11 +88,13 @@ def create_logging_code():
         '''
         logging_code = {'ALL CAUSE':'[ACM]', 
                         'ISCHEMIC HEART DISEASE':'[IHD]', 
-                        'LUNG CANCER':'[LCM]'}
+                        'LUNG CANCER':'[LCM]',
+                        'HAZARD QUOTIENT':'[HQ]',
+                        'CANCER RISK':'[DPM]'}
         return logging_code
 
 #%% Main Calculation Functions
-def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, pop, endpoint, function, verbose, debug_mode):
+def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, pop, endpoint, function, verbose, debug_mode, dpm = False):
         ''' 
         Calculate Excess Mortality 
         
@@ -103,26 +104,37 @@ def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, po
             - health_data_pop_inc: a `health_data` object's pop_inc member as defined in the `health_data.py` 
               supporting script
             - pop: a population count
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 
-              or 'LUNG CANCER'
-            - function: the health impact function of choice (currently only `krewski` is 
-              built out)
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER' or 'CANCER'
+            - function: the health impact function of choice
             - verbose: a Boolean indicating whether or not detailed logging statements 
               should be printed 
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - dpm: a Boolean indicating whether or not to include DPM, set to false be default
             
         OUTPUTS:
-            - pop_inc_conc: a dataframe containing excess mortality for the `endpoint` using
+            - pop_inc_conc: a dataframe containing excess mortality or incidence for the `endpoint` using
               the `function` provided
         
         '''
-        
+        # Define dictionary for column of interest
+        column = {"DPM":"RISK", "PM25":"TOTAL_CONC_UG/M3"}
+
+        # Change logging statement depending on pollutant
+        if dpm:
+          logging_code = create_logging_code()[endpoint]
+          endpoint_full = endpoint + " incidence"
+          pollutant = "DPM"
+          # CHECK
+          logging.info('- {} Estimating excess {} from DPM. This step may take time.'.format(logging_code, endpoint_full.lower()))
+        else:
         # Set up some logging things and print statements
-        logging_code = create_logging_code()[endpoint]
-        logging.info('- {} Estimating excess {} mortality from PM2.5. This step may take time.'.format(logging_code, endpoint.lower()))
+          logging_code = create_logging_code()[endpoint]
+          endpoint_full = endpoint + " mortality"
+          pollutant = "PM25"
+          logging.info('- {} Estimating excess {} from PM2.5. This step may take time.'.format(logging_code, endpoint_full.lower()))
         
         # Get the population-incidence  and total concentration
-        verboseprint(verbose, '- {} Creating dataframe to combine concentration data with {} mortality BenMAP inputs.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
+        verboseprint(verbose, '- {} Creating dataframe to combine concentration data with {} BenMAP inputs.'.format(logging_code, endpoint_full.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
 
         # Ensure conc is a GeoDataFrame by converting it explicitly.
         # Here, 'conc' is assumed to have a 'geometry' column and a CRS stored in conc.crs
@@ -142,23 +154,26 @@ def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, po
                 pop_inc_conc = gpd.GeoDataFrame(health_data_pop_inc, geometry="geometry")
         
         # Merge these on ISRM_ID
-        pop_inc_conc = health_data_pop_inc.merge(conc_hia[['ISRM_ID', 'TOTAL_CONC_UG/M3']], on='ISRM_ID')
+        pop_inc_conc = health_data_pop_inc.merge(conc_hia[['ISRM_ID', column[pollutant]]], on='ISRM_ID')
         verboseprint(verbose, '- {} Successfully merged concentrations and {} input data.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
-        verboseprint(verbose, '- {} Estimating {} mortality for each ISRM grid cell.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
+        verboseprint(verbose, '- {} Estimating {} for each ISRM grid cell.'.format(logging_code, endpoint_full.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
             
         # Estimate excess mortality
-        pop_inc_conc[endpoint] = pop_inc_conc.apply(lambda x: function(x['TOTAL_CONC_UG/M3'],
+        if dpm:
+             pop_inc_conc[endpoint] = pop_inc_conc.apply(lambda x: function(x['RISK'], x["POPULATION"]), axis=1)
+        else:
+             pop_inc_conc[endpoint] = pop_inc_conc.apply(lambda x: function(x['TOTAL_CONC_UG/M3'],
                                                                       x[endpoint+' INC'],
                                                                       x['POPULATION'],
                                                                       endpoint), axis=1)
-        verboseprint(verbose, '- {} Successfully estimated {} mortality for each ISRM grid cell.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
-        verboseprint(verbose, '- {} Determining excess {} mortality by racial/ethnic group.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
+        verboseprint(verbose, '- {} Successfully estimated {} for each ISRM grid cell.'.format(logging_code, endpoint_full.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
+        verboseprint(verbose, '- {} Determining excess {} by racial/ethnic group.'.format(logging_code, endpoint_full.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
         
         # Pivot the dataframe to get races as columns
         pop_inc_conc = pop_inc_conc.pivot_table(index='ISRM_ID',columns='RACE', 
                                                 values=endpoint, aggfunc='sum', 
                                                 fill_value=0)
-        verboseprint(verbose, '- {} Performing initial clean up of excess {} mortality data.'.format(logging_code, endpoint.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
+        verboseprint(verbose, '- {} Performing initial clean up of excess {} data.'.format(logging_code, endpoint_full.title()), debug_mode, frameinfo=getframeinfo(currentframe()))
 
         # Add geometry back in
         pop_inc_conc = pd.merge(conc_hia, pop_inc_conc, on='ISRM_ID', how='left')
@@ -180,7 +195,7 @@ def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, po
         verboseprint(verbose, '- {} Performing final clean up.'.format(logging_code), debug_mode, frameinfo=getframeinfo(currentframe()))
 
         col_endpoint = [f"{endpoint}_{col}" for col in population_columns]
-        pop_inc_conc = pop_inc_conc[['ISRM_ID', 'TOTAL_CONC_UG/M3'] + population_columns + col_endpoint +  ['geometry']]
+        pop_inc_conc = pop_inc_conc[['ISRM_ID', column[pollutant]] + population_columns + col_endpoint +  ['geometry']]
         
         # Print statement
         logging.info('- {} {} health impacts calculated.'.format(logging_code, endpoint.title()))
@@ -189,17 +204,16 @@ def calculate_excess_mortality(population_columns, conc, health_data_pop_inc, po
 
 
 #%% Formatting and Exporting Functions
-def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode):
+def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode, pollutant):
         ''' 
         Plots mortality maps and exports as a png. 
         
         INPUTS:
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the `function`
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the `function`
               provided
             - ca_shp_fp: a filepath string of the California state boundary shapefile
             - group: the racial/ethnic group name
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', or 'CANCER'
             - output_resolution: a String that represents the output resolution 
             - boundary: a GeoDataFrame that represents the output resolution data
             - output_dir: a filepath string of the location of the output directory
@@ -207,6 +221,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - pollutant: name of the pollutant to plot
             
         OUTPUTS:
             - fname: a string filename made by combining the `f_out` with the `group`
@@ -214,15 +229,24 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
               
         '''
         logging_code = create_logging_code()[endpoint]
-        verboseprint(verbose, '- {} Drawing plot of excess {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
+
+        if pollutant == 'DPM':
+            endpoint_full = endpoint + " incidence"
+            #Begin creating output file directory and name string
+            fname = fname = f_out + '_' + group + '_' + endpoint + '_excess_incidence.png'
+        else:
+            endpoint_full = endpoint + " mortality"
+            #Begin creating output file directory and name string
+            fname = f_out + '_' + group + '_' + endpoint + '_excess_mortality.png'
+        
+        verboseprint(verbose, '- {} Drawing plot of excess {} from {} exposure.'.format(logging_code, endpoint_full.lower(), pollutant), debug_mode, frameinfo=getframeinfo(currentframe()))
         
         sns.set_theme(context="notebook", style="whitegrid", font_scale=1.25)
         plt.rcParams['patch.linewidth'] = 0
         plt.rcParams['patch.edgecolor'] = 'none'
         plt.rcParams["patch.force_edgecolor"] = False
         
-        # Create the output file directory and name string
-        fname = f_out + '_' + group + '_' + endpoint + '_excess_mortality.png'
+        # Contine creating the output file directory and name string
         fname = str.lower(fname)
         fpath = os.path.join(output_dir, fname)
         
@@ -257,8 +281,26 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         # Initialize the figure as four panes
         fig, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, figsize=(22, 6))
 
+        # Define labels based on pollutant being plotted
+        if pollutant == 'PM2.5':
+          col = 'TOTAL_CONC_UG/M3'
+          pretty_pol = 'PM$_{2.5}$'
+          outcome_word = 'Mortality'
+          outcome_word_lower = 'mortality'
+          per_area_label = r'Excess Mortality (mortality/km$^2$)'
+          per_pop_label = r'Mortality per Population (mortality/100 K people)'
+          file_suffix = 'excess_mortality'
+        else:  # DPM
+          col = 'RISK'
+          pretty_pol = 'DPM'
+          outcome_word = 'Incidence'
+          outcome_word_lower = 'incidence'
+          per_area_label = r'Excess Incidence (incidence/km$^2$)'
+          per_pop_label = r'Incidence per Population (incidence/100 K people)'
+          file_suffix = 'excess_incidence'
+
         # Check for negative bounds that will break the LogNorm
-        if hia_df['TOTAL_CONC_UG/M3'].min() < 0:
+        if hia_df[col].min() < 0:
             logging.info('* {} Negative concentrations and outcomes detected for {}. Health outcome plots may not represent true outcome distributions in space.'.format(logging_code, fname))
 
         ## Panel 0: Population Density
@@ -271,17 +313,17 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
                     ax=ax0)
         
         ## Panel 1: PM2.5 Exposure Concentration
-        hia_df.plot(column='TOTAL_CONC_UG/M3', legend=True,
-                    legend_kwds={'label': r'PM$_{2.5}$ Concentration ($\mu$g/m$^3$)'},
+        hia_df.plot(column=col, legend=True,
+                    legend_kwds={'label': fr'{pretty_pol} Concentration ($\mu$g/m$^3$)'},
                     edgecolor='none', cmap='mako_r',
-                    norm=matplotlib.colors.LogNorm(vmin=max(hia_df['TOTAL_CONC_UG/M3'].min(),1e-9),
-                                                    vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
+                    norm=matplotlib.colors.LogNorm(vmin=max(hia_df[col].min(),1e-9),
+                                                    vmax=hia_df[col].max()),
                     antialiased=False,
                     ax=ax1)
         
         ## Panel 2: Excess Mortality per Area
         hia_df.plot(column='MORT_AREA_NORM', legend=True,
-                    legend_kwds={'label': r'Excess Mortality (mortality/km$^2$)'},
+                    legend_kwds={'label': per_area_label},
                     edgecolor='none', cmap='mako_r',
                     norm=matplotlib.colors.LogNorm(vmin=hia_mort_area_min,
                                                     vmax=hia_df['MORT_AREA_NORM'].max()),
@@ -290,7 +332,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         
         ## Panel 3: Excess Mortality per Population
         hia_df.plot(column='MORT_OVER_POP', legend=True,
-                    legend_kwds={'label': r'Mortality per Population (mortality/100 K people)'},
+                    legend_kwds={'label': per_pop_label},
                     edgecolor='none', cmap='mako_r',
                     norm=matplotlib.colors.LogNorm(vmin=max(hia_df['MORT_OVER_POP'].min(),1e-9),
                                                     vmax=hia_df['MORT_OVER_POP'].max()),
@@ -333,15 +375,15 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
         # Set titles
         ax0.set_title((group_label + ' Population Density').title())
         ax1.set_title((group_label + ' Exposure').title())
-        ax2.set_title((group_label + ' ' + endpoint + ' Excess Mortality').title())
-        ax3.set_title((group_label + ' ' + endpoint + ' Mortality per 100K').title())
+        ax2.set_title(f"{group_label} {endpoint} Excess {outcome_word}")
+        ax3.set_title(f"{group_label} {endpoint} {outcome_word} per 100K")
 
         # Final cleanup
         fig.tight_layout()
         
         # Export the original plot
         fig.savefig(fpath, dpi=200)
-        logging.info('- {} Plot of excess {} mortality from PM2.5 exposure output as {}'.format(logging_code, endpoint.lower(), fname))
+        logging.info('- {} Plot of excess {} {} from {} exposure output as {}'.format(logging_code, endpoint.lower(), outcome_word_lower, pollutant, fname))
 
         # Check if the output resolution requires a second plot
         if output_resolution in ['AB', 'AD', 'C']:
@@ -367,7 +409,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
               'area_km2': 'sum',  # Total area of intersected regions
               group: 'sum',  # Total population
               mortality_col: 'sum',  # Total excess mortality
-              'TOTAL_CONC_UG/M3': 'mean'  # Ensure this column is aggregated correctly
+              col : 'mean'  # Ensure this column is aggregated correctly
           }).reset_index()
 
           # Calculate population density and mortality 
@@ -400,17 +442,17 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
                       ax=ax0)
 
           ## Pane 1: PM2.5 Exposure Concentration (Population-Weighted)
-          hia_df.plot(column='TOTAL_CONC_UG/M3', legend=True,
-                      legend_kwds={'label': r'Population-Weighted PM$_{2.5}$ Concentration ($\mu$g/m$^3$)'},
+          hia_df.plot(column=col, legend=True,
+                      legend_kwds={'label': fr'Population-Weighted {pretty_pol} Concentration ($\mu$g/m$^3$)'},
                       edgecolor='none', cmap='mako_r',
-                      norm=matplotlib.colors.LogNorm(vmin=max(hia_df['TOTAL_CONC_UG/M3'].min(),1e-9), 
-                                                      vmax=hia_df['TOTAL_CONC_UG/M3'].max()),
+                      norm=matplotlib.colors.LogNorm(vmin=max(hia_df[col].min(),1e-9), 
+                                                      vmax=hia_df[col].max()),
                       antialiased=False,
                       ax=ax1)
 
           ## Pane 2: Excess Mortality per Area
           hia_df.plot(column='MORT_AREA_NORM', legend=True,
-                      legend_kwds={'label': r'Excess Mortality (mortality/km$^2$)'},
+                      legend_kwds={'label': per_area_label},
                       edgecolor='none', cmap='mako_r',
                       norm=matplotlib.colors.LogNorm(vmin=max(hia_df['MORT_AREA_NORM'].min(),1e-9),
                                                       vmax=hia_df['MORT_AREA_NORM'].max()),
@@ -419,7 +461,7 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
 
           ## Pane 3: Excess Mortality per Population
           hia_df.plot(column='MORT_OVER_POP', legend=True,
-                      legend_kwds={'label': r'Mortality per Population (mortality/100 K people)'},
+                      legend_kwds={'label': per_pop_label},
                       edgecolor='none', cmap='mako_r',
                       norm=matplotlib.colors.LogNorm(vmin=max(hia_df['MORT_OVER_POP'].min(),1e-9),
                                                       vmax=hia_df['MORT_OVER_POP'].max()),
@@ -447,37 +489,37 @@ def plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, 
           # Set titles
           ax0.set_title((group + ' Population Density').title())
           ax1.set_title((group + ' Population-Weighted Exposure').title())
-          ax2.set_title((group + ' ' + endpoint + ' Excess Mortality').title())
-          ax3.set_title((group + ' ' + endpoint + ' Mortality per 100K').title())
+          ax2.set_title(f"{group_label} {endpoint} Excess {outcome_word}")
+          ax3.set_title(f"{group_label} {endpoint} {outcome_word} per 100K")
 
           # Final cleanup
           fig.tight_layout()
 
           # Export the aggregated plot
-          fname_aggregated = f_out + '_' + group + '_' + endpoint + '_excess_mortality_aggregated.png'
+          fname_aggregated = f_out + '_' + group + '_' + endpoint + f'_{file_suffix}_aggregated.png'
           fname_aggregated = str.lower(fname_aggregated)
           fpath_aggregated = os.path.join(output_dir, fname_aggregated)
           fig.savefig(fpath_aggregated, dpi=200)
-          logging.info('- {} Plot of excess {} mortality from PM2.5 exposure at aggregated resolution output as {}'.format(logging_code, endpoint.lower(), fname_aggregated))
+          logging.info('- {} Plot of excess {} {} from {} exposure at aggregrated resolution output as {}'.format(logging_code, endpoint.lower(), outcome_word_lower, pollutant, fname))
         
         return fname, fname_aggregated if output_resolution in ['AB', 'AD', 'C'] else fname
 
-def export_health_impacts(hia_df, population_columns, group, endpoint, output_dir, f_out, verbose, debug_mode):
+def export_health_impacts(hia_df, population_columns, group, endpoint, output_dir, f_out, verbose, debug_mode, pollutant = 'PM2.5'):
         ''' 
         Plots mortality as a shapefile. 
         
         INPUTS:
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the 
               `function` provided
             - population_columns: a list of population columns to use from the population input file
             - group: the racial/ethnic group name
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', or 'CANCER'
             - output_dir: a filepath string of the location of the output directory
             - f_out: the name of the file output category (will append additional information) 
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed  
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - pollutant: name of the pollutant whose health impacts will be calculated
             
         OUTPUTS:
             - fname: a string filename made by combining the `f_out` with the `group`
@@ -485,10 +527,18 @@ def export_health_impacts(hia_df, population_columns, group, endpoint, output_di
             
         '''
         logging_code = create_logging_code()[endpoint]
-        verboseprint(verbose, '- {} Exporting excess {} mortality from PM2.5 exposure as a shapefile.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
+        
+        # Create file name depending on pollutant
+        if pollutant == 'DPM':
+          endpoint_full = endpoint + " incidence"
+          file_ending = '_excess_incidence.shp'
+        else:
+          endpoint_full = endpoint + " mortality"
+          file_ending = '_excess_mortality.shp'
+        verboseprint(verbose, '- {} Exporting excess {} from {} exposure as a shapefile.'.format(logging_code, endpoint_full.lower(), pollutant), debug_mode, frameinfo=getframeinfo(currentframe()))
             
         # Create the output file directory and name string
-        fname = f_out + '_' + group + '_' + endpoint + '_excess_mortality.shp'
+        fname = f_out + '_' + group + '_' + endpoint + file_ending
         fname = str.lower(fname)
         fpath = os.path.join(output_dir, fname)
         logging_code = create_logging_code()[endpoint]
@@ -496,9 +546,12 @@ def export_health_impacts(hia_df, population_columns, group, endpoint, output_di
         # Get endpoint shortlabel
         endpoint_labels = {'ALL CAUSE':'ACM_',
                           'ISCHEMIC HEART DISEASE':'IHD_',
-                          'LUNG CANCER':'CAN_'}
+                          'LUNG CANCER':'CAN_',
+                          'HAZARD QUOTIENT':'HQ_',
+                          "CANCER RISK": "CR_"
+                          }
         l = endpoint_labels[endpoint]
-        
+
         # Update column names
         col_name_dict = {'TOTAL_CONC_UG/M3':'CONC_UG/M3'}
         col_name_dict.update({col: f"POP_{col}" for col in population_columns})
@@ -509,25 +562,25 @@ def export_health_impacts(hia_df, population_columns, group, endpoint, output_di
         hia_df = rename_for_shapefile(hia_df, endpoint)
           
         hia_df.to_file(fpath)
-        logging.info('- {} Excess {} mortality from PM2.5 exposure output as a shapefile as {}'.format(logging_code, endpoint.lower(), fname))
+        logging.info('- {} Excess {} from {} exposure output as a shapefile as {}'.format(logging_code, endpoint_full.lower(), pollutant, fname))
         
         return fname
 
-def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, f_out, verbose, debug_mode):
+def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, f_out, verbose, debug_mode, pollutant = 'PM2.5'):
         ''' 
         Exports total mortality as a csv file. 
         
         INPUTS:
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the 
               `function` provided
             - population_columns: a list of population columns to use from the population input file
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER' or 'CANCER'
             - output_dir: a filepath string of the location of the output directory
             - f_out: the name of the file output category (will append additional information) 
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed  
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - pollutant: name of the pollutant whose health impacts will be calculated
             
         OUTPUTS:
             - fname: a string filename made by combining the `f_out` with the `group`
@@ -535,16 +588,27 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
             
         '''
         logging_code = create_logging_code()[endpoint]
-        verboseprint(verbose, '- {} Exporting excess {} mortality from PM2.5 exposure as a CSV file.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
+
+        # Create file name depening on pollutant
+        if pollutant == 'DPM':
+          endpoint_full = endpoint + " incidence"
+          file_ending1 = '_excess_incidence.csv'
+          file_ending2 = '_excess_incidence_summary.csv'
+        else:
+          endpoint_full = endpoint + " mortality"
+          file_ending1 = '_excess_mortality.csv'
+          file_ending2 = '_excess_mortality_summary.csv'
+
+        verboseprint(verbose, '- {} Exporting excess {} from {} exposure as a CSV file.'.format(logging_code, endpoint_full.lower(), pollutant), debug_mode, frameinfo=getframeinfo(currentframe()))
             
         # Create the output file directory and name string
-        fname = f_out + '_' + endpoint + '_excess_mortality.csv'
+        fname = f_out + '_' + endpoint + file_ending1
         fname = str.lower(fname)
         fpath = os.path.join(output_dir, fname)
         logging_code = create_logging_code()[endpoint]
         
         # Create the output file directory and name string for the summary file
-        summary_fname = f_out + '_' + endpoint + '_excess_mortality_summary.csv'
+        summary_fname = f_out + '_' + endpoint + file_ending2
         summary_fname = str.lower(summary_fname)
         summary_fpath = os.path.join(output_dir, summary_fname)
 
@@ -552,22 +616,23 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
         endpoint_nice = endpoint.title()
         endpoint_labels = {'ALL CAUSE':'ACM_',
                           'ISCHEMIC HEART DISEASE':'IHD_',
-                          'LUNG CANCER':'CAN_'}
+                          'LUNG CANCER':'CAN_',
+                          'HAZARD QUOTIENT': 'HQ_',
+                          "CANCER RISK":"CR_"}
         l = endpoint_labels[endpoint]
         
         # Create the summary HIA
-        hia_summary = create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoint_nice, debug_mode)
+        hia_summary = create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoint_nice, debug_mode, pollutant)
         
         ## Update column names
         # Create the rename dictionary and make a few edits
-  
         pop_rename_dict = {'POP_'+k: k + ' (# People)' for k in population_columns} # Add units to population
         hia_rename_dict = {l+'_'+k:endpoint_nice+' - '+k+' (excess deaths)' for k in population_columns}
 
         # Rename the columns in series
         hia_df.rename(columns=pop_rename_dict, inplace=True)
         hia_df.rename(columns=hia_rename_dict, inplace=True)
-        hia_df.rename(columns={'TOTAL_CONC_UG/M3':'PM2.5 Concentration (ug/m3)'}, inplace=True)
+        hia_df.rename(columns={'TOTAL_CONC_UG/M3':'{} Concentration (ug/m3)'.format(pollutant), "RISK":"Cancer Risk"}, inplace=True)
         
         # Get rid of geometry column
         hia_df.drop(['geometry'], axis=1)
@@ -575,34 +640,44 @@ def export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, 
         # Export
         hia_df.to_csv(fpath, index=False)
         hia_summary.to_csv(summary_fpath, index=False)
-        logging.info('- {} Excess {} mortality from PM2.5 exposure output as a CSV as {}'.format(logging_code, endpoint.lower(), fname))
+        logging.info('- {} Excess {} from {} exposure output as a CSV as {}'.format(logging_code, endpoint_full.lower(), pollutant, fname))
         
         return hia_summary
 
-def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoint_nice, debug_mode):
+def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoint_nice, debug_mode, pollutant = 'PM2.5'):
         ''' 
         Creates a summary table of health impacts by racial/ethnic group 
         
         INPUTS:
             - population_columns: a list of population columns to use from the population input file
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the 
               `function` provided
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', or 'CANCER'
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed   
             - l: an intermediate string that has the endpoint label string (e.g., ACM_)
             - endpoint_nice: an intermediate string that has a nicely formatted version
               of the endpoint (e.g., All Cause)
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - pollutant: name of the pollutant whose health impacts will be calculated
         
         OUTPUTS:
-            - hia_summary: a summary dataframe containing population, excess mortality,
-              and excess mortality rate per demographic group.
+            - hia_summary: a summary dataframe containing population, excess mortality/incidence,
+              and excess mortality/incidence rate per demographic group.
             
         '''
         logging_code = create_logging_code()[endpoint]
-        verboseprint(verbose, '- {} Creating a summary table of {} mortality from PM2.5 exposure.'.format(logging_code, endpoint.lower()), debug_mode, frameinfo=getframeinfo(currentframe()))
+
+        #Depending on pollutant, it is either excess incidence or excess mortality
+        if pollutant == 'DPM':
+          endpoint_full = endpoint + " incidence"
+          rename1 = ' Incidence (# Excess Cases)'
+          rename2 = 'Incidence'
+        else:
+          endpoint_full = endpoint + " mortality"
+          rename1 = ' Mortality (# Excess Deaths)'
+          rename2 = 'Mortality'
+        verboseprint(verbose, '- {} Creating a summary table of {} from {} exposure.'.format(logging_code, endpoint_full.lower(), pollutant), debug_mode, frameinfo=getframeinfo(currentframe()))
 
         # Set up a few useful variables
         groups = population_columns
@@ -620,28 +695,27 @@ def create_summary_hia(population_columns, hia_df, endpoint, verbose, l, endpoin
         
         # Get the summary results for excess mortality
         exm_df = hia_df[hia_cols].sum().reset_index()
-        exm_df.rename(columns={'index':'Label',0:endpoint_nice+' Mortality (# Excess Deaths)'}, inplace=True)
+        exm_df.rename(columns={'index':'Label',0:endpoint_nice+rename1}, inplace=True)
         exm_df['Group'] = exm_df['Label'].str.split('_').str[1]
-        exm_df = exm_df[['Group', endpoint_nice+' Mortality (# Excess Deaths)']].copy()
+        exm_df = exm_df[['Group', endpoint_nice+rename1]].copy()
         
         # Combine into a summary table (do not export as CSV yet)
         hia_summary = pd.merge(pop_df, exm_df, on='Group')
-        hia_summary['Mortality Rate (per 100000)'] = hia_summary[endpoint_nice+' Mortality (# Excess Deaths)']/hia_summary['Population (# People)'] * 100000.0
+        hia_summary[rename2 + ' Rate (per 100000)'] = hia_summary[endpoint_nice+rename1]/hia_summary['Population (# People)'] * 100000.0
         
         return hia_summary
 
-def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpoint, output_dir, f_out, shape_out, output_resolution, output_png_flag, boundary, verbose, debug_mode):
+def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpoint, output_dir, f_out, shape_out, output_resolution, output_png_flag, boundary, verbose, debug_mode, dpm = False):
         ''' 
         Automates this process a bit.
         
         INPUTS:
-            - hia_df: a dataframe containing excess mortality for the `endpoint` using the 
+            - hia_df: a dataframe containing excess mortality or incidence for the `endpoint` using the 
               `function` provided
             - ca_shp_fp: a filepath string of the California state boundary shapefile
             - population_columns: a list of population columns to use from the population input file
             - group: the racial/ethnic group name
-            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', or 
-              'LUNG CANCER'
+            - endpoint: a string containing either 'ALL CAUSE', 'ISCHEMIC HEART DISEASE', 'LUNG CANCER', or 'CANCER'
             - output_dir: a filepath string of the location of the output directory
             - f_out: the name of the file output category (will append additional information) 
             - shape_out: a filepath string for shapefiles
@@ -650,26 +724,35 @@ def visualize_and_export_hia(hia_df, ca_shp_fp, population_columns, group, endpo
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed      
             - debug_mode: a Boolean indicating whether or not to output debug statements
+            - dpm: A Boolean indicating whether or not to run DPM calcs
             
         OUTPUTS:
-            - hia_summary: a summary dataframe containing population, excess mortality,
-              and excess mortality rate per demographic group.
+            - hia_summary: a summary dataframe containing population, excess mortality/incidence,
+              and excess mortality/incidence rate per demographic group.
         
         '''    
         logging_code = create_logging_code()[endpoint]
-        logging.info('- {} Visualizing and exporting excess {} mortality.'.format(logging_code, endpoint.lower()))
+
+        if dpm:
+          pollutant = 'DPM'
+          endpoint_full = endpoint + " incidence"
+        else:
+          endpoint_full = endpoint + " mortality"
+          pollutant = 'PM2.5'
         
+        logging.info('- {} Visualizing and exporting excess {}.'.format(logging_code, endpoint_full.lower()))
+
         # Plot the map of mortality
         if output_png_flag:
-          fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode)
+          fname = plot_total_mortality(hia_df, ca_shp_fp, group, endpoint, output_resolution, boundary, output_dir, f_out, verbose, debug_mode, pollutant)
         
         # Export the shapefile
-        fname = export_health_impacts(hia_df, population_columns, group, endpoint, shape_out, f_out, verbose, debug_mode)
-        hia_summary = export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, f_out, verbose, debug_mode)
+        fname = export_health_impacts(hia_df, population_columns, group, endpoint, shape_out, f_out, verbose, debug_mode, pollutant)
+        hia_summary = export_health_impacts_csv(hia_df, population_columns, endpoint, output_dir, f_out, verbose, debug_mode, pollutant)
             
         return hia_summary
 
-def combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose):
+def combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose, dpm_summary=None):
         '''
         Combines the three endpoint summary tables into one export file
         
@@ -684,18 +767,23 @@ def combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_o
             - f_out: the name of the file output category (will append additional information) 
             - verbose: a Boolean indicating whether or not detailed logging statements should 
               be printed      
+            - dpm_summary: an optional summary dataframe containing population, excess cancer incidence, and cancer incidence rates 
             
         OUTPUTS: None
             
         '''
         # Merge ACM and IHD first, then add LCM
-        hia_summary = pd.merge(acm_summary, ihd_summary, on='Group')
-        hia_summary = pd.merge(hia_summary, lcm_summary, on='Group')
+        hia_summary = pd.merge(acm_summary, ihd_summary.drop(columns=['Population (# People)']), on='Group')
+
+
+        hia_summary = pd.merge(hia_summary, lcm_summary.drop(columns=['Population (# People)']), on='Group')
+
+        #Add DPM 
+        if dpm_summary is not None:
+            hia_summary = pd.merge(hia_summary, dpm_summary.drop(columns=['Population (# People)']), on='Group')
         
         # Keep only necessary columns
-        hia_summary = hia_summary.loc[:, ~hia_summary.columns.str.startswith('Mortality')]
-        hia_summary = hia_summary.loc[:, ~hia_summary.columns.str.endswith('x')]
-        hia_summary = hia_summary.loc[:, ~hia_summary.columns.str.endswith('y')]
+        hia_summary = hia_summary.loc[:, ~hia_summary.columns.str.startswith(('Mortality','Incidence'))]
         
         
         # Export results
@@ -736,3 +824,109 @@ def rename_for_shapefile(df, endpoint, max_len=10):
 
     # Apply renaming
     return df.rename(columns=new_names)
+  
+def hazard_quotient(conc, output_dir, f_out,):
+    '''
+    Calculates the Hazard Quotient (HQ) for each ISRM grid cell
+
+    INPUTS:
+      - conc: a vector with the DPM concentration for each grid cell
+    
+    OUTPUTS:
+      - df_hq: a dataframe of HQs per grid cell
+    '''
+
+    # Divided DPM concentration by 5
+    df_hq = conc.copy()
+    df_hq["HQ"] = df_hq["DPM_CONC_UG/M3"]/5
+
+    # Created file name for output
+    fname = f_out + '_dpm_hazard_quotient.csv'
+    fname = str.lower(fname)
+    fpath = os.path.join(output_dir, fname)
+
+    #Outputs file
+    hq_output = df_hq[['ISRM_ID', 'DPM_CONC_UG/M3', 'HQ']]
+    hq_output.to_csv(fpath, index=False)
+
+    return df_hq
+
+def dpm_risk(conc, output_dir, f_out, avg_time='30YR'): 
+  ''' 
+  Estimates excess cancer risk from DPM following OEHHA (2015) methodology 
+    
+  INPUTS:
+      - conc: a vector with the concentration for each grid cell
+      - avg_time: a string identifying if the user wants to run 30-year averaging time or 70-year
+        
+  OUTPUTS: 
+      - dpm_risk: a vector with the excess cancer risk from DPM (units: cancer risk per million people)
+    
+    '''
+  
+  #Define output file path
+  fname = f_out + '_dpm_cancer_risk.csv'
+  fname = str.lower(fname)
+  fpath = os.path.join(output_dir, fname)
+  
+  dpm_risk = conc.copy()
+  # Estimate the unit dose for each age group
+  #                Exposure Frequency | BR/BW |  CF (ug-->mg, L--m3)
+  # Units              (days/days)    (L/kg-day)
+  # OEHHA 2015 pp        122/231	     122-123 
+  unit_dose = np.array([ 0.96    *    361.00 * 1e-6,  # 3rd trimester
+                          0.96    *    1090.0 * 1e-6,  # 0-2 years
+                          0.96    *    861.00 * 1e-6,  # 2-9 years -- this is never used
+                          0.96    *    745.00 * 1e-6,  # 2-16 years
+                          0.96    *    335.00 * 1e-6,  # 16-30 years
+                          0.96    *    290.00 * 1e-6]) # 16-70 years
+
+  # Define the age sensitivity factor (ASF, unitless)
+  asf = np.array([10, 10, 3, 3, 1, 1]) # OEHHA 2015 Table 8.3
+
+  # Define the fraction of time at home (FAH, unitless)
+  fah = np.array([0.85, 0.85, 0.72, 0.72, 0.73, 0.73]) # OEHHA 2015 Table 8.4
+
+  # Define the duration adjustment based on a 70 year life span regardless of averaging time
+  dur_adj = np.array([0.25, 2, 7, 14, 14, 54]) / 70.
+
+  # Define the cancer sensitivity factor
+  csf = 1.1 # OEHHA 2015 Table 7.1
+
+  # Choose the relevant age bins based on the avg_time parameter
+  if avg_time == '30YR':
+      unit_risk = unit_dose[[0,1,3,4]] * asf[[0,1,3,4]] * fah[[0,1,3,4]] * dur_adj[[0,1,3,4]] * csf
+  if avg_time == '70YR':
+      unit_risk = unit_dose[[0,1,3,5]] * asf[[0,1,3,5]] * fah[[0,1,3,5]] * dur_adj[[0,1,3,5]] * csf
+    
+  # Scale by concentrations and 10^6 to get risk per million people
+  dpm_risk["RISK"] = unit_risk.sum() * conc["DPM_CONC_UG/M3"] * 1e6
+
+  #Re-order column names
+  dpm_risk_output = dpm_risk[["ISRM_ID","DPM_CONC_UG/M3","RISK"]]
+  dpm_risk_output.to_csv(fpath, index=False)
+    
+  return dpm_risk
+
+def dpm_excess_incidence(risk,population):
+    '''
+    For each given risk and population count, calculates the excess cancer incidence
+
+    INPUTS:
+        - risk: numerical risk value
+        - population: population count
+
+    OUTPUTS:
+        - excess_incidence: excess number of cancer cases
+    '''
+    excess_incidence = risk*population/(10**(6))
+    return excess_incidence
+
+
+    
+         
+
+
+     
+     
+

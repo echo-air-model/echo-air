@@ -5,7 +5,7 @@ Main Run File
 
 @author: libbykoolik
 
-Last updated: 2025-12-09
+Last updated: 2026-04-10
 
 """
 #%% Import useful libraries, supporting objects, and scripts
@@ -96,6 +96,9 @@ if __name__ == "__main__":
         output_png_flag = cf.output_png
         population_columns = [item.upper() for item in cf.population_columns]
 
+        # NOx calculations are turned off, turn on for future use oncce the NOx ISRM is ready
+        nox_conc = False
+
     # Create the output directory
     output_dir, f_out = create_output_dir(batch, name)
 
@@ -120,9 +123,10 @@ if __name__ == "__main__":
     # running calculations
     if check:
         try:
-            # Default to verbose since this mode is just for checking files
-            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, load_file=False, verbose=True)
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
+            # Default to verbose since this mode is just for checking filess
+            emis = emissions(emissions_path, output_dir, f_out, nox_conc=nox_conc, units=units, name=name, debug_mode=debug_mode, load_file=False, verbose=True)
+            dpm = emis.dpm
+            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, dpm=dpm, nox_conc=nox_conc, load_file=False, verbose=True)
             pop = population(population_path, population_columns, debug_mode=debug_mode, load_file=False, verbose=True)
             logging.info("\n<< Emissions, ISRM, and population files exist and are able to be imported. >>\n")
 
@@ -159,7 +163,7 @@ if __name__ == "__main__":
             emis_future = file_reader_pool.submit(
                 emissions,
                 emissions_path, output_dir, f_out,
-                debug_mode=debug_mode, units=units,
+                debug_mode=debug_mode, nox_conc=nox_conc, units=units,
                 name=name, load_file=True, verbose=verbose
             )
 
@@ -167,12 +171,14 @@ if __name__ == "__main__":
                                                  population_columns, debug_mode=debug_mode, load_file=True, verbose=verbose)
             # block until emissions are loaded
             emis = emis_future.result()
+            dpm = emis.dpm
 
             # now launch ISRM and population reads in parallel
             isrm_future = file_reader_pool.submit(
                 isrm,
                 isrm_path, output_region, region_of_interest,
-                run_parallel, debug_mode=debug_mode,
+                run_parallel, debug_mode=debug_mode, 
+                dpm=dpm, nox_conc=nox_conc,
                 LA_flag = emis.LA_flag,
                 LB_flag = emis.LB_flag,
                 LC_flag = emis.LC_flag,
@@ -218,10 +224,13 @@ if __name__ == "__main__":
             
             # Create emissions object
             verboseprint(verbose, '- Processing for the emissions in verbose mode will be preceeded by [EMISSIONS].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            emis = emissions(emissions_path, output_dir, f_out, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            nox_conc = False
+            emis = emissions(emissions_path, output_dir, f_out, nox_conc=nox_conc, units=units, name=name, debug_mode=debug_mode, load_file=True, verbose=verbose)
+            dpm = emis.dpm
+            
             # Create ISRM object
             verboseprint(verbose, '- Processing for the ISRM grid in verbose mode will be preceeded by [ISRM].', debug_mode, frameinfo=getframeinfo(currentframe()))
-            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, LA_flag = emis.LA_flag, LB_flag = emis.LB_flag, LC_flag = emis.LC_flag, load_file=True, verbose=verbose)
+            isrmgrid = isrm(isrm_path, output_region, region_of_interest, run_parallel, debug_mode=debug_mode, dpm = dpm, LA_flag = emis.LA_flag, LB_flag = emis.LB_flag, LC_flag = emis.LC_flag, load_file=True, verbose=verbose)
             # Create population object
             verboseprint(verbose, '- Processing for the population data in verbose mode will be preceeded by [POPULATION].', debug_mode, frameinfo=getframeinfo(currentframe()))
             pop = population(population_path, population_columns, debug_mode=debug_mode, load_file=True, verbose=verbose)
@@ -254,17 +263,17 @@ if __name__ == "__main__":
         # Estimate exposures and output them
         if run_parallel:
             exp_pop_alloc = exp_pop_alloc_future.result()
-        exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, population_columns, verbose, debug_mode=debug_mode)    
+        exposure_gdf, exposure_pctl, exposure_disparity = run_exposure_calcs(conc, exp_pop_alloc, population_columns, verbose, debug_mode=debug_mode, dpm=dpm, nox_conc=nox_conc)    
         
         if output_exposure: # Perform all exports in parallel
-            export_exposure(population_columns, exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, debug_mode=debug_mode)
+            export_exposure(population_columns, exposure_gdf, exposure_disparity, exposure_pctl, shape_out, output_dir, f_out, verbose, run_parallel, output_png_flag, dpm, nox_conc, debug_mode=debug_mode)
             
         elif output_png_flag: # Just export the EJ figure
             plot_percentile_exposure(population_columns, output_dir, f_out, exposure_pctl, verbose, debug_mode=debug_mode)
             
         # Finally, if larger output resolution, export population-weighted map that matches the area-weighted map
         if output_resolution != 'ISRM':
-            export_pwm_map(population_columns, pop.pop_exp, conc, output_dir, output_region, output_png_flag, f_out, ca_shp_path, shape_out)
+            export_pwm_map(population_columns, pop.pop_exp, conc, output_dir, output_region, output_png_flag, f_out, ca_shp_path, shape_out, dpm, nox_conc)
         
         ### HEALTH MODULE
         if run_health:
@@ -317,11 +326,25 @@ if __name__ == "__main__":
                                                              hia_inputs.pop_inc, pop, 'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                     lungcancer_future = health_executor.submit(calculate_excess_mortality, population_columns, trimmed_conc,
                                                              hia_inputs.pop_inc, pop, 'LUNG CANCER', krewski, verbose, debug_mode)
+                    
+                    # If dpm, calculate extra health impacts
+                    if dpm:
+                        dpm_conc = conc.detailed_conc_clean[['ISRM_ID','DPM_CONC_UG/M3','geometry']]
+                        hazard_quotient_future = health_executor.submit(hazard_quotient, dpm_conc, output_dir, f_out)
+                        cancer_risk_future = health_executor.submit(dpm_risk, dpm_conc, output_dir, f_out)
+                        cancer_risk = cancer_risk_future.result()
+                        cancer_excess_future = health_executor.submit(calculate_excess_mortality, population_columns, cancer_risk,
+                                                             hia_inputs.pop_inc, pop, 'CANCER RISK', dpm_excess_incidence, verbose, debug_mode, dpm)
                                     
                     # Collect all three results
                     allcause = allcause_future.result()
                     ihd = ihd_future.result()
                     lungcancer = lungcancer_future.result()
+
+                    if dpm:
+                        hazardquotient = hazard_quotient_future.result()
+                        cancerdpm = cancer_excess_future.result()
+                        dpm_cancer_ve_future = health_executor.submit(visualize_and_export_hia, cancerdpm, ca_shp_path, population_columns, 'TOTAL', 'CANCER RISK', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode, dpm=dpm)
                     
                     # Begin exporting the results in parallel
                     logging.info('<< Exporting Health Impact Outputs >>')
@@ -337,9 +360,13 @@ if __name__ == "__main__":
                     acm_summary = allcause_ve_future.result()
                     ihd_summary = ihd_ve_future.result()
                     lcm_summary = lungcancer_ve_future.result()
-                    
+
                     # Get summary table and export
-                    combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose)
+                    if dpm:
+                        dpm_cancer_summary = dpm_cancer_ve_future.result()
+                        combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose, dpm_cancer_summary)
+                    else:
+                        combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose)
                     
             else:
                 # Start with a few print statements to kick things off
@@ -354,14 +381,26 @@ if __name__ == "__main__":
                 ihd = calculate_excess_mortality(population_columns, trimmed_conc, hia_inputs.pop_inc, pop, 
                                                     'ISCHEMIC HEART DISEASE', krewski, verbose, debug_mode)
                 lungcancer = calculate_excess_mortality(population_columns, trimmed_conc, hia_inputs.pop_inc, 
-                                                    pop, 'LUNG CANCER', krewski, verbose, debug_mode)            
+                                                    pop, 'LUNG CANCER', krewski, verbose, debug_mode)  
+                if dpm:
+                    dpm_conc = conc.detailed_conc_clean[['ISRM_ID','DPM_CONC_UG/M3','geometry']]
+                    hazardquotient = hazard_quotient(dpm_conc, output_dir, f_out)
+                    cancer_risk = dpm_risk(dpm_conc, output_dir, f_out)
+                    cancer_excess = calculate_excess_mortality(population_columns, cancer_risk, hia_inputs.pop_inc, 
+                                                    pop, 'CANCER RISK', dpm_excess_incidence, verbose, debug_mode, dpm)  
+                          
                 
                 # Plot and export
                 logging.info('<< Exporting Health Impact Outputs >>')
-                visualize_and_export_hia(allcause, ca_shp_path, population_columns, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                visualize_and_export_hia(ihd, ca_shp_path, population_columns, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
-                visualize_and_export_hia(lungcancer, ca_shp_path, population_columns,'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode)
-            
+                acm_summary = visualize_and_export_hia(allcause, ca_shp_path, population_columns, 'TOTAL', 'ALL CAUSE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                ihd_summary = visualize_and_export_hia(ihd, ca_shp_path, population_columns, 'TOTAL', 'ISCHEMIC HEART DISEASE', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary, verbose=verbose, debug_mode=debug_mode)
+                lcm_summary = visualize_and_export_hia(lungcancer, ca_shp_path, population_columns,'TOTAL', 'LUNG CANCER', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode)
+
+                if dpm: 
+                    dpm_summary = visualize_and_export_hia(cancer_excess, ca_shp_path, population_columns,'TOTAL', 'CANCER RISK', output_dir, f_out, shape_out, output_resolution, output_png_flag, conc.boundary,  verbose=verbose, debug_mode=debug_mode, dpm=dpm)
+                    combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose, dpm_summary)
+                else:
+                    combine_hia_summaries(acm_summary, ihd_summary, lcm_summary, output_dir, f_out, verbose)
             # Return that everything is done
             logging.info('- [HEALTH] All outputs have been exported!')
                 
