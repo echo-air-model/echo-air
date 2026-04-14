@@ -205,7 +205,7 @@ def report_version():
 
     logging.info('╔════════════════════════════════╗')
     logging.info('║ ECHO-AIR Model                 ║')
-    logging.info('║ Version 1.0.5                  ║')
+    logging.info('║ Version 1.1.0                  ║')
     logging.info('╚════════════════════════════════╝')
     logging.info('\n')
     return
