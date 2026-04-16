@@ -292,6 +292,7 @@ class concentration:
             
             # Make a copy and change column names to meet shapefile requirements
             gdf_export = self.detailed_conc.copy()
+            print(self.detailed_conc.columns)
 
             relevant_columns = ['ISRM_ID', 'geometry', 'PM25_UG_S', 'NH3_UG_S',
                                   'VOC_UG_S', 'NOX_UG_S', 'SOX_UG_S', 'fPM_UG_M3', 
@@ -307,6 +308,7 @@ class concentration:
             relevant_columns += ['LAYER']
 
             gdf_export.columns = relevant_columns
+            print(gdf_export.columns)
             
             # Ensure it's a GeoDataFrame so .to_file() exists
             if not isinstance(gdf_export, gpd.GeoDataFrame):

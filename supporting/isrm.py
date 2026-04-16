@@ -63,6 +63,7 @@ class isrm:
         self.dpm = dpm
         self.nox_conc = nox_conc
         self.pollutant_names = ['PM25', 'NH3', 'VOC', 'NOX', 'SOX']
+        print('**** '+','.join(self.pollutant_names))
         if self.dpm:
             self.pollutant_names.append('DPM')
         if self.nox_conc:
@@ -160,6 +161,7 @@ class isrm:
             
         # Always append the geo file at the end
         paths.append(os.path.join(self.isrm_path, 'isrm_geo.feather'))
+        print('******* get_isrm_files: '+','.join(paths))
         return tuple(paths)
 
     def check_path(self):
@@ -236,6 +238,7 @@ class isrm:
             [self.nox_LA_path,  self.nox_LB_path,  self.nox_LC_path],
             [self.sox_LA_path,  self.sox_LB_path,  self.sox_LC_path],
             [self.voc_LA_path,  self.voc_LB_path,  self.voc_LC_path]]
+        print('*** paths being loaded as PM25, NH3, NOx, SOx, VOC')
         
         if self.dpm:
             pollutant_paths.append([self.dpm_LA_path, self.dpm_LB_path, self.dpm_LC_path])
