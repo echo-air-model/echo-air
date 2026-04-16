@@ -4,7 +4,7 @@
 ISRM Data Object
 
 @author: libbykoolik
-last modified: 2026-04-10
+last modified: 2026-04-16
 """
 
 # Import Libraries
@@ -174,9 +174,9 @@ class isrm:
         pollutant_files = [
             self.pm25_LA_path, self.pm25_LB_path, self.pm25_LC_path,
             self.nh3_LA_path,  self.nh3_LB_path,  self.nh3_LC_path,
+            self.voc_LA_path,  self.voc_LB_path,  self.voc_LC_path,
             self.nox_LA_path,  self.nox_LB_path,  self.nox_LC_path,
             self.sox_LA_path,  self.sox_LB_path,  self.sox_LC_path,
-            self.voc_LA_path,  self.voc_LB_path,  self.voc_LC_path,
         ]
 
         if self.dpm:
@@ -233,9 +233,10 @@ class isrm:
         pollutant_paths = [
             [self.pm25_LA_path, self.pm25_LB_path, self.pm25_LC_path],
             [self.nh3_LA_path,  self.nh3_LB_path,  self.nh3_LC_path],
+            [self.voc_LA_path,  self.voc_LB_path,  self.voc_LC_path],
             [self.nox_LA_path,  self.nox_LB_path,  self.nox_LC_path],
             [self.sox_LA_path,  self.sox_LB_path,  self.sox_LC_path],
-            [self.voc_LA_path,  self.voc_LB_path,  self.voc_LC_path]]
+            ]
         
         if self.dpm:
             pollutant_paths.append([self.dpm_LA_path, self.dpm_LB_path, self.dpm_LC_path])
